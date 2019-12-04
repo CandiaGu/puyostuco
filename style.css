@@ -1,0 +1,377 @@
+body{
+	font-family: 'Varela Round', sans-serif;
+	margin:0;
+	color: navy;
+
+}
+
+a{
+	text-decoration: none;
+	color:navy;
+	transition-duration: 0.3s;
+}
+
+a:hover {
+	transform:scale(1.05,1.05);
+	-webkit-transform:scale(1.05,1.05);
+	-moz-transform:scale(1.05,1.05);
+}
+
+
+.centered-box {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+h3{
+	margin:0;
+}
+
+
+
+/********* Header *********/
+header{
+	margin-bottom: 5%;
+}
+
+.home-header{
+	display: grid;
+	grid-template-columns: 33% 34% 33%;
+
+}
+
+.puyo-box{
+	color:white;
+	background-color: navy;
+	border-bottom-right-radius: 25px;
+	border-bottom-left-radius: 25px;
+	padding-left:5%;
+	padding-right:5%;
+}
+.sign-in-up{
+	height:50%;
+	font-size: 120%;
+}
+
+.sign-in{
+	margin:5%;
+
+}
+
+.sign-up{
+	margin:5%;
+	border: solid 2px navy;
+	padding:2%;
+	padding-left: 3%;
+	padding-right: 3%;
+	border-radius: 15px;
+}
+
+.dot {
+	margin: 4%;
+	height: 20px;
+	width: 20px;
+	border-radius: 50%;
+	display: inline-block;
+}
+
+/********* Home *********/
+
+.home-container{
+	display: grid;
+	grid-template-columns: 60% 40%;
+	color:white;
+
+
+}
+.box {
+	padding: 10%;
+	font-size: 150%;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 2%;
+	margin-bottom: 2%;
+	color:white;
+
+}
+.play {
+	grid-column: 1 ;
+	grid-row: 1 / span 2;
+	background-color: red;
+	border-radius: 0 25px 25px 0;
+	margin-right: 2%;
+}
+.learn {
+	grid-column: 2 ;
+	grid-row: 1;
+	background-color: blue;
+	border-radius: 25px 0 0 25px;
+	margin-left: 2%;
+	font-size: 120%;
+}
+.practice {
+	grid-column: 2 ;
+	grid-row: 2 ;
+	background-color: green;
+	border-radius: 25px 0 0 25px;
+
+	margin-left: 2%;
+	font-size: 120%;
+}
+
+.about-us {
+	margin:10%;
+}
+
+
+/********* Play *********/
+.other-header{
+	display: grid;
+	grid-template-columns: 60% 40%;
+}
+
+.play-header-extension{
+	background-color: red;
+	padding: 2%;
+	width: 45%;
+	color:white;
+	border-radius:0 25px 25px 0;
+	font-size: 150%;
+	font-weight: 900;
+}
+
+.play-options{
+	display:grid;
+	grid-template-columns: 50% 50%;
+	padding: 5% 22% 5% 22%;
+
+}
+
+.play-option{
+	border: 5px blue solid;
+	text-align: center;
+	width: 25vw;
+	height: 25vw;
+	border-radius: 25px;
+	transition: 0.3s;
+}
+
+
+.play-option-1{
+	background-color: blue;
+	color:white;
+}
+
+.play-option-2{
+	color:blue;
+}
+
+#select-room{
+	visibility: hidden;
+	width:100%;
+}
+
+.select-room{
+	width: 40%;
+}
+
+input[type=text] {
+	width: 100%;
+	padding: 10px 15px;
+	margin: 8px 0;
+	box-sizing: border-box;
+	border: 3px solid blue;
+	outline: none;
+	border-radius: 25px;
+	font-size: 120%;
+}
+
+input[type=text]:focus {
+	outline: none;
+}
+
+.select-room-option-1{
+	background-color: red;
+	color:white;
+	padding: 15px 25px;
+	border-radius:25px;
+	margin-bottom: 3%;
+	margin-top: 1%;
+
+}
+
+.select-room-option-2{
+	background-color: blue;
+	color:white;
+	padding: 15px 25px;
+	border-radius:25px;
+
+}
+
+/********* Learn *********/
+
+.learn-header-extension{
+	background-color: blue;
+	padding: 2%;
+	width: 45%;
+	color:white;
+	border-radius:0 25px 25px 0;
+	font-size: 150%;
+	font-weight: 900;
+}
+
+.learn-module-wrapper{
+	display: grid;
+	grid-template-columns: 33% 33% 33%;
+	margin: 5% 10%;
+	grid-gap: 1em;
+}
+
+.learn-module{
+	border-radius: 25px;
+	width: 14em;
+	height: 14em;
+	color:white;
+	font-size: 150%;
+}
+
+.learn-module-1{
+	background-color: red;
+}
+
+.learn-module-2{
+	background-color: orange;
+}
+
+.learn-module-3{
+	background-color: green;
+}
+
+.learn-module-4{
+	background-color: blue;
+}
+
+.learn-module-5{
+	background-color: purple;
+}
+
+.learn-module-6{
+	background-color: navy;
+}
+
+.learn-article-wrapper{
+	display: grid;
+	grid-template-columns: 50% 50%;
+	margin: 5% 10%;
+	grid-gap: 1em;
+}
+
+.next{
+	background-color: blue;
+	color:white;
+	padding: 10px 25px;
+	border-radius:25px;
+	width:25%;
+	font-size: 125%;
+	float: left
+}
+
+.next-topic{
+	padding: 10px 25px;
+	float: left;
+	font-size: 110%;
+}
+/********* Practice *********/
+
+.practice-header-extension{
+	background-color: green;
+	padding: 2%;
+	width: 45%;
+	color:white;
+	border-radius:0 25px 25px 0;
+	font-size: 150%;
+	font-weight: 900;
+}
+
+/********* Game *********/
+
+.clear {
+	clear: both;
+	content: "";
+}
+.game-wrapper{
+	display: grid;
+	grid-template-columns: minmax(100px, 1fr) minmax(320px, 1fr) minmax(100px, 1fr);
+}
+.game {
+	max-width: 400px;
+	margin: 0;
+	background: navy;
+	border-radius: 25px;
+	margin-bottom: 15vh;
+	padding:4%;
+}
+
+.game .cell0{
+	background-color: navy;
+}
+
+.game .cell1{
+	background-color: red;
+}
+.game .cell2{
+	background-color: blue;
+}
+
+.game .cell3{
+	background-color: green;
+}
+
+.game .cell4{
+	background-color: yellow;
+}
+
+/********* Fake *********/
+
+
+
+
+.game .game-info {
+	margin-bottom: 20px;
+	background: transparent;
+	padding: 7px;
+	text-align: center;
+	color: #fff;
+	min-height: 100px;
+	border-radius: 7px;
+}
+.game .game-info .info {
+	display: block;
+	margin-top: 15px;
+}
+.game .game-info h1, .game .game-info p {
+	margin: 0;
+}
+.game .cell {
+	border: solid 1px blue;
+	float: left;
+	line-height: 45px;
+	height: 45px;
+	text-align: center;
+	width: 45px;
+	cursor: pointer;
+	color: #333333;
+	font-weight: 600;
+	border-radius:50%;
+}
+.game .hidden {
+	background: #333333;
+}
+.game .is-flag,
+.game .is-mine {
+	color: #fc543c;
+}
+
