@@ -12,7 +12,7 @@
 	<script src="../script.js"></script>
 </head>
 
-<body>
+<body onload="onLoadLearnModule()">
 	<header class = "other-header">
 
 		<div class = "centered-box">
@@ -32,9 +32,9 @@
 					</div>
 				</h1>
 			</a>
-			<div class="learn-header-extension centered-box">
+			<a class="learn-header-extension centered-box" href = "../learn.html">
 				LEARN
-			</div>
+			</a>
 		</div>
 		<div class = "centered-box sign-in-up">
 			<a href = "#" class = "sign-in">
@@ -46,18 +46,93 @@
 		</div>
 	</header>
 
-	<div class = "learn-article-wrapper">
+	<div class = "learn-article-wrapper" id = "basics-module">
 		<div>
 			<h2>Basics: How to play</h2>
 			<p>Lorem Ipsum
 				<br>
 				lorem ipsum
 			</p>
-			<a class = "next centered-box">
+			<a class = "next centered-box" href = "learnmodule.html" onclick="selectLearnModule('chaining')">
 				next >
 			</a>
 			<div class ="next-topic">
 				: CHAINING
+			</div>
+		</div>
+	</div>
+
+	<div class = "learn-article-wrapper" id = "chaining-module">
+		<div>
+			<h2>Chaining: Key mechanism</h2>
+			<p>Lorem Ipsum
+				<br>
+				lorem ipsum
+			</p>
+			<a class = "next centered-box" href = "learnmodule.html" onclick="selectLearnModule('gtr')">
+				next >
+			</a>
+			<div class ="next-topic" href = "learnmodule.html" onclick="selectLearnModule('gtr')">
+				: GTR
+			</div>
+		</div>
+	</div>
+	<div class = "learn-article-wrapper" id = "gtr-module">
+		<div>
+			<h2>GTR: Chaining on the second level</h2>
+			<p>Lorem Ipsum
+				<br>
+				lorem ipsum
+			</p>
+			<a class = "next centered-box" href = "learnmodule.html" onclick="selectLearnModule('stairs')">
+				next >
+			</a>
+			<div class ="next-topic">
+				: STAIRS
+			</div>
+		</div>
+	</div>
+	<div class = "learn-article-wrapper" id = "stairs-module">
+		<div>
+			<h2>Stairs: First key form</h2>
+			<p>Lorem Ipsum
+				<br>
+				lorem ipsum
+			</p>
+			<a class = "next centered-box" href = "learnmodule.html" onclick="selectLearnModule('sandwich')">
+				next >
+			</a>
+			<div class ="next-topic">
+				: SANDWICH
+			</div>
+		</div>
+	</div>
+	<div class = "learn-article-wrapper" id = "sandwich-module">
+		<div>
+			<h2>Chaining: Second key form</h2>
+			<p>Lorem Ipsum
+				<br>
+				lorem ipsum
+			</p>
+			<a class = "next centered-box" href = "learnmodule.html" onclick="selectLearnModule('harrassment')">
+				next >
+			</a>
+			<div class ="next-topic">
+				: HARRASSMENT
+			</div>
+		</div>
+	</div>
+	<div class = "learn-article-wrapper" id = "harrassment-module">
+		<div>
+			<h2>Harassment: Multiplayer strategies</h2>
+			<p>Lorem Ipsum
+				<br>
+				lorem ipsum
+			</p>
+			<a class = "next centered-box" href = "learnmodule.html" onclick="selectLearnModule('basics')">
+				next >
+			</a>
+			<div class ="next-topic">
 			</div>
 		</div>
 	</div>

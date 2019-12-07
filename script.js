@@ -18,3 +18,21 @@ function selectPlayMode(mode){
 	}
 
 }
+
+//Learn
+function selectLearnModule(module){
+	localStorage.setItem("currentModule",module);
+}
+
+function onLoadLearnModule(){
+
+	let module = localStorage.getItem("currentModule")
+	document.getElementById(module+"-module").style.display = "grid";
+}
+
+function selectAndReloadModule(module){
+	let prevModule = localStorage.getItem("currentModule")
+	document.getElementById(prevModule+"-module").style.display = "hidden";
+	selectLearnModule(module);
+	onLoadLearnModule();
+}

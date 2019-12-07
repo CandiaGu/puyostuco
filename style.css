@@ -124,6 +124,7 @@ header{
 
 .about-us {
 	margin:10%;
+	width:40%;
 }
 
 
@@ -225,7 +226,7 @@ input[type=text]:focus {
 
 .learn-module-wrapper{
 	display: grid;
-	grid-template-columns: 33% 33% 33%;
+	grid-template-columns:repeat(auto-fill, minmax(320px,1fr));
 	margin: 5% 10%;
 	grid-gap: 1em;
 }
@@ -263,10 +264,11 @@ input[type=text]:focus {
 }
 
 .learn-article-wrapper{
-	display: grid;
+	display:none;
 	grid-template-columns: 50% 50%;
 	margin: 5% 10%;
 	grid-gap: 1em;
+
 }
 
 .next{
@@ -315,6 +317,19 @@ input[type=text]:focus {
 	padding:4%;
 }
 
+.game .cell {
+	border: solid 1px blue;
+	float: left;
+	line-height: 45px;
+	height: 45px;
+	text-align: center;
+	width: 45px;
+	cursor: pointer;
+	color: #333333;
+	font-weight: 600;
+	border-radius:50%;
+}
+
 .game .cell0{
 	background-color: navy;
 }
@@ -334,44 +349,4 @@ input[type=text]:focus {
 	background-color: yellow;
 }
 
-/********* Fake *********/
-
-
-
-
-.game .game-info {
-	margin-bottom: 20px;
-	background: transparent;
-	padding: 7px;
-	text-align: center;
-	color: #fff;
-	min-height: 100px;
-	border-radius: 7px;
-}
-.game .game-info .info {
-	display: block;
-	margin-top: 15px;
-}
-.game .game-info h1, .game .game-info p {
-	margin: 0;
-}
-.game .cell {
-	border: solid 1px blue;
-	float: left;
-	line-height: 45px;
-	height: 45px;
-	text-align: center;
-	width: 45px;
-	cursor: pointer;
-	color: #333333;
-	font-weight: 600;
-	border-radius:50%;
-}
-.game .hidden {
-	background: #333333;
-}
-.game .is-flag,
-.game .is-mine {
-	color: #fc543c;
-}
 

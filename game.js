@@ -147,20 +147,19 @@ var Board = function (_React$Component2) {
     }, {
         key: "dropPuyo",
         value: function dropPuyo(poppedPuyos) {
-            console.log("Dropping puyo..." + poppedPuyos.size);
             var data = this.state.boardData;
             var checkedCols = new Set();
             for (var index = 0; index < poppedPuyos.length; index++) {
                 var val = poppedPuyos[index];
-                console.log("Dropping puyo??? " + val);
                 var valX = val[0];
                 var valY = val[1];
-                if (checkedCols.has(valX)) break;
+                console.log("checking x: " + valX + " for puyo at " + valX + " " + valY);
+                if (checkedCols.has(valX)) continue;
                 checkedCols.add(valX);
+                console.log("actually checking x: " + valX);
 
                 //find the puyo above empty space (all the way above the board if no puyo)
                 var highY = valY;
-                console.log("Dropping puyo... " + highY + " " + valX);
                 while (highY >= 0 && data[highY][valX].puyoColor == 0) {
                     console.log("Dropping puyo... " + highY + " " + valX);
                     highY -= 1;
@@ -486,11 +485,7 @@ var Game = function (_React$Component3) {
             return React.createElement(
                 "div",
                 { className: "game-wrapper" },
-                React.createElement(
-                    "div",
-                    null,
-                    "time"
-                ),
+                React.createElement("div", null),
                 React.createElement(
                     "div",
                     { className: "margin-auto" },
@@ -500,11 +495,7 @@ var Game = function (_React$Component3) {
                         React.createElement(Board, { height: height, width: width, mines: mines })
                     )
                 ),
-                React.createElement(
-                    "div",
-                    null,
-                    "preview"
-                )
+                React.createElement("div", null)
             );
         }
     }]);

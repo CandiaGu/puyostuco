@@ -107,20 +107,19 @@ constructor(props){
 
     //drop all puyos in the same col above x,y
     dropPuyo(poppedPuyos){
-        console.log("Dropping puyo..." + poppedPuyos.size);
         let data = this.state.boardData;
         let checkedCols = new Set();
         for (let index = 0; index < poppedPuyos.length; index++){
             let val = poppedPuyos[index];
-            console.log("Dropping puyo??? " + val);
             let valX = val[0];
             let valY = val[1];
-            if(checkedCols.has(valX)) break;
+            console.log("checking x: "+ valX + " for puyo at " + valX + " " + valY);
+            if(checkedCols.has(valX)) continue;
             checkedCols.add(valX);
+            console.log("actually checking x: "+ valX);
 
             //find the puyo above empty space (all the way above the board if no puyo)
             let highY = valY;
-            console.log("Dropping puyo... " + highY + " " + valX);
             while(highY>=0 && data[highY][valX].puyoColor == 0){
                 console.log("Dropping puyo... " + highY + " " + valX);
                 highY-=1;
@@ -440,15 +439,15 @@ render() {
     return (
         <div className="game-wrapper">
         <div>
-        time
+        
         </div>
         <div className="margin-auto">
-        <div className="game">
-        <Board height={height} width={width} mines={mines} />
-        </div>
+            <div className="game">
+            <Board height={height} width={width} mines={mines} />
+            </div>
         </div>
         <div >
-        preview
+       
         </div>
         </div>
         );
