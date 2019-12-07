@@ -41,6 +41,7 @@ class Board extends React.Component {
     boardData: this.initBoardData(this.props.height, this.props.width),
     gameStatus: "Game in progress",
     mineCount: this.props.mines,
+    locked: 0,
     currPuyo1: [2, 0], //[x,y]
     currPuyo2: [2, 1]
 };
@@ -50,6 +51,7 @@ constructor(props){
     this.moveCurrPuyo = this.moveCurrPuyo.bind(this);
     this.keyControlsFunction = this.keyControlsFunction.bind(this);
     this.spawnPuyo = this.spawnPuyo.bind(this);
+    this.puyoLockFunctions = this.puyoLockFunctions.bind(this);
 }
 
 /* Helper Functions */
@@ -66,6 +68,108 @@ constructor(props){
         data[1][2].puyoColor = Math.floor(Math.random() * puyoColorCount) + 1;
         return data;
 
+
+    }
+    puyoLockFunctions(){
+        let puyo1 = this.state.currPuyo1;
+        let puyo2 = this.state.currPuyo2;
+        let color1 = this.state.boardData[puyo1[1]][puyo1[0]].puyoColor;
+        let color2 = this.state.boardData[puyo2[1]][puyo2[0]].puyoColor;
+        console.log("colors: " + color1 + " " + color2)
+        //check if puyo still at lowest pos
+        if(puyo1[1] != Math.max(this.findLowestPosition(puyo1[0]),puyo1[1]) 
+            && puyo2[1] != Math.max(this.findLowestPosition(puyo2[0],puyo2[1]))){
+            return;
+        }
+        this.setState({locked:1});
+
+        let puyosToPop1 = this.checkPuyoPop(puyo1[0], puyo1[1]);
+        let puyosToPop2 = [];
+        if(color1 != color2){
+            puyosToPop2 = this.checkPuyoPop(puyo2[0], puyo2[1]);
+        }
+
+
+        //pop puyos
+        if(puyosToPop1!=null){
+            this.popPuyos(puyosToPop1);
+        }
+        if(puyosToPop2!=null){
+            this.popPuyos(puyosToPop2);
+        }
+
+        console.log("Dropping puyo..." + puyosToPop1.size + " " + puyosToPop2.size);
+        //drop puyos
+        this.dropPuyo([...puyosToPop1, ...puyosToPop2]);
+
+        this.spawnNewPuyo();
+    }
+
+    //drop all puyos in the same col above x,y
+    dropPuyo(poppedPuyos){
+        console.log("Dropping puyo..." + poppedPuyos.size);
+        let data = this.state.boardData;
+        let checkedCols = new Set();
+        for (let index = 0; index < poppedPuyos.length; index++){
+            let val = poppedPuyos[index];
+            console.log("Dropping puyo??? " + val);
+            let valX = val[0];
+            let valY = val[1];
+            if(checkedCols.has(valX)) break;
+            checkedCols.add(valX);
+
+            //find the puyo above empty space (all the way above the board if no puyo)
+            let highY = valY;
+            console.log("Dropping puyo... " + highY + " " + valX);
+            while(highY>=0 && data[highY][valX].puyoColor == 0){
+                console.log("Dropping puyo... " + highY + " " + valX);
+                highY-=1;
+            }
+
+            //find the puyo below empty space (all the way at the bottom of the board if no puyo)
+            let lowY = valY;
+            while(lowY<this.props.height && data[lowY][valX].puyoColor == 0){
+                lowY+=1;
+            }
+            lowY-=1;
+
+            //find all puyos
+            let colorArray = new Array();
+            while(highY>=0 && data[highY][valX].puyoColor != 0){
+                colorArray.push(data[highY][valX].puyoColor);
+                data[highY][valX].puyoColor = 0;
+                highY-=1;
+                
+            }
+            console.log("color array length " + colorArray.length);
+            console.log("Dropping puyo at col " + valX + "... " + " to " + lowY);
+            //bring all the puyos down
+            while(colorArray.length>0){
+                let currColor = colorArray.shift();
+                console.log("current color "+ currColor);
+                data[lowY][valX].puyoColor = currColor; 
+                lowY-=1;
+                
+            }
+
+        }
+        this.setState({boardData: data});
+
+        
+
+    }
+
+    popPuyos(puyoSet){
+        let data = this.state.boardData;
+
+        for (let index = 0; index < puyoSet.length; index++){
+            let val = puyoSet[index];
+            //remove puyo
+            data[val[1]][val[0]].puyoColor = 0;
+
+        }
+
+        this.setState({boardData:data});
 
     }
 
@@ -98,7 +202,86 @@ constructor(props){
         return data;
     }
 
-    dropCurrPuyo(){
+    //find all puyos that should pop
+    checkPuyoPop(x,y){
+        //recursive function
+        var checkedLocations = {};
+        var sameColorPuyoLoc = [];
+        let color = (this.state.boardData)[y][x].puyoColor;
+
+        sameColorPuyoLoc = this.checkPuyoHelper(x,y, checkedLocations, sameColorPuyoLoc, color);
+
+        if(sameColorPuyoLoc.length >= 4)
+            return sameColorPuyoLoc;
+        else
+            return new Set();
+
+    }
+
+    checkPuyoHelper(x,y, checkedLocation, sameColorPuyoLoc, color){
+
+        let data = this.state.boardData;
+        //check if current puyo is same color
+        console.log("color check at " + x + "," + y + " ? " + color + " " + data[y][x].puyoColor);
+
+        if(data[y][x].puyoColor == color){
+
+            //add given
+            if( !(x in checkedLocation)){
+                checkedLocation[x] = new Set();
+                
+            }
+            checkedLocation[x].add(y);
+
+            sameColorPuyoLoc.push([x,y]);
+
+
+            //check neighboring puyo blocks
+            
+            //up
+            if(this.checkIfValidLoc(x,y-1) && !this.checkIfEmpty(x,y-1) && !this.checkIfAlreadyVisited(x,y-1,checkedLocation)){
+                console.log("up?");
+                sameColorPuyoLoc = this.checkPuyoHelper(x,y-1,checkedLocation, sameColorPuyoLoc, color);
+            }
+
+            //down
+            if(this.checkIfValidLoc(x,y+1) && !this.checkIfEmpty(x,y+1) && !this.checkIfAlreadyVisited(x,y+1,checkedLocation)){
+                sameColorPuyoLoc = this.checkPuyoHelper(x,y+1,checkedLocation, sameColorPuyoLoc, color);
+            }
+
+            //left
+            if(this.checkIfValidLoc(x-1,y) && !this.checkIfEmpty(x-1,y) && !this.checkIfAlreadyVisited(x-1,y,checkedLocation)){
+                sameColorPuyoLoc = this.checkPuyoHelper(x-1,y,checkedLocation, sameColorPuyoLoc, color);
+            }
+
+            //right
+            if(this.checkIfValidLoc(x+1,y) && !this.checkIfEmpty(x+1,y) && !this.checkIfAlreadyVisited(x+1,y,checkedLocation)){
+                sameColorPuyoLoc = this.checkPuyoHelper(x+1,y,checkedLocation, sameColorPuyoLoc, color);
+            }
+
+            
+        }
+
+        return sameColorPuyoLoc;
+
+    }
+
+    checkIfEmpty(x,y){
+        return this.state.boardData[y][x].puyoColor == 0;
+
+    }
+
+    checkIfAlreadyVisited(x,y,checkedLocations){
+        if(x in checkedLocations){
+            return checkedLocations[x].has(y);
+        }
+        return false;
+    }
+
+    checkIfValidLoc(x,y){
+
+        return x >= 0 && x < this.props.width &&
+            y >= 0 && y < this.props.height;
 
     }
 
@@ -121,11 +304,8 @@ constructor(props){
         let newPuyo2 = [currPuyo2[0] + x, currPuyo2[1] + y];
 
         //check if legal move
-        if(newPuyo1[0] < 0|| newPuyo1[0] > this.props.width-1 ||
-            newPuyo1[1] < 0|| newPuyo1[1] > this.findLowestPosition(newPuyo1[0]) ||
-            newPuyo2[0] < 0|| newPuyo2[0] > this.props.width-1 ||
-            newPuyo2[1] < 0|| newPuyo2[1] > this.findLowestPosition(newPuyo1[0])
-            )
+        if(!this.checkIfValidLoc(newPuyo1[0], newPuyo1[1]) || !this.checkIfValidLoc(newPuyo2[0], newPuyo2[1]) || 
+            newPuyo1[1] > this.findLowestPosition(newPuyo1[0]) || newPuyo2[1] > this.findLowestPosition(newPuyo1[0]))
             return;
 
 
@@ -152,12 +332,13 @@ constructor(props){
         //if at bottom start timer
         if(newPuyo1[1] == Math.max(this.findLowestPosition(newPuyo1[0]),newPuyo1[1]) 
             || newPuyo2[1] == Math.max(this.findLowestPosition(newPuyo2[0],newPuyo2[1])))
-            setTimeout(this.spawnNewPuyo.bind(this), 2000);
+            setTimeout(this.puyoLockFunctions.bind(this), 1000);
 
 
     }
 
     keyControlsFunction(event){
+
         if(event.key === "ArrowUp") {
             this.dropCurrPuyo();
         }
@@ -171,6 +352,7 @@ constructor(props){
             this.moveCurrPuyo(0,1);
 
         }
+        
     }
     componentDidMount(){
         document.addEventListener("keydown", this.keyControlsFunction, false);
@@ -182,30 +364,6 @@ constructor(props){
 
     }
 
-    // get number of neighbouring mines for each board cell
-    getNeighbours(data, height, width) {
-        let updatedData = data, index = 0;
-
-        for (let i = 0; i < height; i++) {
-            for (let j = 0; j < width; j++) {
-                if (data[i][j].isMine !== true) {
-                    let mine = 0;
-                    const area = this.traverseBoard(data[i][j].x, data[i][j].y, data);
-                    area.map(value => {
-                        if (value.isMine) {
-                            mine++;
-                        }
-                    });
-                    if (mine === 0) {
-                        updatedData[i][j].isEmpty = true;
-                    }
-                    updatedData[i][j].neighbour = mine;
-                }
-            }
-        }
-
-        return (updatedData);
-    };
 
     // Handle User Events
 
