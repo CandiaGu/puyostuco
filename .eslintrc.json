@@ -35,8 +35,17 @@
                 "allowForLoopAfterthoughts": true
             }
         ],
+        "no-shadow": [
+            "error", {
+                "allow": [
+                    "_"
+                ]
+            }
+        ],
         "prefer-template": "off",
         "react/jsx-filename-extension": "off",
-        "react/prop-types": ["error"]
+        "react/prop-types": [
+            "error"
+        ]
     }
 }

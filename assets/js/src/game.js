@@ -31,7 +31,7 @@ ReactDOM.render(<Game />, domContainer);
 // disable default for arrow keys
 window.addEventListener('keydown', (e) => {
   // space and arrow keys
-  if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+  if (new Set([32, 37, 38, 39, 40]).has(e.keyCode)) {
     e.preventDefault();
   }
 }, false);

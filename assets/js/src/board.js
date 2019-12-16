@@ -4,19 +4,12 @@ const puyoColorCount = 4;
 
 class Board extends React.Component {
   static createEmptyArray(height, width) {
-    const data = [];
-    for (let i = 0; i < height; i++) {
-      data.push([]);
-      for (let j = 0; j < width; j++) {
-        data[i][j] = {
-          x: i,
-          y: j,
-          isEmpty: false,
-          puyoColor: 0,
-        };
-      }
-    }
-    return data;
+    return Array.from({ length: height }, (_, i) => Array.from({ length: width }, (_, j) => ({
+      x: i,
+      y: j,
+      isEmpty: false,
+      puyoColor: 0,
+    })));
   }
 
   static spawnPuyo(dataArg) {
@@ -28,9 +21,9 @@ class Board extends React.Component {
     return data;
   }
 
+  // Gets initial board data
   static initBoardData(height, width) {
-    const data = Board.spawnPuyo(Board.createEmptyArray(height, width));
-    return data;
+    return Board.spawnPuyo(Board.createEmptyArray(height, width));
   }
 
   static checkIfAlreadyVisited(x, y, checkedLocations) {
@@ -68,9 +61,6 @@ class Board extends React.Component {
     document.addEventListener('keydown', this.keyControlsFunction, false);
   }
 
-  /* Helper Functions */
-  // Gets initial board data
-
   puyoLockFunctions() {
     const {
       currPuyo1: puyo1,
@@ -82,25 +72,28 @@ class Board extends React.Component {
     console.log('colors: ' + color1 + ' ' + color2);
     // check if puyo still at lowest pos
     if (
-      puyo1[1] !== Math.max(this.findLowestPosition(puyo1[0]), puyo1[1])
-      && puyo2[1] !== Math.max(this.findLowestPosition(puyo2[0], puyo2[1]))
+      puyo1[1] < this.findLowestPosition(puyo1[0])
+      && puyo2[1] < this.findLowestPosition(puyo2[0])
     ) {
       return;
     }
     this.setState({ locked: 1 });
 
     const puyosToPop1 = this.checkPuyoPop(puyo1[0], puyo1[1]);
-    let puyosToPop2 = [];
-    if (color1 !== color2) {
+    let puyosToPop2;
+    if (color1 === color2) {
+      puyosToPop2 = new Set();
+    } else {
       puyosToPop2 = this.checkPuyoPop(puyo2[0], puyo2[1]);
     }
 
 
     // pop puyos
-    if (puyosToPop1 !== null) {
+    if (puyosToPop1.size > 0) {
       this.popPuyos(puyosToPop1);
     }
-    if (puyosToPop2 !== null) {
+
+    if (puyosToPop2.size > 0) {
       this.popPuyos(puyosToPop2);
     }
 
@@ -116,12 +109,11 @@ class Board extends React.Component {
     const { boardData: data } = this.state;
     const { height } = this.props;
     const checkedCols = new Set();
-    for (let index = 0; index < poppedPuyos.length; index++) {
-      const val = poppedPuyos[index];
+    poppedPuyos.forEach((val) => {
       const valX = val[0];
       const valY = val[1];
       console.log('checking x: ' + valX + ' for puyo at ' + valX + ' ' + valY);
-      if (checkedCols.has(valX)) continue;
+      if (checkedCols.has(valX)) return;
       checkedCols.add(valX);
       console.log('actually checking x: ' + valX);
 
@@ -138,6 +130,13 @@ class Board extends React.Component {
       }
 
       lowY -= 1;
+
+      // TODO: FIX:
+      // Fails on this shape:
+      // G
+      // YY
+      // GY
+      // YY
       // find all puyos
       const colorArray = [];
       while (highY >= 0 && data[highY][valX].puyoColor !== 0) {
@@ -155,18 +154,14 @@ class Board extends React.Component {
         data[lowY][valX].puyoColor = currColor;
         lowY -= 1;
       }
-    }
+    });
     this.setState({ boardData: data });
   }
 
   popPuyos(puyoSet) {
     const { boardData: data } = this.state;
 
-    for (let index = 0; index < puyoSet.length; index++) {
-      const val = puyoSet[index];
-      // remove puyo
-      data[val[1]][val[0]].puyoColor = 0;
-    }
+    puyoSet.forEach((val) => { data[val[1]][val[0]].puyoColor = 0; });
 
     this.setState({ boardData: data });
   }
@@ -185,28 +180,24 @@ class Board extends React.Component {
 
   // find all puyos that should pop
   checkPuyoPop(x, y) {
-    // recursive function
     const checkedLocations = {};
-    let sameColorPuyoLoc = [];
     const { boardData: data } = this.state;
     const color = data[y][x].puyoColor;
-
-    sameColorPuyoLoc = this.checkPuyoHelper(x, y, checkedLocations, sameColorPuyoLoc, color);
-
-    if (sameColorPuyoLoc.length >= 4) {
+    const sameColorPuyoLoc = this.checkPuyoHelper(x, y, checkedLocations, new Set(), color);
+    if (sameColorPuyoLoc.size >= 4) {
       return sameColorPuyoLoc;
     }
 
     return new Set();
   }
 
+  // recursive function
   checkPuyoHelper(x, y, checkedLocationArg, sameColorPuyoLocArg, color) {
     const checkedLocation = checkedLocationArg;
     let sameColorPuyoLoc = sameColorPuyoLocArg;
     const { boardData: data } = this.state;
     // check if current puyo is same color
     console.log('color check at ' + x + ',' + y + ' ? ' + color + ' ' + data[y][x].puyoColor);
-
     if (data[y][x].puyoColor === color) {
       // add given
       if (!(x in checkedLocation)) {
@@ -214,9 +205,7 @@ class Board extends React.Component {
       }
 
       checkedLocation[x].add(y);
-
-      sameColorPuyoLoc.push([x, y]);
-
+      sameColorPuyoLoc.add([x, y]);
       // check neighboring puyo blocks
       // up
       if (
@@ -315,8 +304,8 @@ class Board extends React.Component {
 
     // if at bottom start timer
     if (
-      newPuyo1[1] === Math.max(this.findLowestPosition(newPuyo1[0]), newPuyo1[1])
-      || newPuyo2[1] === Math.max(this.findLowestPosition(newPuyo2[0], newPuyo2[1]))
+      newPuyo1[1] === this.findLowestPosition(newPuyo1[0]);
+      || newPuyo2[1] === this.findLowestPosition(newPuyo2[0]);
     ) {
       setTimeout(this.puyoLockFunctions.bind(this), 1000);
     }
