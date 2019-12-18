@@ -1,22 +1,13 @@
 import Board from './board.js';
 
 class Game extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      height: 12,
-      width: 6,
-    };
-  }
-
   render() {
-    const { height, width } = this.state;
     return (
       <div className="game-wrapper">
         <div />
         <div className="margin-auto">
           <div className="game">
-            <Board height={height} width={width} />
+            <Board />
           </div>
         </div>
         <div />
