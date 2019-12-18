@@ -41,25 +41,25 @@ class Board extends React.Component {
       currPuyo2: puyo2,
       boardData: data,
     } = this.state;
-    const color1 = data[puyo1[1]][puyo1[0]].puyoColor;
-    const color2 = data[puyo2[1]][puyo2[0]].puyoColor;
-    console.log('colors: ' + color1 + ' ' + color2);
+    const color1 = data[puyo1.y][puyo1.x].puyoColor;
+    const color2 = data[puyo2.y][puyo2.x].puyoColor;
     // check if puyo still at lowest pos
     if (
-      puyo1[1] < this.findLowestPosition(puyo1[0])
-      && puyo2[1] < this.findLowestPosition(puyo2[0])
+      puyo1.y < this.findLowestPosition(puyo1.x)
+      && puyo2.y < this.findLowestPosition(puyo2.x)
     ) {
       return;
     }
-
     this.setState({ locked: 1 });
 
     this.chainsim.placePuyo(puyo1, color1, puyo2, color2);
-    data.forEach((row, i) => row.forEach((elem, j) => {
-      elem.puyoColor = this.chainsim.board[i][j];
-    }));
 
-    this.setState({ boardData: data });
+    this.setState({
+      boardData: data.map((row, i) => row.map((puyo, j) => ({
+        ...puyo,
+        puyoColor: this.chainsim.board[i][j],
+      }))),
+    });
 
     this.spawnPuyo();
   }
@@ -71,8 +71,8 @@ class Board extends React.Component {
 
     this.setState({
       boardData: data,
-      currPuyo1: [2, 0], // [x, y]
-      currPuyo2: [2, 1],
+      currPuyo1: { x: 2, y: 0 }, // [x, y]
+      currPuyo2: { x: 2, y: 1 },
     });
   }
 
@@ -87,43 +87,40 @@ class Board extends React.Component {
   }
 
   // move relatively
-  moveCurrPuyo(x, y) {
+  moveCurrPuyo(dx, dy) {
     const { currPuyo1, currPuyo2 } = this.state;
-    const newPuyo1 = [currPuyo1[0] + x, currPuyo1[1] + y];
-    const newPuyo2 = [currPuyo2[0] + x, currPuyo2[1] + y];
+    const newPuyo1 = { x: currPuyo1.x + dx, y: currPuyo1.y + dy };
+    const newPuyo2 = { x: currPuyo2.x + dx, y: currPuyo2.y + dy };
 
     // check if legal move
     if (
-      !Chainsim.checkIfValidLoc(newPuyo1[0], newPuyo1[1])
-      || !Chainsim.checkIfValidLoc(newPuyo2[0], newPuyo2[1])
-      || newPuyo1[1] > this.findLowestPosition(newPuyo1[0])
-      || newPuyo2[1] > this.findLowestPosition(newPuyo1[0])
+      !Chainsim.checkIfValidLoc(newPuyo1)
+      || !Chainsim.checkIfValidLoc(newPuyo2)
+      || newPuyo1.y > this.findLowestPosition(newPuyo1.x)
+      || newPuyo2.y > this.findLowestPosition(newPuyo1.x)
     ) {
       return;
     }
 
-    console.log(currPuyo1 + ' ' + currPuyo2);
-    console.log(newPuyo1 + ' ' + newPuyo2);
-
     const { boardData: data } = this.state;
 
-    const color1 = data[currPuyo1[1]][currPuyo1[0]].puyoColor;
-    const color2 = data[currPuyo2[1]][currPuyo2[0]].puyoColor;
-    data[currPuyo1[1]][currPuyo1[0]].puyoColor = 0;
-    data[currPuyo2[1]][currPuyo2[0]].puyoColor = 0;
-    data[newPuyo1[1]][newPuyo1[0]].puyoColor = color1;
-    data[newPuyo2[1]][newPuyo2[0]].puyoColor = color2;
+    const color1 = data[currPuyo1.y][currPuyo1.x].puyoColor;
+    const color2 = data[currPuyo2.y][currPuyo2.x].puyoColor;
+    data[currPuyo1.y][currPuyo1.x].puyoColor = 0;
+    data[currPuyo2.y][currPuyo2.x].puyoColor = 0;
+    data[newPuyo1.y][newPuyo1.x].puyoColor = color1;
+    data[newPuyo2.y][newPuyo2.x].puyoColor = color2;
 
     this.setState({
-      currPuyo1: [newPuyo1[0], newPuyo1[1]],
-      currPuyo2: [newPuyo2[0], newPuyo2[1]],
+      currPuyo1: newPuyo1,
+      currPuyo2: newPuyo2,
       boardData: data,
     });
 
     // if at bottom start timer
     if (
-      newPuyo1[1] >= this.findLowestPosition(newPuyo1[0])
-      || newPuyo2[1] >= this.findLowestPosition(newPuyo2[0])
+      newPuyo1.y >= this.findLowestPosition(newPuyo1.x)
+      || newPuyo2.y >= this.findLowestPosition(newPuyo2.x)
     ) {
       setTimeout(this.puyoLockFunctions.bind(this), 1000);
     }

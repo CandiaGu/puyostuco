@@ -35,6 +35,12 @@
                 "allowForLoopAfterthoughts": true
             }
         ],
+        "no-restricted-syntax": [
+          "error",
+          "ForInStatement",
+          "LabeledStatement",
+          "WithStatement"
+        ],
         "no-shadow": [
             "error", {
                 "allow": [
