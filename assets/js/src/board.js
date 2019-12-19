@@ -40,12 +40,9 @@ class Board extends React.Component {
     document.addEventListener('keydown', this.keyControlsFunction, false);
   }
 
-  checkIfLegalMove(puyo1, puyo2) {
+  checkIfLegalMove(puyo) {
     const { boardData: data } = this.state;
-    return Chainsim.checkIfValidLoc(puyo1)
-      && Chainsim.checkIfValidLoc(puyo2)
-      && data[puyo1.y][puyo1.x].puyoColor === 0
-      && data[puyo2.y][puyo2.x].puyoColor === 0;
+    return Chainsim.checkIfValidLoc(puyo) && data[puyo.y][puyo.x].puyoColor === 0;
   }
 
   puyoLockFunctions() {
@@ -54,16 +51,27 @@ class Board extends React.Component {
       currPuyo2: puyo2,
       boardData: data,
     } = this.state;
+    const lowestPosition1 = this.findLowestPosition(puyo1.x);
+    const lowestPosition2 = this.findLowestPosition(puyo2.x);
+    const atLowestPosition1 = puyo1.y === lowestPosition1;
+    const atLowestPosition2 = puyo2.y === lowestPosition2;
     // check if puyo still at lowest pos
-    if (
-      puyo1.y < this.findLowestPosition(puyo1.x)
-      && puyo2.y < this.findLowestPosition(puyo2.x)
-    ) {
+    if (!atLowestPosition1 && !atLowestPosition2) {
       return;
     }
+
     this.setState({ locked: 1 });
 
-    this.chainsim.placePuyo(puyo1, puyo2);
+    const placedPuyo1 = puyo1;
+    const placedPuyo2 = puyo2;
+    if (puyo1.x !== puyo2.x) {
+      if (!atLowestPosition1) {
+        placedPuyo1.y = lowestPosition1;
+      } else if (!atLowestPosition2) {
+        placedPuyo2.y = lowestPosition2;
+      }
+    }
+    this.chainsim.placePuyo(placedPuyo1, placedPuyo2);
 
     this.setState({
       boardData: data.map((row, i) => row.map((puyo, j) => ({
@@ -94,44 +102,46 @@ class Board extends React.Component {
     return -1;
   }
 
+  tryMove(puyo1, puyo2, delay) {
+    if (this.checkIfLegalMove(puyo1) && this.checkIfLegalMove(puyo2)) {
+      this.setState({ currPuyo1: puyo1, currPuyo2: puyo2 });
+      if (
+        puyo1.y === this.findLowestPosition(puyo1.x)
+        || puyo2.y === this.findLowestPosition(puyo2.x)
+      ) setTimeout(this.puyoLockFunctions.bind(this), delay);
+    }
+  }
+
   // move relatively
   moveCurrPuyo(dx, dy) {
     const { currPuyo1, currPuyo2 } = this.state;
     const newPuyo1 = { x: currPuyo1.x + dx, y: currPuyo1.y + dy, puyoColor: currPuyo1.puyoColor };
     const newPuyo2 = { x: currPuyo2.x + dx, y: currPuyo2.y + dy, puyoColor: currPuyo2.puyoColor };
-
-    // check if legal move
-    if (!this.checkIfLegalMove(newPuyo1, newPuyo2)) {
-      return;
-    }
-
-    this.setState({
-      currPuyo1: newPuyo1,
-      currPuyo2: newPuyo2,
-    });
-
-    // if at bottom start timer
-    if (
-      newPuyo1.y >= this.findLowestPosition(newPuyo1.x)
-      || newPuyo2.y >= this.findLowestPosition(newPuyo2.x)
-    ) {
-      setTimeout(this.puyoLockFunctions.bind(this), 1000);
-    }
+    this.tryMove(newPuyo1, newPuyo2, 250);
   }
 
   keyControlsFunction(event) {
     if (event.key === 'ArrowLeft') {
       this.moveCurrPuyo(-1, 0);
-    }
-    if (event.key === 'ArrowRight') {
+    } else if (event.key === 'ArrowRight') {
       this.moveCurrPuyo(1, 0);
-    }
-    if (event.key === 'ArrowDown') {
+    } else if (event.key === 'ArrowDown') {
       this.moveCurrPuyo(0, 1);
+    } else if (event.key === 'z') {
+      this.rotatePuyo(-1);
+    } else if (event.key === 'x') {
+      this.rotatePuyo(1);
     }
   }
 
-  rotatePuyo() {
+  rotatePuyo(direction) {
+    const { currPuyo1, currPuyo2 } = this.state;
+    const newPuyo1 = {
+      x: currPuyo2.x - direction * (currPuyo1.y - currPuyo2.y),
+      y: currPuyo2.y + direction * (currPuyo1.x - currPuyo2.x),
+      puyoColor: currPuyo1.puyoColor,
+    };
+    this.tryMove(newPuyo1, currPuyo2, 500);
   }
 
   renderBoard() {
