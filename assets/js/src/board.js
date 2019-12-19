@@ -90,6 +90,7 @@ class Board extends React.Component {
       currPuyo1: { x: 2, y: axisSpawnY - 1, puyoColor: Board.randomColor() },
       currPuyo2: { x: 2, y: axisSpawnY, puyoColor: Board.randomColor() }, // axis puyo
     });
+    this.failedRotate = false;
   }
 
   findLowestPosition(col) {
@@ -109,14 +110,20 @@ class Board extends React.Component {
         puyo1.y === this.findLowestPosition(puyo1.x)
         || puyo2.y === this.findLowestPosition(puyo2.x)
       ) setTimeout(this.puyoLockFunctions.bind(this), delay);
+      return true;
     }
+    return false;
   }
 
   // move relatively
   moveCurrPuyo(dx, dy) {
     const { currPuyo1, currPuyo2 } = this.state;
-    const newPuyo1 = { x: currPuyo1.x + dx, y: currPuyo1.y + dy, puyoColor: currPuyo1.puyoColor };
-    const newPuyo2 = { x: currPuyo2.x + dx, y: currPuyo2.y + dy, puyoColor: currPuyo2.puyoColor };
+    const newPuyo1 = { ...currPuyo1 };
+    newPuyo1.x += dx;
+    newPuyo1.y += dy;
+    const newPuyo2 = { ...currPuyo2 };
+    newPuyo2.x += dx;
+    newPuyo2.y += dy;
     this.tryMove(newPuyo1, newPuyo2, 250);
   }
 
@@ -135,13 +142,26 @@ class Board extends React.Component {
   }
 
   rotatePuyo(direction) {
+    const delay = 500;
     const { currPuyo1, currPuyo2 } = this.state;
-    const newPuyo1 = {
-      x: currPuyo2.x - direction * (currPuyo1.y - currPuyo2.y),
-      y: currPuyo2.y + direction * (currPuyo1.x - currPuyo2.x),
-      puyoColor: currPuyo1.puyoColor,
-    };
-    this.tryMove(newPuyo1, currPuyo2, 500);
+    const dx = -direction * (currPuyo1.y - currPuyo2.y);
+    const dy = direction * (currPuyo1.x - currPuyo2.x);
+    const newPuyo1 = { x: currPuyo2.x + dx, y: currPuyo2.y + dy, puyoColor: currPuyo1.puyoColor };
+    if (!this.tryMove(newPuyo1, currPuyo2, delay)) {
+      newPuyo1.x -= dx;
+      newPuyo1.y -= dy;
+      const newPuyo2 = { ...currPuyo2 };
+      newPuyo2.x -= dx;
+      newPuyo2.y -= dy;
+      if(!this.tryMove(newPuyo1, newPuyo2, delay)) {
+        if (this.failedRotate) {
+          this.tryMove(newPuyo1, { ...currPuyo1, puyoColor: currPuyo2.puyoColor }, delay);
+          this.failedRotate = false;
+        } else {
+          this.failedRotate = true;
+        }
+      }
+    }
   }
 
   renderBoard() {
