@@ -29,16 +29,82 @@ class Board extends React.Component {
       currPuyo2: { x: 2, y: axisSpawnY, puyoColor: Board.randomColor() }, // axis puyo
     };
 
-    this.moveCurrPuyo = this.moveCurrPuyo.bind(this);
-    this.keyControlsFunction = this.keyControlsFunction.bind(this);
-    this.puyoLockFunctions = this.puyoLockFunctions.bind(this);
-
     this.chainsim = new Chainsim();
     this.lockTimer = null;
+
+    this.keys = {
+      ArrowLeft: {
+        fun: function fun() { this.moveCurrPuyo.bind(this)(-1, 0); }.bind(this),
+        delay: 100,
+        repeat: 25,
+      },
+      ArrowRight: {
+        fun: function fun() { this.moveCurrPuyo.bind(this)(1, 0); }.bind(this),
+        delay: 100,
+        repeat: 25,
+      },
+      ArrowDown: {
+        fun: function fun() { this.moveCurrPuyo.bind(this)(0, 1); }.bind(this),
+        delay: 0,
+        repeat: 75,
+      },
+      z: {
+        fun: function fun() { this.rotatePuyo.bind(this)(-1); }.bind(this),
+        delay: 0,
+        repeat: 0,
+      },
+      x: {
+        fun: function fun() { this.rotatePuyo.bind(this)(1); }.bind(this),
+        delay: 0,
+        repeat: 0,
+      },
+    };
+    this.timers = {};
   }
 
   componentDidMount() {
-    document.addEventListener('keydown', this.keyControlsFunction, false);
+    document.addEventListener('keydown', this.onKeyDown.bind(this), false);
+    document.addEventListener('keyup', this.onKeyUp.bind(this), false);
+    window.addEventListener('blur', this.onBlur.bind(this), false);
+  }
+
+  onKeyDown(event) {
+    const { key } = event;
+    if (key in this.keys && !(key in this.timers)) {
+      const { fun, delay, repeat } = this.keys[key];
+      fun();
+      if (repeat === 0) {
+        this.timers[key] = null;
+      } else {
+        const interval = function interval() {
+          this.timers[key] = setInterval(fun, repeat);
+        }.bind(this);
+        if (delay === 0) {
+          interval();
+        } else {
+          this.timers[key] = setTimeout(interval, delay);
+        }
+      }
+    }
+  }
+
+  onKeyUp(event) {
+    const { key } = event;
+    if (key in this.timers) {
+      if (this.timers[key] !== null) {
+        clearInterval(this.timers[key]);
+      }
+      delete this.timers[key];
+    }
+  }
+
+  onBlur() {
+    for (const key in this.timers) {
+      if (this.timers[key] !== null) {
+        clearInterval(this.timers[key]);
+      }
+    }
+    this.timers = {};
   }
 
   checkIfLegalMove(puyo1, puyo2) {
@@ -136,20 +202,6 @@ class Board extends React.Component {
     this.tryMove(newPuyo1, newPuyo2, 250);
   }
 
-  keyControlsFunction(event) {
-    if (event.key === 'ArrowLeft') {
-      this.moveCurrPuyo(-1, 0);
-    } else if (event.key === 'ArrowRight') {
-      this.moveCurrPuyo(1, 0);
-    } else if (event.key === 'ArrowDown') {
-      this.moveCurrPuyo(0, 1);
-    } else if (event.key === 'z') {
-      this.rotatePuyo(-1);
-    } else if (event.key === 'x') {
-      this.rotatePuyo(1);
-    }
-  }
-
   rotatePuyo(direction) {
     const delay = 500;
     const { currPuyo1, currPuyo2 } = this.state;
@@ -163,7 +215,7 @@ class Board extends React.Component {
       const newPuyo2 = { ...currPuyo2 };
       newPuyo2.x -= dx;
       newPuyo2.y -= dy;
-      if(!this.tryMove(newPuyo1, newPuyo2, delay) && currPuyo1.x === currPuyo2.x) {
+      if (!this.tryMove(newPuyo1, newPuyo2, delay) && currPuyo1.x === currPuyo2.x) {
         // quick turn
         if (this.failedRotate) {
           this.tryMove(newPuyo1, { ...currPuyo1, puyoColor: currPuyo2.puyoColor }, delay);
