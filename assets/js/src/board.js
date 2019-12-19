@@ -32,32 +32,41 @@ class Board extends React.Component {
     this.chainsim = new Chainsim();
     this.lockTimer = null;
 
-    this.keys = {
-      ArrowLeft: {
+    this.controls = {
+      left: {
         fun: function fun() { this.moveCurrPuyo.bind(this)(-1, 0); }.bind(this),
         delay: 100,
         repeat: 25,
       },
-      ArrowRight: {
+      right: {
         fun: function fun() { this.moveCurrPuyo.bind(this)(1, 0); }.bind(this),
         delay: 100,
         repeat: 25,
       },
-      ArrowDown: {
+      down: {
         fun: function fun() { this.moveCurrPuyo.bind(this)(0, 1); }.bind(this),
         delay: 0,
         repeat: 75,
       },
-      z: {
+      ccw: {
         fun: function fun() { this.rotatePuyo.bind(this)(-1); }.bind(this),
         delay: 0,
         repeat: 0,
       },
-      x: {
+      cw: {
         fun: function fun() { this.rotatePuyo.bind(this)(1); }.bind(this),
         delay: 0,
         repeat: 0,
       },
+    };
+    this.keys = {
+      ArrowLeft: 'left',
+      ArrowRight: 'right',
+      ArrowDown: 'down',
+      z: 'ccw',
+      x: 'cw',
+      d: 'ccw',
+      f: 'cw',
     };
     this.timers = {};
   }
@@ -69,39 +78,39 @@ class Board extends React.Component {
   }
 
   onKeyDown(event) {
-    const { key } = event;
-    if (key in this.keys && !(key in this.timers)) {
-      const { fun, delay, repeat } = this.keys[key];
+    const control = this.keys[event.key];
+    if (control in this.controls && !(control in this.timers)) {
+      const { fun, delay, repeat } = this.controls[control];
       fun();
       if (repeat === 0) {
-        this.timers[key] = null;
+        this.timers[control] = null;
       } else {
         const interval = function interval() {
-          this.timers[key] = setInterval(fun, repeat);
+          this.timers[control] = setInterval(fun, repeat);
         }.bind(this);
         if (delay === 0) {
           interval();
         } else {
-          this.timers[key] = setTimeout(interval, delay);
+          this.timers[control] = setTimeout(interval, delay);
         }
       }
     }
   }
 
   onKeyUp(event) {
-    const { key } = event;
-    if (key in this.timers) {
-      if (this.timers[key] !== null) {
-        clearInterval(this.timers[key]);
+    const control = this.keys[event.key];
+    if (control in this.timers) {
+      if (this.timers[control] !== null) {
+        clearInterval(this.timers[control]);
       }
-      delete this.timers[key];
+      delete this.timers[control];
     }
   }
 
   onBlur() {
-    for (const key in this.timers) {
-      if (this.timers[key] !== null) {
-        clearInterval(this.timers[key]);
+    for (const control in this.timers) {
+      if (this.timers[control] !== null) {
+        clearInterval(this.timers[control]);
       }
     }
     this.timers = {};
