@@ -34,15 +34,20 @@ class Board extends React.Component {
     this.puyoLockFunctions = this.puyoLockFunctions.bind(this);
 
     this.chainsim = new Chainsim();
+    this.lockTimer = null;
   }
 
   componentDidMount() {
     document.addEventListener('keydown', this.keyControlsFunction, false);
   }
 
-  checkIfLegalMove(puyo) {
+  checkIfLegalMove(puyo1, puyo2) {
     const { boardData: data } = this.state;
-    return Chainsim.checkIfValidLoc(puyo) && data[puyo.y][puyo.x].puyoColor === 0;
+    return Chainsim.checkIfValidLoc(puyo1)
+      && Chainsim.checkIfValidLoc(puyo2)
+      && data[puyo1.y][puyo1.x].puyoColor === 0
+      && data[puyo2.y][puyo2.x].puyoColor === 0
+      && puyo2.y > 0; // forbid rotating axis puyo into 14th row
   }
 
   puyoLockFunctions() {
@@ -95,7 +100,7 @@ class Board extends React.Component {
 
   findLowestPosition(col) {
     const { boardData: data } = this.state;
-    for (let i = height - 1; i > 0; i--) {
+    for (let i = height - 1; i >= 0; i--) {
       if (data[i][col].puyoColor === 0) {
         return i;
       }
@@ -104,12 +109,16 @@ class Board extends React.Component {
   }
 
   tryMove(puyo1, puyo2, delay) {
-    if (this.checkIfLegalMove(puyo1) && this.checkIfLegalMove(puyo2)) {
+    if (this.checkIfLegalMove(puyo1, puyo2)) {
       this.setState({ currPuyo1: puyo1, currPuyo2: puyo2 });
       if (
         puyo1.y === this.findLowestPosition(puyo1.x)
         || puyo2.y === this.findLowestPosition(puyo2.x)
-      ) setTimeout(this.puyoLockFunctions.bind(this), delay);
+      ) {
+        this.lockTimer = setTimeout(this.puyoLockFunctions.bind(this), delay);
+      } else {
+        clearTimeout(this.lockTimer);
+      }
       return true;
     }
     return false;
@@ -148,12 +157,14 @@ class Board extends React.Component {
     const dy = direction * (currPuyo1.x - currPuyo2.x);
     const newPuyo1 = { x: currPuyo2.x + dx, y: currPuyo2.y + dy, puyoColor: currPuyo1.puyoColor };
     if (!this.tryMove(newPuyo1, currPuyo2, delay)) {
+      // kick
       newPuyo1.x -= dx;
       newPuyo1.y -= dy;
       const newPuyo2 = { ...currPuyo2 };
       newPuyo2.x -= dx;
       newPuyo2.y -= dy;
-      if(!this.tryMove(newPuyo1, newPuyo2, delay)) {
+      if(!this.tryMove(newPuyo1, newPuyo2, delay) && currPuyo1.x === currPuyo2.x) {
+        // quick turn
         if (this.failedRotate) {
           this.tryMove(newPuyo1, { ...currPuyo1, puyoColor: currPuyo2.puyoColor }, delay);
           this.failedRotate = false;
