@@ -4,6 +4,8 @@ import Chainsim from './chainsim.js';
 const puyoColorCount = 4;
 const height = 14;
 const width = 6;
+const axisSpawnX = 2;
+const axisSpawnY = 2; // spawn axis puyo in 12th row
 
 class Board extends React.Component {
   static createEmptyArray() {
@@ -21,12 +23,11 @@ class Board extends React.Component {
 
   constructor(props) {
     super(props);
-    const axisSpawnY = 2;
     this.state = {
       boardData: Board.createEmptyArray(),
       locked: 0,
-      currPuyo1: { x: 2, y: axisSpawnY - 1, puyoColor: Board.randomColor() },
-      currPuyo2: { x: 2, y: axisSpawnY, puyoColor: Board.randomColor() }, // axis puyo
+      currPuyo1: { x: axisSpawnX, y: axisSpawnY - 1, puyoColor: Board.randomColor() },
+      currPuyo2: { x: axisSpawnX, y: axisSpawnY, puyoColor: Board.randomColor() }, // axis puyo
     };
 
     this.chainsim = new Chainsim();
@@ -75,6 +76,12 @@ class Board extends React.Component {
     document.addEventListener('keydown', this.onKeyDown.bind(this), false);
     document.addEventListener('keyup', this.onKeyUp.bind(this), false);
     window.addEventListener('blur', this.onBlur.bind(this), false);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.onKeyDown.bind(this), false);
+    document.removeEventListener('keyup', this.onKeyUp.bind(this), false);
+    window.removeEventListener('blur', this.onBlur.bind(this), false);
   }
 
   onKeyDown(event) {
@@ -153,6 +160,10 @@ class Board extends React.Component {
     }
     this.chainsim.placePuyo(placedPuyo1, placedPuyo2);
 
+    if (this.chainsim.board[axisSpawnY][axisSpawnX] !== 0) {
+      this.handleDeath();
+    }
+
     this.setState({
       boardData: data.map((row, i) => row.map((puyo, j) => ({
         ...puyo,
@@ -163,12 +174,14 @@ class Board extends React.Component {
     this.spawnPuyo();
   }
 
+  handleDeath() {
+    this.chainsim = new Chainsim();
+  }
+
   spawnPuyo() {
-    // 12th row
-    const axisSpawnY = 2;
     this.setState({
-      currPuyo1: { x: 2, y: axisSpawnY - 1, puyoColor: Board.randomColor() },
-      currPuyo2: { x: 2, y: axisSpawnY, puyoColor: Board.randomColor() }, // axis puyo
+      currPuyo1: { x: axisSpawnX, y: axisSpawnY - 1, puyoColor: Board.randomColor() },
+      currPuyo2: { x: axisSpawnX, y: axisSpawnY, puyoColor: Board.randomColor() }, // axis puyo
     });
     this.failedRotate = false;
   }
