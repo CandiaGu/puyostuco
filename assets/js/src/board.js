@@ -15,11 +15,18 @@ class Board extends React.Component {
     })));
   }
 
+  static randomColor() {
+    return Math.floor(Math.random() * puyoColorCount) + 1;
+  }
+
   constructor(props) {
     super(props);
+    const axisSpawnY = 2;
     this.state = {
       boardData: Board.createEmptyArray(),
       locked: 0,
+      currPuyo1: { x: 2, y: axisSpawnY - 1, puyoColor: Board.randomColor() },
+      currPuyo2: { x: 2, y: axisSpawnY, puyoColor: Board.randomColor() }, // axis puyo
     };
 
     this.moveCurrPuyo = this.moveCurrPuyo.bind(this);
@@ -31,8 +38,14 @@ class Board extends React.Component {
 
   componentDidMount() {
     document.addEventListener('keydown', this.keyControlsFunction, false);
+  }
 
-    this.spawnPuyo();
+  checkIfLegalMove(puyo1, puyo2) {
+    const { boardData: data } = this.state;
+    return Chainsim.checkIfValidLoc(puyo1)
+      && Chainsim.checkIfValidLoc(puyo2)
+      && data[puyo1.y][puyo1.x].puyoColor === 0
+      && data[puyo2.y][puyo2.x].puyoColor === 0;
   }
 
   puyoLockFunctions() {
@@ -41,8 +54,6 @@ class Board extends React.Component {
       currPuyo2: puyo2,
       boardData: data,
     } = this.state;
-    const color1 = data[puyo1.y][puyo1.x].puyoColor;
-    const color2 = data[puyo2.y][puyo2.x].puyoColor;
     // check if puyo still at lowest pos
     if (
       puyo1.y < this.findLowestPosition(puyo1.x)
@@ -52,7 +63,7 @@ class Board extends React.Component {
     }
     this.setState({ locked: 1 });
 
-    this.chainsim.placePuyo(puyo1, color1, puyo2, color2);
+    this.chainsim.placePuyo(puyo1, puyo2);
 
     this.setState({
       boardData: data.map((row, i) => row.map((puyo, j) => ({
@@ -65,14 +76,11 @@ class Board extends React.Component {
   }
 
   spawnPuyo() {
-    const { boardData: data } = this.state;
-    data[0][2].puyoColor = Math.floor(Math.random() * puyoColorCount) + 1;
-    data[1][2].puyoColor = Math.floor(Math.random() * puyoColorCount) + 1;
-
+    // 12th row
+    const axisSpawnY = 2;
     this.setState({
-      boardData: data,
-      currPuyo1: { x: 2, y: 0 }, // [x, y]
-      currPuyo2: { x: 2, y: 1 },
+      currPuyo1: { x: 2, y: axisSpawnY - 1, puyoColor: Board.randomColor() },
+      currPuyo2: { x: 2, y: axisSpawnY, puyoColor: Board.randomColor() }, // axis puyo
     });
   }
 
@@ -89,32 +97,17 @@ class Board extends React.Component {
   // move relatively
   moveCurrPuyo(dx, dy) {
     const { currPuyo1, currPuyo2 } = this.state;
-    const newPuyo1 = { x: currPuyo1.x + dx, y: currPuyo1.y + dy };
-    const newPuyo2 = { x: currPuyo2.x + dx, y: currPuyo2.y + dy };
+    const newPuyo1 = { x: currPuyo1.x + dx, y: currPuyo1.y + dy, puyoColor: currPuyo1.puyoColor };
+    const newPuyo2 = { x: currPuyo2.x + dx, y: currPuyo2.y + dy, puyoColor: currPuyo2.puyoColor };
 
     // check if legal move
-    if (
-      !Chainsim.checkIfValidLoc(newPuyo1)
-      || !Chainsim.checkIfValidLoc(newPuyo2)
-      || newPuyo1.y > this.findLowestPosition(newPuyo1.x)
-      || newPuyo2.y > this.findLowestPosition(newPuyo1.x)
-    ) {
+    if (!this.checkIfLegalMove(newPuyo1, newPuyo2)) {
       return;
     }
-
-    const { boardData: data } = this.state;
-
-    const color1 = data[currPuyo1.y][currPuyo1.x].puyoColor;
-    const color2 = data[currPuyo2.y][currPuyo2.x].puyoColor;
-    data[currPuyo1.y][currPuyo1.x].puyoColor = 0;
-    data[currPuyo2.y][currPuyo2.x].puyoColor = 0;
-    data[newPuyo1.y][newPuyo1.x].puyoColor = color1;
-    data[newPuyo2.y][newPuyo2.x].puyoColor = color2;
 
     this.setState({
       currPuyo1: newPuyo1,
       currPuyo2: newPuyo2,
-      boardData: data,
     });
 
     // if at bottom start timer
@@ -127,13 +120,13 @@ class Board extends React.Component {
   }
 
   keyControlsFunction(event) {
-    if (event.key === 'ArrowUp') {
-      this.dropCurrPuyo();
-    } else if (event.key === 'ArrowLeft') {
+    if (event.key === 'ArrowLeft') {
       this.moveCurrPuyo(-1, 0);
-    } else if (event.key === 'ArrowRight') {
+    }
+    if (event.key === 'ArrowRight') {
       this.moveCurrPuyo(1, 0);
-    } else if (event.key === 'ArrowDown') {
+    }
+    if (event.key === 'ArrowDown') {
       this.moveCurrPuyo(0, 1);
     }
   }
@@ -142,10 +135,12 @@ class Board extends React.Component {
   }
 
   renderBoard() {
-    const { boardData: data } = this.state;
-    return data.map((datarow) => datarow.map((dataitem) => (
+    const { boardData: data, currPuyo1, currPuyo2 } = this.state;
+    return data.map((datarow, y) => datarow.map((dataitem, x) => (
       <div key={dataitem.x * datarow.length + dataitem.y}>
-        <Cell value={dataitem} />
+        <Cell value={x === currPuyo1.x && y === currPuyo1.y ? currPuyo1
+          : x === currPuyo2.x && y === currPuyo2.y ? currPuyo2 : dataitem}
+        />
         { (datarow[datarow.length - 1] === dataitem) ? <div className="clear" /> : '' }
       </div>
     )));

@@ -11,13 +11,13 @@ class Chainsim {
     this.board = Array.from({ length: height }, () => Array.from({ length: width }, () => 0));
   }
 
-  placePuyo(puyo1, color1, puyo2, color2) {
+  placePuyo(puyo1, puyo2) {
     // { popped, dropped }
     const poppedDropped = [];
-    this.board[puyo1.y][puyo1.x] = color1;
-    this.board[puyo2.y][puyo2.x] = color2;
+    this.board[puyo1.y][puyo1.x] = puyo1.puyoColor;
+    this.board[puyo2.y][puyo2.x] = puyo2.puyoColor;
     // prevent ghost row from popping
-    let lastDropped = [puyo1, puyo2].filter(({ x, y }) => y > 1);
+    let lastDropped = [puyo1, puyo2].filter((puyo) => puyo.y > 1);
     for (;;) {
       const puyosToPop = this.checkPuyoPop(lastDropped);
 
