@@ -3,6 +3,7 @@ class Controller {
     this.controls = controls;
     this.keys = keys;
     this.timers = {};
+    this.locked = true;
     document.addEventListener('keydown', this.onKeyDown.bind(this), false);
     document.addEventListener('keyup', this.onKeyUp.bind(this), false);
     window.addEventListener('blur', this.onBlur.bind(this), false);
@@ -15,6 +16,7 @@ class Controller {
   }
 
   onKeyDown(event) {
+    if (this.locked) return;
     const control = this.keys[event.key];
     if (control in this.controls && !(control in this.timers)) {
       const { f: func, delay, repeat } = this.controls[control];
@@ -22,9 +24,7 @@ class Controller {
       if (repeat === 0) {
         this.timers[control] = null;
       } else {
-        const interval = function interval() {
-          this.timers[control] = setInterval(func, repeat);
-        }.bind(this);
+        const interval = () => { this.timers[control] = setInterval(func, repeat); };
         if (delay === 0) {
           interval();
         } else {

@@ -30,11 +30,7 @@
         "import/extensions": "off",
         "no-console": "off",
         "no-continue": "off",
-        "no-plusplus": [
-            "error", {
-                "allowForLoopAfterthoughts": true
-            }
-        ],
+        "no-plusplus": "off",
         "no-restricted-syntax": [
           "error",
           "LabeledStatement",
