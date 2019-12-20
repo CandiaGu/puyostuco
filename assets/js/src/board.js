@@ -1,5 +1,6 @@
 import Cell from './cell.js';
 import Chainsim from './chainsim.js';
+import Controller from './controller.js';
 
 const puyoColorCount = 4;
 const height = 14;
@@ -25,7 +26,6 @@ class Board extends React.Component {
     super(props);
     this.state = {
       boardData: Board.createEmptyArray(),
-      locked: 0,
       currPuyo1: { x: axisSpawnX, y: axisSpawnY - 1, puyoColor: Board.randomColor() },
       currPuyo2: { x: axisSpawnX, y: axisSpawnY, puyoColor: Board.randomColor() }, // axis puyo
     };
@@ -33,34 +33,15 @@ class Board extends React.Component {
     this.chainsim = new Chainsim();
     this.lockTimer = null;
 
-    this.controls = {
-      left: {
-        fun: function fun() { this.moveCurrPuyo.bind(this)(-1, 0); }.bind(this),
-        delay: 100,
-        repeat: 25,
-      },
-      right: {
-        fun: function fun() { this.moveCurrPuyo.bind(this)(1, 0); }.bind(this),
-        delay: 100,
-        repeat: 25,
-      },
-      down: {
-        fun: function fun() { this.moveCurrPuyo.bind(this)(0, 1); }.bind(this),
-        delay: 0,
-        repeat: 75,
-      },
-      ccw: {
-        fun: function fun() { this.rotatePuyo.bind(this)(-1); }.bind(this),
-        delay: 0,
-        repeat: 0,
-      },
-      cw: {
-        fun: function fun() { this.rotatePuyo.bind(this)(1); }.bind(this),
-        delay: 0,
-        repeat: 0,
-      },
+    const that = this;
+    const controls = {
+      left: { f: function f() { that.moveCurrPuyo.bind(that)(-1, 0); }, delay: 100, repeat: 25 },
+      right: { f: function f() { that.moveCurrPuyo.bind(that)(1, 0); }, delay: 100, repeat: 25 },
+      down: { f: function f() { that.moveCurrPuyo.bind(that)(0, 1); }, delay: 0, repeat: 75 },
+      ccw: { f: function f() { that.rotatePuyo.bind(that)(-1); }, delay: 0, repeat: 0 },
+      cw: { f: function f() { that.rotatePuyo.bind(that)(1); }, delay: 0, repeat: 0 },
     };
-    this.keys = {
+    const keys = {
       ArrowLeft: 'left',
       ArrowRight: 'right',
       ArrowDown: 'down',
@@ -69,58 +50,7 @@ class Board extends React.Component {
       d: 'ccw',
       f: 'cw',
     };
-    this.timers = {};
-  }
-
-  componentDidMount() {
-    document.addEventListener('keydown', this.onKeyDown.bind(this), false);
-    document.addEventListener('keyup', this.onKeyUp.bind(this), false);
-    window.addEventListener('blur', this.onBlur.bind(this), false);
-  }
-
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.onKeyDown.bind(this), false);
-    document.removeEventListener('keyup', this.onKeyUp.bind(this), false);
-    window.removeEventListener('blur', this.onBlur.bind(this), false);
-  }
-
-  onKeyDown(event) {
-    const control = this.keys[event.key];
-    if (control in this.controls && !(control in this.timers)) {
-      const { fun, delay, repeat } = this.controls[control];
-      fun();
-      if (repeat === 0) {
-        this.timers[control] = null;
-      } else {
-        const interval = function interval() {
-          this.timers[control] = setInterval(fun, repeat);
-        }.bind(this);
-        if (delay === 0) {
-          interval();
-        } else {
-          this.timers[control] = setTimeout(interval, delay);
-        }
-      }
-    }
-  }
-
-  onKeyUp(event) {
-    const control = this.keys[event.key];
-    if (control in this.timers) {
-      if (this.timers[control] !== null) {
-        clearInterval(this.timers[control]);
-      }
-      delete this.timers[control];
-    }
-  }
-
-  onBlur() {
-    for (const control in this.timers) {
-      if (this.timers[control] !== null) {
-        clearInterval(this.timers[control]);
-      }
-    }
-    this.timers = {};
+    this.controller = new Controller(controls, keys);
   }
 
   checkIfLegalMove(puyo1, puyo2) {
@@ -146,8 +76,6 @@ class Board extends React.Component {
     if (!atLowestPosition1 && !atLowestPosition2) {
       return;
     }
-
-    this.setState({ locked: 1 });
 
     const placedPuyo1 = puyo1;
     const placedPuyo2 = puyo2;
