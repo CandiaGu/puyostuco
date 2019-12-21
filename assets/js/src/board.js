@@ -88,12 +88,18 @@ class Board extends React.Component {
     if (puyo1.x !== puyo2.x) {
       if (!atLowestPosition1) {
         placedPuyo1.y = lowestPosition1;
-        this.setState({ currPuyo1: placedPuyo1 });
       } else if (!atLowestPosition2) {
         placedPuyo2.y = lowestPosition2;
-        this.setState({ currPuyo2: placedPuyo2 });
       }
     }
+    const { boardData: data } = this.state;
+    data[placedPuyo1.y][placedPuyo1.x].puyoColor = placedPuyo1.puyoColor;
+    data[placedPuyo2.y][placedPuyo2.x].puyoColor = placedPuyo2.puyoColor;
+    this.setState({
+      boardData: data,
+      currPuyo1: { x: -1, y: -1 },
+      currPuyo2: { x: -1, y: -1 },
+    });
     // delay between piece place and chain/next piece
     setTimeout(() => { this.handleChain(placedPuyo1, placedPuyo2); }, 500);
   }
@@ -214,13 +220,22 @@ class Board extends React.Component {
     }
   }
 
+  matchCurrPuyo(x, y, noMatch) {
+    const { currPuyo1, currPuyo2 } = this.state;
+    if (x === currPuyo1.x && y === currPuyo1.y) {
+      return currPuyo1;
+    }
+    if (x === currPuyo2.x && y === currPuyo2.y) {
+      return currPuyo2;
+    }
+    return noMatch;
+  }
+
   renderBoard() {
-    const { boardData: data, currPuyo1, currPuyo2 } = this.state;
+    const { boardData: data } = this.state;
     return data.map((datarow, y) => datarow.map((dataitem, x) => (
       <div key={dataitem.x * datarow.length + dataitem.y}>
-        <Cell value={x === currPuyo1.x && y === currPuyo1.y ? currPuyo1
-          : x === currPuyo2.x && y === currPuyo2.y ? currPuyo2 : dataitem}
-        />
+        <Cell value={this.matchCurrPuyo(x, y, dataitem)} active={this.matchCurrPuyo(x, y, null)} />
         { (datarow[datarow.length - 1] === dataitem) ? <div className="clear" /> : '' }
       </div>
     )));

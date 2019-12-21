@@ -328,10 +328,25 @@ input[type=text]:focus {
 	color: #333333;
 	font-weight: 600;
 	border-radius:50%;
+  animation: puyo 0.2s;
+}
+
+.game .cell.active {
+  animation: none;
+}
+
+@keyframes puyo {
+  from { transform: none; }
+  20% { transform: scaleX(0.75); }
+  35% { transform: none; }
+  50% { transform: scaleY(0.85); }
+  75% { transform: scaleX(0.75); }
+  to { transform: none; }
 }
 
 .game .cell0{
 	background-color: navy;
+  animation: none;
 }
 
 .game .cell1{
