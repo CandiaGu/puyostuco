@@ -235,7 +235,10 @@ class Board extends React.Component {
     const { boardData: data } = this.state;
     return data.map((datarow, y) => datarow.map((dataitem, x) => (
       <div key={dataitem.x * datarow.length + dataitem.y}>
-        <Cell value={this.matchCurrPuyo(x, y, dataitem)} active={this.matchCurrPuyo(x, y, null)} />
+        <Cell
+          value={this.matchCurrPuyo(x, y, dataitem)}
+          active={this.matchCurrPuyo(x, y, dataitem) !== dataitem}
+        />
         { (datarow[datarow.length - 1] === dataitem) ? <div className="clear" /> : '' }
       </div>
     )));
@@ -244,9 +247,7 @@ class Board extends React.Component {
   render() {
     return (
       <div className="board">
-        {
-          this.renderBoard()
-        }
+        { this.renderBoard() }
       </div>
     );
   }
