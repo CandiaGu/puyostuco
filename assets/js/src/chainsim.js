@@ -32,27 +32,40 @@ class Chainsim {
   }
 
   placePuyo(puyo1, puyo2) {
-    // { popped, dropped, score }
-    const poppedDroppedScore = [];
     this.board[puyo1.y][puyo1.x] = puyo1.puyoColor;
     this.board[puyo2.y][puyo2.x] = puyo2.puyoColor;
     // prevent ghost row from popping
-    let lastDropped = [puyo1, puyo2].filter((puyo) => puyo.y > 1);
-    for (let chain = 1; ; chain++) {
-      const { puyosToPop, bonus } = this.checkPuyoPop(lastDropped);
-      if (puyosToPop.length === 0) break;
-      for (const { x, y } of puyosToPop) {
-        this.board[y][x] = 0;
-      }
-      // drop puyos
-      const droppedPuyos = this.dropPuyo(puyosToPop);
-      const multiplier = Math.min(Math.max(Chainsim.chainPower(chain) + bonus, 1), 999);
-      const score = 10 * puyosToPop.length * multiplier;
-      poppedDroppedScore.push({ popped: puyosToPop, dropped: droppedPuyos, score });
-      lastDropped = droppedPuyos.map(({ puyo: { x, y }, dist }) => ({ x, y: y + dist }));
-    }
-    return poppedDroppedScore;
+    this.lastDropped = [puyo1, puyo2].filter((puyo) => puyo.y > 1);
+    this.chainNum = 1;
   }
+
+  computeChain() {
+    // { popped, dropped, score }
+    const poppedDroppedScoreList = [];
+    let poppedDroppedScore;
+    while ((poppedDroppedScore = this.computeLink())) {
+      poppedDroppedScoreList.push(poppedDroppedScore);
+    }
+    return poppedDroppedScoreList;
+  }
+
+  computeLink() {
+    const { puyosToPop, bonus } = this.checkPuyoPop(this.lastDropped);
+    if (puyosToPop.length === 0) {
+      return null;
+    }
+    for (const { x, y } of puyosToPop) {
+      this.board[y][x] = 0;
+    }
+    // drop puyos
+    const droppedPuyos = this.dropPuyo(puyosToPop);
+    const multiplier = Math.min(Math.max(Chainsim.chainPower(this.chainNum) + bonus, 1), 999);
+    const score = 10 * puyosToPop.length * multiplier;
+    this.lastDropped = droppedPuyos.map(({ puyo: { x, y }, dist }) => ({ x, y: y + dist }));
+    this.chainNum++;
+    return { popped: puyosToPop, dropped: droppedPuyos, score };
+  }
+
 
   static checkIfAlreadyVisited(puyo, checkedLocations) {
     if (puyo.x in checkedLocations) {

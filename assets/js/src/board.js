@@ -74,6 +74,7 @@ class Board extends React.Component {
     this.lockTimer = null;
     this.failedRotate = false;
     this.controller.locked = false;
+    console.log('score: ' + this.score);
   }
 
   checkIfLegalMove(puyo1, puyo2) {
@@ -105,7 +106,6 @@ class Board extends React.Component {
       return;
     }
     this.controller.locked = true;
-    console.log('dropped, score: ' + this.score);
     const placedPuyo1 = { ...puyo1 };
     const placedPuyo2 = { ...puyo2 };
     if (puyo1.x !== puyo2.x) {
@@ -122,33 +122,47 @@ class Board extends React.Component {
       currPuyo1: { x: -1, y: -1 },
       currPuyo2: { x: -1, y: -1 },
     });
+    this.chainsim.placePuyo(placedPuyo1, placedPuyo2);
     // delay between piece place and chain/next piece
-    setTimeout(() => { this.handleChain(placedPuyo1, placedPuyo2); }, 500);
+    setTimeout(() => { this.handleLink(); }, 500);
   }
 
-  handleChain(placedPuyo1, placedPuyo2) {
-    const poppedDroppedScore = this.chainsim.placePuyo(placedPuyo1, placedPuyo2);
-    if (poppedDroppedScore.length > 0) {
-      const chainScore = poppedDroppedScore.reduce((acc, cur) => acc + cur.score, 0);
-      this.score += chainScore;
-      console.log(poppedDroppedScore.length + '-chain: ' + chainScore + ', score: ' + this.score);
+  handleLink() {
+    const poppedDroppedScore = this.chainsim.computeLink();
+    if (poppedDroppedScore) {
+      const { popped, dropped, score } = poppedDroppedScore;
+      this.pop(popped);
+      this.drop(dropped);
+      this.score += score;
+      setTimeout(() => { this.handleLink(); }, 500);
+    } else {
+      if (this.chainsim.board[axisSpawnY][axisSpawnX] !== 0) {
+        this.handleDeath();
+        return;
+      }
+      if (this.checkAllClear()) {
+        this.score += 30 * garbageRate;
+        console.log('All Clear!');
+      }
+      this.spawnPuyo(true);
     }
-    if (this.chainsim.board[axisSpawnY][axisSpawnX] !== 0) {
-      this.handleDeath();
-      return;
-    }
+  }
+
+  pop(popped) {
     const { boardData: data } = this.state;
-    this.setState({
-      boardData: data.map((row, i) => row.map((puyo, j) => ({
-        ...puyo,
-        puyoColor: this.chainsim.board[i][j],
-      }))),
-    });
-    if (this.checkAllClear()) {
-      this.score += 30 * garbageRate;
-      console.log('All Clear!, score: ' + this.score);
+    for (const { x, y } of popped) {
+      data[y][x].puyoColor = 0;
     }
-    this.spawnPuyo(true);
+    this.setState({ boardData: data });
+  }
+
+  drop(dropped) {
+    const { boardData: data } = this.state;
+    for (const { puyo: { x, y }, dist } of dropped) {
+      data[y + dist][x].puyoColor = data[y][x].puyoColor;
+      data[y][x].puyoColor = 0;
+    }
+    this.setState({ boardData: data });
   }
 
   checkAllClear() {

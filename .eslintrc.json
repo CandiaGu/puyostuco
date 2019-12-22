@@ -28,6 +28,10 @@
     ],
     "rules": {
         "import/extensions": "off",
+        "no-cond-assign": [
+            "error",
+            "except-parens"
+        ],
         "no-console": "off",
         "no-continue": "off",
         "no-plusplus": "off",
