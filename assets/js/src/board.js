@@ -10,29 +10,36 @@ const axisSpawnY = 2; // spawn axis puyo in 12th row
 const garbageRate = 70;
 
 class Board extends React.Component {
-  static createEmptyArray() {
-    return Array.from({ length: height }, (_, i) => Array.from({ length: width }, (_, j) => ({
-      x: i,
-      y: j,
-      puyoColor: 0,
-    })));
-  }
-
   static randomColor() {
     return Math.floor(Math.random() * puyoColorCount) + 1;
   }
 
   constructor(props) {
     super(props);
-    this.state = {
-      boardData: Board.createEmptyArray(),
-      currPuyo1: { x: axisSpawnX, y: axisSpawnY - 1, puyoColor: Board.randomColor() },
-      currPuyo2: { x: axisSpawnX, y: axisSpawnY, puyoColor: Board.randomColor() }, // axis puyo
-    };
+    // state:
+    //   boardData (elems have x, y, puyoColor)
+    //   currPuyo1 (x, y, puyoColor)
+    //   currPuyo2 (axis puyo)
+    //   isOffset  (currPuyo offset half space up)
+    this.createController();
+    this.reset(false);
+  }
 
+  reset(isMounted) {
+    const data = Array.from({ length: height }, (_, y) => Array.from({ length: width }, (_, x) => (
+      { x, y, puyoColor: 0 }
+    )));
+    if (isMounted) {
+      this.setState({ boardData: data });
+    } else {
+      this.state = { boardData: data };
+    }
     this.chainsim = new Chainsim();
-    this.lockTimer = null;
+    this.score = 0;
+    this.spawnPuyo(isMounted);
+  }
 
+  createController() {
     const that = this;
     const controls = {
       left: { f: () => { that.moveCurrPuyo.bind(that)(-1, 0); }, delay: 100, repeat: 25 },
@@ -51,10 +58,21 @@ class Board extends React.Component {
       f: 'cw',
     };
     this.controller = new Controller(controls, keys);
-    this.score = 0;
   }
 
-  componentDidMount() {
+  spawnPuyo(isMounted) {
+    const state = {
+      currPuyo1: { x: axisSpawnX, y: axisSpawnY - 1, puyoColor: Board.randomColor() },
+      currPuyo2: { x: axisSpawnX, y: axisSpawnY, puyoColor: Board.randomColor() },
+      isOffset: true,
+    };
+    if (isMounted) {
+      this.setState(state);
+    } else {
+      this.state = { ...this.state, ...state };
+    }
+    this.lockTimer = null;
+    this.failedRotate = false;
     this.controller.locked = false;
   }
 
@@ -70,9 +88,14 @@ class Board extends React.Component {
   puyoLockFunctions() {
     if (this.controller.locked) return;
     const {
+      boardData: data,
       currPuyo1: puyo1,
       currPuyo2: puyo2,
+      isOffset,
     } = this.state;
+    if (isOffset) {
+      return;
+    }
     const lowestPosition1 = this.findLowestPosition(puyo1.x);
     const lowestPosition2 = this.findLowestPosition(puyo2.x);
     const atLowestPosition1 = puyo1.y === lowestPosition1;
@@ -92,7 +115,6 @@ class Board extends React.Component {
         placedPuyo2.y = lowestPosition2;
       }
     }
-    const { boardData: data } = this.state;
     data[placedPuyo1.y][placedPuyo1.x].puyoColor = placedPuyo1.puyoColor;
     data[placedPuyo2.y][placedPuyo2.x].puyoColor = placedPuyo2.puyoColor;
     this.setState({
@@ -126,7 +148,7 @@ class Board extends React.Component {
       this.score += 30 * garbageRate;
       console.log('All Clear!, score: ' + this.score);
     }
-    this.spawnPuyo();
+    this.spawnPuyo(true);
   }
 
   checkAllClear() {
@@ -136,19 +158,7 @@ class Board extends React.Component {
   }
 
   handleDeath() {
-    this.chainsim = new Chainsim();
-    this.score = 0;
-    this.setState({ boardData: Board.createEmptyArray() });
-    this.spawnPuyo();
-  }
-
-  spawnPuyo() {
-    this.setState({
-      currPuyo1: { x: axisSpawnX, y: axisSpawnY - 1, puyoColor: Board.randomColor() },
-      currPuyo2: { x: axisSpawnX, y: axisSpawnY, puyoColor: Board.randomColor() }, // axis puyo
-    });
-    this.failedRotate = false;
-    this.controller.locked = false;
+    this.reset(true);
   }
 
   findLowestPosition(col) {
@@ -161,20 +171,14 @@ class Board extends React.Component {
     return -1;
   }
 
-  tryMove(puyo1, puyo2, delay, dropped) {
+  tryMove(puyo1, puyo2) {
     if (this.checkIfLegalMove(puyo1, puyo2)) {
       this.setState({ currPuyo1: puyo1, currPuyo2: puyo2 });
-      if (dropped) {
-        this.score++;
-      }
-      if (
-        puyo1.y === this.findLowestPosition(puyo1.x)
-        || puyo2.y === this.findLowestPosition(puyo2.x)
-      ) {
-        this.lockTimer = setTimeout(this.puyoLockFunctions.bind(this), delay);
-        if (dropped) {
-          this.score++;
-        }
+      const isLow1 = puyo1.y === this.findLowestPosition(puyo1.x);
+      const isLow2 = puyo2.y === this.findLowestPosition(puyo2.x);
+      const { isOffset } = this.state;
+      if ((isLow1 || isLow2) && !isOffset) {
+        this.lockTimer = setTimeout(this.puyoLockFunctions.bind(this), 500);
       } else {
         clearTimeout(this.lockTimer);
       }
@@ -185,33 +189,50 @@ class Board extends React.Component {
 
   // move relatively
   moveCurrPuyo(dx, dy) {
-    const { currPuyo1, currPuyo2 } = this.state;
+    if (this.controller.locked) return;
+    const { currPuyo1, currPuyo2, isOffset } = this.state;
     const newPuyo1 = { ...currPuyo1 };
     newPuyo1.x += dx;
     newPuyo1.y += dy;
     const newPuyo2 = { ...currPuyo2 };
     newPuyo2.x += dx;
     newPuyo2.y += dy;
-    this.tryMove(newPuyo1, newPuyo2, dy === 1 ? 0 : 500, dy === 1);
+    const didMove = this.tryMove(newPuyo1, newPuyo2);
+    if (dy === 1) {
+      // pressed down
+      if (didMove) {
+        this.score++;
+      } else {
+        if (isOffset) {
+          this.setState({ isOffset: false });
+          this.score++;
+        }
+        this.score++;
+        this.puyoLockFunctions();
+      }
+    }
   }
 
   rotatePuyo(direction) {
-    const delay = 500;
+    if (this.controller.locked) return;
     const { currPuyo1, currPuyo2 } = this.state;
     const dx = -direction * (currPuyo1.y - currPuyo2.y);
     const dy = direction * (currPuyo1.x - currPuyo2.x);
-    const newPuyo1 = { x: currPuyo2.x + dx, y: currPuyo2.y + dy, puyoColor: currPuyo1.puyoColor };
-    if (!this.tryMove(newPuyo1, currPuyo2, delay, false)) {
+    const newPuyo1 = { ...currPuyo2 };
+    newPuyo1.x += dx;
+    newPuyo1.y += dy;
+    newPuyo1.puyoColor = currPuyo1.puyoColor;
+    if (!this.tryMove(newPuyo1, currPuyo2)) {
       // kick
       newPuyo1.x -= dx;
       newPuyo1.y -= dy;
       const newPuyo2 = { ...currPuyo2 };
       newPuyo2.x -= dx;
       newPuyo2.y -= dy;
-      if (!this.tryMove(newPuyo1, newPuyo2, delay, false) && currPuyo1.x === currPuyo2.x) {
+      if (!this.tryMove(newPuyo1, newPuyo2) && currPuyo1.x === currPuyo2.x) {
         // quick turn
         if (this.failedRotate) {
-          this.tryMove(newPuyo1, { ...currPuyo1, puyoColor: currPuyo2.puyoColor }, delay);
+          this.tryMove(newPuyo1, { ...currPuyo1, puyoColor: currPuyo2.puyoColor });
           this.failedRotate = false;
         } else {
           this.failedRotate = true;
@@ -220,24 +241,21 @@ class Board extends React.Component {
     }
   }
 
-  matchCurrPuyo(x, y, noMatch) {
-    const { currPuyo1, currPuyo2 } = this.state;
-    if (x === currPuyo1.x && y === currPuyo1.y) {
-      return currPuyo1;
-    }
-    if (x === currPuyo2.x && y === currPuyo2.y) {
-      return currPuyo2;
-    }
-    return noMatch;
-  }
-
   renderBoard() {
-    const { boardData: data } = this.state;
-    return data.map((datarow, y) => datarow.map((dataitem, x) => (
+    const {
+      boardData: data,
+      currPuyo1,
+      currPuyo2,
+      isOffset,
+    } = this.state;
+    return data.map((datarow) => datarow.map((dataitem) => (
       <div key={dataitem.x * datarow.length + dataitem.y}>
-        <Cell
-          value={this.matchCurrPuyo(x, y, dataitem)}
-          active={this.matchCurrPuyo(x, y, dataitem) !== dataitem}
+        <Cell {...{
+          dataitem,
+          currPuyo1,
+          currPuyo2,
+          isOffset,
+        }}
         />
         { (datarow[datarow.length - 1] === dataitem) ? <div className="clear" /> : '' }
       </div>

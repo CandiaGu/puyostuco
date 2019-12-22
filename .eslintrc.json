@@ -32,19 +32,26 @@
         "no-continue": "off",
         "no-plusplus": "off",
         "no-restricted-syntax": [
-          "error",
-          "LabeledStatement",
-          "WithStatement"
+            "error",
+            "LabeledStatement",
+            "WithStatement"
         ],
         "no-shadow": [
-            "error", {
+            "error",
+            {
                 "allow": [
                     "_"
-                ]
+              ]
             }
         ],
         "prefer-template": "off",
         "react/jsx-filename-extension": "off",
+        "react/jsx-props-no-spreading": [
+            "error",
+            {
+                "explicitSpread": "ignore"
+            }
+        ],
         "react/prop-types": [
             "error"
         ]

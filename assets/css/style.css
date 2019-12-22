@@ -335,6 +335,10 @@ input[type=text]:focus {
   animation: none;
 }
 
+.game .cell.offset {
+  transform: translateY(-50%);
+}
+
 @keyframes puyo {
   from { transform: none; }
   20% { transform: scaleX(0.75); }
