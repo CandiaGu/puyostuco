@@ -21,6 +21,8 @@ class Board extends React.Component {
     //   currPuyo1 (x, y, color)
     //   currPuyo2 (axis puyo)
     //   isOffset  (currPuyo offset half space up)
+    this.gravityOn = true;
+    this.gravityTimeout = null;
     this.createTiming();
     this.createController();
     this.reset(false);
@@ -40,6 +42,7 @@ class Board extends React.Component {
       fallenPuyoDelay: 6 * msPerFrame,
       startChainDelay: 16 * msPerFrame,
       startPopDelay: 7 * msPerFrame,
+      blinkRepeat: 2 * msPerFrame,
       startDropDelay: 47 * msPerFrame,
       dropRepeat: 1 * msPerFrame,
       nextLinkDelay: 24 * msPerFrame,
@@ -84,17 +87,19 @@ class Board extends React.Component {
         repeat: this.timing.leftRightRepeat,
       },
       down: { f: () => { that.moveDown.bind(that)(0); }, delay: 0, repeat: this.timing.downRepeat },
-      ccw: { f: () => { that.rotatePuyo.bind(that)(-1); }, delay: 0, repeat: 0 },
-      cw: { f: () => { that.rotatePuyo.bind(that)(1); }, delay: 0, repeat: 0 },
+      counterclockwise: { f: () => { that.rotatePuyo.bind(that)(-1); }, delay: 0, repeat: 0 },
+      clockwise: { f: () => { that.rotatePuyo.bind(that)(1); }, delay: 0, repeat: 0 },
+      gravity: { f: () => { that.toggleGravity.bind(that)(); }, delay: 0, repeat: 0 },
     };
     const keys = {
       ArrowLeft: 'left',
       ArrowRight: 'right',
       ArrowDown: 'down',
-      z: 'ccw',
-      x: 'cw',
-      d: 'ccw',
-      f: 'cw',
+      z: 'counterclockwise',
+      x: 'clockwise',
+      d: 'counterclockwise',
+      f: 'clockwise',
+      g: 'gravity',
     };
     this.controller = new Controller(controls, keys);
   }
@@ -105,10 +110,40 @@ class Board extends React.Component {
       currPuyo2: { x: axisSpawnX, y: axisSpawnY, color: Board.randomColor() },
       isOffset: true,
     });
-    this.lockTimer = null;
+    this.lockTimeout = null;
     this.failedRotate = false;
     this.controller.locked = false;
+    if (this.gravityOn) {
+      this.gravityTimeout = setTimeout(() => { this.applyGravity(); }, this.timing.gravityRepeat);
+    }
     console.log('score: ' + this.score);
+  }
+
+  applyGravity() {
+    if (this.controller.locked || !this.gravityOn) return;
+    const { currPuyo1, currPuyo2, isOffset } = this.state;
+    const atLowestPosition = this.atLowestPosition(currPuyo1, currPuyo2);
+    if (isOffset) {
+      this.setState({ isOffset: false });
+      if (atLowestPosition) {
+        this.lockTimeout = setTimeout(this.puyoLockFunctions.bind(this), this.timing.lockDelay);
+      }
+    } else if (!atLowestPosition) {
+      currPuyo1.y++;
+      currPuyo2.y++;
+      this.setState({ currPuyo1, currPuyo2, isOffset: true });
+    }
+    this.gravityTimeout = setTimeout(() => { this.applyGravity(); }, this.timing.gravityRepeat);
+  }
+
+  toggleGravity() {
+    if (this.gravityOn) {
+      this.gravityOn = false;
+      clearTimeout(this.gravityTimeout);
+    } else {
+      this.gravityOn = true;
+      this.gravityTimeout = setTimeout(() => { this.applyGravity(); }, this.timing.gravityRepeat);
+    }
   }
 
   checkIfLegalMove(puyo1, puyo2) {
@@ -140,6 +175,7 @@ class Board extends React.Component {
       return;
     }
     this.controller.locked = true;
+    clearInterval(this.gravityInterval);
     const placedPuyo1 = { ...puyo1 };
     const placedPuyo2 = { ...puyo2 };
     let state1 = 'landed';
@@ -175,12 +211,7 @@ class Board extends React.Component {
       this.puyosToPop = popped;
       this.puyosToDrop = dropped;
       this.score += score;
-      const interval = setInterval(() => { this.blinkPopped(); }, this.timing.startPopDelay);
-      setTimeout(() => {
-        clearInterval(interval);
-        this.popPopped();
-        this.dropDroppedHalfCell(0);
-      }, this.timing.startDropDelay);
+      setTimeout(() => { this.blinkPopped(0); }, this.timing.startPopDelay);
     } else {
       if (this.chainsim.board[axisSpawnY][axisSpawnX] !== 0) {
         this.handleDeath();
@@ -194,12 +225,21 @@ class Board extends React.Component {
     }
   }
 
-  blinkPopped() {
+  blinkPopped(step) {
     const { boardData: data } = this.state;
     for (const { x, y } of this.puyosToPop) {
       data[y][x].state = data[y][x].state === 'blinked' ? 'none' : 'blinked';
     }
     this.setState({ boardData: data });
+    const blinks = 12;
+    if (step === blinks) {
+      setTimeout(() => {
+        this.popPopped();
+        this.dropDroppedHalfCell(0);
+      }, this.timing.startDropDelay - blinks * this.timing.blinkRepeat);
+    } else {
+      setTimeout(() => { this.blinkPopped(step + 1); }, this.timing.blinkRepeat);
+    }
   }
 
   popPopped() {
@@ -275,9 +315,9 @@ class Board extends React.Component {
       this.setState({ currPuyo1: puyo1, currPuyo2: puyo2 });
       const { isOffset } = this.state;
       if (this.atLowestPosition(puyo1, puyo2) && !isOffset) {
-        this.lockTimer = setTimeout(this.puyoLockFunctions.bind(this), this.timing.lockDelay);
+        this.lockTimeout = setTimeout(this.puyoLockFunctions.bind(this), this.timing.lockDelay);
       } else {
-        clearTimeout(this.lockTimer);
+        clearTimeout(this.lockTimeout);
       }
       return true;
     }
@@ -297,10 +337,13 @@ class Board extends React.Component {
   moveDown(step) {
     if (this.controller.locked) return;
     const { currPuyo1, currPuyo2, isOffset } = this.state;
+    const atLowestPosition = this.atLowestPosition(currPuyo1, currPuyo2);
     if (isOffset) {
       this.setState({ isOffset: false });
-      this.score++;
-    } else if (this.atLowestPosition(currPuyo1, currPuyo2)) {
+      if (step === 1 && atLowestPosition) {
+        this.lockTimeout = setTimeout(this.puyoLockFunctions.bind(this), this.timing.lockDelay);
+      }
+    } else if (atLowestPosition) {
       this.score++;
       this.puyoLockFunctions();
       return;
@@ -310,6 +353,7 @@ class Board extends React.Component {
       this.setState({ currPuyo1, currPuyo2, isOffset: true });
     }
     if (step === 0) {
+      this.score++;
       setTimeout(() => { this.moveDown(1); }, this.timing.downRepeat / 2);
     }
   }
