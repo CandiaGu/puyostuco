@@ -32,8 +32,8 @@ class Chainsim {
   }
 
   placePuyo(puyo1, puyo2) {
-    this.board[puyo1.y][puyo1.x] = puyo1.puyoColor;
-    this.board[puyo2.y][puyo2.x] = puyo2.puyoColor;
+    this.board[puyo1.y][puyo1.x] = puyo1.color;
+    this.board[puyo2.y][puyo2.x] = puyo2.color;
     // prevent ghost row from popping
     this.lastDropped = [puyo1, puyo2].filter((puyo) => puyo.y > 1);
     this.chainNum = 1;
@@ -111,9 +111,7 @@ class Chainsim {
     for (const can of candidates) {
       if (!Chainsim.checkIfAlreadyVisited(can, checkedLocations)) {
         const color = this.board[can.y][can.x];
-        const group = (
-          this.checkPuyoHelper(can, checkedLocations, color)
-        );
+        const group = this.checkPuyoHelper(can, checkedLocations, color);
         if (group.length >= puyoMinPop) {
           puyosToPop.push(...group);
           colorList.add(color);
@@ -125,11 +123,10 @@ class Chainsim {
     return { puyosToPop, bonus };
   }
 
-  // recursive function
+  // recursive function that modifies checkedLocations
   checkPuyoHelper(puyo, checkedLocations, color) {
     const { x, y } = puyo;
     const group = [];
-    // add given
     if (!(x in checkedLocations)) {
       checkedLocations[x] = new Set();
     }

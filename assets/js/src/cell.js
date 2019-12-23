@@ -14,18 +14,20 @@ const Cell = (props) => {
   } else {
     isActive = false;
   }
-  let name = 'cell cell' + puyo.puyoColor;
+  let name = 'cell cell' + puyo.color;
   if (isActive) {
     name += ' active';
     if (isOffset) {
       name += ' offset';
     }
+  } else {
+    name += ' ' + dataitem.state;
   }
   return <div className={name} />;
 };
 
 const { shape, number, bool } = PropTypes;
-const puyoPropTypes = shape({ x: number, y: number, puyoColor: number });
+const puyoPropTypes = shape({ x: number, y: number, color: number });
 Cell.propTypes = {
   dataitem: puyoPropTypes.isRequired,
   currPuyo1: puyoPropTypes.isRequired,

@@ -328,7 +328,6 @@ input[type=text]:focus {
 	color: #333333;
 	font-weight: 600;
 	border-radius:50%;
-  animation: puyo 0.2s;
 }
 
 .game .cell.active {
@@ -337,6 +336,28 @@ input[type=text]:focus {
 
 .game .cell.offset {
   transform: translateY(-50%);
+}
+
+.game .cell.landed {
+  animation: puyo 0.2s;
+}
+
+.game .cell.fell {
+  animation: puyo 0.2s;
+  animation-iteration-count: 2;
+}
+
+.game .cell.blinked {
+  background-color: navy;
+}
+
+.game .cell.falling {
+  animation: fall calc(var(--d) / 30 * 1s);
+}
+
+@keyframes fall {
+  from { transform: none; }
+  to { transform: translateY(calc(var(--d) * 100%)); }
 }
 
 @keyframes puyo {
