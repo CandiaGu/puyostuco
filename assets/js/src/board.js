@@ -35,7 +35,7 @@ class Board extends React.Component {
     this.timing = {
       leftRightDelay: 5 * msPerFrame,
       leftRightRepeat: 1 * msPerFrame,
-      downRepeat: 2 * msPerFrame,
+      downRepeat: 1 * msPerFrame,
       gravityRepeat: 13 * msPerFrame,
       lockDelay: 31 * msPerFrame,
       pieceSpawnDelay: 10 * msPerFrame,
@@ -86,7 +86,7 @@ class Board extends React.Component {
         delay: this.timing.leftRightDelay,
         repeat: this.timing.leftRightRepeat,
       },
-      down: { f: () => { that.moveDown.bind(that)(0); }, delay: 0, repeat: this.timing.downRepeat },
+      down: { f: () => { that.moveDown.bind(that)(); }, delay: 0, repeat: this.timing.downRepeat },
       counterclockwise: { f: () => { that.rotatePuyo.bind(that)(-1); }, delay: 0, repeat: 0 },
       clockwise: { f: () => { that.rotatePuyo.bind(that)(1); }, delay: 0, repeat: 0 },
       gravity: { f: () => { that.toggleGravity.bind(that)(); }, delay: 0, repeat: 0 },
@@ -116,7 +116,14 @@ class Board extends React.Component {
     if (this.gravityOn) {
       this.gravityTimeout = setTimeout(() => { this.applyGravity(); }, this.timing.gravityRepeat);
     }
+    this.rowsHeldDownIn = new Set();
     console.log('score: ' + this.score);
+  }
+
+  startLockTimeout() {
+    if (!this.lockTimeout) {
+      this.lockTimeout = setTimeout(this.puyoLockFunctions.bind(this), this.timing.lockDelay);
+    }
   }
 
   applyGravity() {
@@ -126,7 +133,7 @@ class Board extends React.Component {
     if (isOffset) {
       this.setState({ isOffset: false });
       if (atLowestPosition) {
-        this.lockTimeout = setTimeout(this.puyoLockFunctions.bind(this), this.timing.lockDelay);
+        this.startLockTimeout();
       }
     } else if (!atLowestPosition) {
       currPuyo1.y++;
@@ -176,6 +183,7 @@ class Board extends React.Component {
     }
     this.controller.locked = true;
     clearInterval(this.gravityInterval);
+    this.score += this.rowsHeldDownIn.size;
     const placedPuyo1 = { ...puyo1 };
     const placedPuyo2 = { ...puyo2 };
     let state1 = 'landed';
@@ -315,9 +323,10 @@ class Board extends React.Component {
       this.setState({ currPuyo1: puyo1, currPuyo2: puyo2 });
       const { isOffset } = this.state;
       if (this.atLowestPosition(puyo1, puyo2) && !isOffset) {
-        this.lockTimeout = setTimeout(this.puyoLockFunctions.bind(this), this.timing.lockDelay);
+        this.startLockTimeout();
       } else {
         clearTimeout(this.lockTimeout);
+        this.lockTimeout = null;
       }
       return true;
     }
@@ -334,27 +343,22 @@ class Board extends React.Component {
     this.tryMove(newPuyo1, newPuyo2);
   }
 
-  moveDown(step) {
+  moveDown() {
     if (this.controller.locked) return;
     const { currPuyo1, currPuyo2, isOffset } = this.state;
-    const atLowestPosition = this.atLowestPosition(currPuyo1, currPuyo2);
-    if (isOffset) {
-      this.setState({ isOffset: false });
-      if (step === 1 && atLowestPosition) {
-        this.lockTimeout = setTimeout(this.puyoLockFunctions.bind(this), this.timing.lockDelay);
+    this.rowsHeldDownIn.add(currPuyo2.y);
+    if (this.atLowestPosition(currPuyo1, currPuyo2)) {
+      if (isOffset) {
+        this.setState({ isOffset: false });
       }
-    } else if (atLowestPosition) {
       this.score++;
       this.puyoLockFunctions();
-      return;
+    } else if (isOffset) {
+      this.setState({ isOffset: false });
     } else {
       currPuyo1.y++;
       currPuyo2.y++;
       this.setState({ currPuyo1, currPuyo2, isOffset: true });
-    }
-    if (step === 0) {
-      this.score++;
-      setTimeout(() => { this.moveDown(1); }, this.timing.downRepeat / 2);
     }
   }
 

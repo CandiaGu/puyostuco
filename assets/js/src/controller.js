@@ -20,15 +20,16 @@ class Controller {
     const control = this.keys[event.key];
     if (control in this.controls && !(control in this.timers)) {
       const { f: func, delay, repeat } = this.controls[control];
-      func();
       if (repeat === 0) {
+        func();
         this.timers[control] = null;
       } else {
-        const interval = () => { this.timers[control] = setInterval(func, repeat); };
+        const loop = () => { func(); this.timers[control] = setTimeout(loop, repeat); };
         if (delay === 0) {
-          interval();
+          loop();
         } else {
-          this.timers[control] = setTimeout(interval, delay);
+          func();
+          this.timers[control] = setTimeout(loop, delay);
         }
       }
     }
@@ -38,7 +39,7 @@ class Controller {
     const control = this.keys[event.key];
     if (control in this.timers) {
       if (this.timers[control] !== null) {
-        clearInterval(this.timers[control]);
+        clearTimeout(this.timers[control]);
       }
       delete this.timers[control];
     }
@@ -47,7 +48,7 @@ class Controller {
   onBlur() {
     for (const control in this.timers) {
       if (this.timers[control] !== null) {
-        clearInterval(this.timers[control]);
+        clearTimeout(this.timers[control]);
       }
     }
     this.timers = {};
