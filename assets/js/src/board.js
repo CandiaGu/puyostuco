@@ -33,8 +33,8 @@ class Board extends React.Component {
     const msPerSec = 1000.0;
     const msPerFrame = msPerSec / framesPerSec;
     this.timing = {
-      leftRightDelay: 5 * msPerFrame,
-      leftRightRepeat: 1 * msPerFrame,
+      leftRightDelay: 10 * msPerFrame,
+      leftRightRepeat: 2 * msPerFrame,
       downRepeat: 1 * msPerFrame,
       gravityRepeat: 13 * msPerFrame,
       lockDelay: 31 * msPerFrame,
