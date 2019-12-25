@@ -16,7 +16,6 @@ class Controller {
   }
 
   onKeyDown(event) {
-    if (this.locked) return;
     const control = this.keys[event.key];
     if (control in this.controls && !(control in this.timers)) {
       const { f: func, delay, repeat } = this.controls[control];

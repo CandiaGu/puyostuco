@@ -134,9 +134,8 @@ class Chainsim {
     group.push({ x, y });
     for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
       const nb = { x: x + dx, y: y + dy };
-      // prevent ghost row from popping
       if (
-        nb.y > 1
+        nb.y > 1 // prevent ghost row from popping
         && Chainsim.checkIfValidLoc(nb)
         && this.board[nb.y][nb.x] === color
         && !Chainsim.checkIfAlreadyVisited(nb, checkedLocations)

@@ -4,6 +4,8 @@ const Cell = (props) => {
     currPuyo1,
     currPuyo2,
     isOffset,
+    splitPuyo,
+    fps,
   } = props;
   let puyo = dataitem;
   let isActive = true;
@@ -14,25 +16,57 @@ const Cell = (props) => {
   } else {
     isActive = false;
   }
-  let name = 'cell cell' + puyo.color;
+  let className = 'cell cell' + puyo.color;
   if (isActive) {
-    name += ' active';
+    className += ' active';
     if (isOffset) {
-      name += ' offset';
+      className += ' offset';
     }
   } else {
-    name += ' ' + dataitem.state;
+    className += ' ' + dataitem.state;
   }
-  return <div className={name} />;
+  if (splitPuyo.x === puyo.x && splitPuyo.y === puyo.y) {
+    const {
+      velocity: v0,
+      acceleration: a,
+      onAnimationEnd,
+      distance: d,
+    } = splitPuyo;
+    const v = Math.sqrt(v0 * v0 + 2 * a * d);
+    const style = {
+      '--d': d,
+      '--t': (2.0 * d) / (v + v0) / fps,
+      '--y': v0 / 3.0,
+    };
+    return <div className={className} style={style} onAnimationEnd={onAnimationEnd} />;
+  }
+  return <div className={className} />;
 };
 
-const { shape, number, bool } = PropTypes;
-const puyoPropTypes = shape({ x: number, y: number, color: number });
+const {
+  shape,
+  number,
+  string,
+  bool,
+  func,
+} = PropTypes;
 Cell.propTypes = {
-  dataitem: puyoPropTypes.isRequired,
-  currPuyo1: puyoPropTypes.isRequired,
-  currPuyo2: puyoPropTypes.isRequired,
+  dataitem: shape({
+    x: number,
+    y: number,
+    color: number,
+    state: string,
+  }).isRequired,
+  currPuyo1: shape({ x: number, y: number, color: number }).isRequired,
+  currPuyo2: shape({ x: number, y: number, color: number }).isRequired,
   isOffset: bool.isRequired,
+  splitPuyo: shape({
+    x: number,
+    velcotiy: number,
+    acceleration: number,
+    onAnimationEnd: func,
+  }).isRequired,
+  fps: number.isRequired,
 };
 
 export default Cell;

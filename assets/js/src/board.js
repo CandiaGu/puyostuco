@@ -23,9 +23,33 @@ class Board extends React.Component {
     //   isOffset  (currPuyo offset half space up)
     this.gravityOn = true;
     this.gravityTimeout = null;
+    this.rowsHeldDownIn = new Set();
     this.createTiming();
+    const pixelsPerCell = 16.0;
+    this.splitPuyo = {
+      x: -1,
+      velocity: 1 / pixelsPerCell,
+      acceleration: 3.0 / 16 / pixelsPerCell,
+      onAnimationEnd: this.onAnimationEnd.bind(this),
+    };
     this.createController();
     this.reset(false);
+  }
+
+  onAnimationEnd() {
+    const { boardData: data } = this.state;
+    const {
+      x,
+      y,
+      color,
+      distance,
+    } = this.splitPuyo;
+    Object.assign(data[y][x], { color: 0, state: 'none' });
+    Object.assign(data[y + distance][x], { color, state: 'fell' });
+    this.setState({ boardData: data });
+    this.splitPuyo.x = -1;
+    const delay = this.timing.startChainDelay + this.timing.fallenPuyoDelay;
+    setTimeout(() => { this.handleLink(); }, delay);
   }
 
   createTiming() {
@@ -33,6 +57,7 @@ class Board extends React.Component {
     const msPerSec = 1000.0;
     const msPerFrame = msPerSec / framesPerSec;
     this.timing = {
+      framesPerSec,
       leftRightDelay: 10 * msPerFrame,
       leftRightRepeat: 2 * msPerFrame,
       downRepeat: 1 * msPerFrame,
@@ -50,7 +75,7 @@ class Board extends React.Component {
   }
 
   reset(isMounted) {
-    // state: none, landed, offset, blinked, fell (from splitting or chaining)
+    // state: none, landed, offset, blinked, falling, fell (from splitting or chaining)
     const data = Array.from({ length: height }, (_, y) => Array.from({ length: width }, (_, x) => ({
       x,
       y,
@@ -116,7 +141,7 @@ class Board extends React.Component {
     if (this.gravityOn) {
       this.gravityTimeout = setTimeout(() => { this.applyGravity(); }, this.timing.gravityRepeat);
     }
-    this.rowsHeldDownIn = new Set();
+    this.rowsHeldDownIn.clear();
     console.log('score: ' + this.score);
   }
 
@@ -183,33 +208,34 @@ class Board extends React.Component {
     }
     this.controller.locked = true;
     clearInterval(this.gravityInterval);
-    this.score += this.rowsHeldDownIn.size;
     const placedPuyo1 = { ...puyo1 };
     const placedPuyo2 = { ...puyo2 };
     let state1 = 'landed';
     let state2 = 'landed';
     if (puyo1.x !== puyo2.x) {
       if (!atLowestPosition1) {
+        Object.assign(this.splitPuyo, puyo1);
+        this.splitPuyo.distance = lowestPosition1 - puyo1.y;
         placedPuyo1.y = lowestPosition1;
-        state1 = 'fell';
+        state1 = 'falling';
       } else if (!atLowestPosition2) {
+        Object.assign(this.splitPuyo, puyo2);
+        this.splitPuyo.distance = lowestPosition2 - puyo2.y;
         placedPuyo2.y = lowestPosition2;
-        state2 = 'fell';
+        state2 = 'falling';
       }
     }
-    Object.assign(data[placedPuyo1.y][placedPuyo1.x], { color: puyo1.color, state: state1 });
-    Object.assign(data[placedPuyo2.y][placedPuyo2.x], { color: puyo2.color, state: state2 });
+    Object.assign(data[puyo1.y][puyo1.x], { color: puyo1.color, state: state1 });
+    Object.assign(data[puyo2.y][puyo2.x], { color: puyo2.color, state: state2 });
     this.setState({
       boardData: data,
       currPuyo1: { x: -1, y: -1 },
       currPuyo2: { x: -1, y: -1 },
     });
     this.chainsim.placePuyo(placedPuyo1, placedPuyo2);
-    let delay = this.timing.startChainDelay;
-    if (state1 === 'fell' || state2 === 'fell') {
-      delay += this.timing.fallenPuyoDelay;
+    if (this.splitPuyo.x === -1) {
+      setTimeout(() => { this.handleLink(); }, this.timing.startChainDelay);
     }
-    setTimeout(() => { this.handleLink(); }, delay);
   }
 
   handleLink() {
@@ -346,7 +372,10 @@ class Board extends React.Component {
   moveDown() {
     if (this.controller.locked) return;
     const { currPuyo1, currPuyo2, isOffset } = this.state;
-    this.rowsHeldDownIn.add(currPuyo2.y);
+    if (!this.rowsHeldDownIn.has(currPuyo2.y)) {
+      this.score++;
+      this.rowsHeldDownIn.add(currPuyo2.y);
+    }
     if (this.atLowestPosition(currPuyo1, currPuyo2)) {
       if (isOffset) {
         this.setState({ isOffset: false });
@@ -404,6 +433,8 @@ class Board extends React.Component {
           currPuyo1,
           currPuyo2,
           isOffset,
+          splitPuyo: this.splitPuyo,
+          fps: this.timing.framesPerSec,
         }}
         />
         { (datarow[datarow.length - 1] === dataitem) ? <div className="clear" /> : '' }
