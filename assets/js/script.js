@@ -9,7 +9,6 @@ function selectPlayMode(mode) {
     const selectRoom = document.getElementById('select-room');
     selectRoom.style.visibility = 'visible';
   } else if (mode === 'singleplayerCPU') {
-    console.log('unimplemented');
   }
 }
 

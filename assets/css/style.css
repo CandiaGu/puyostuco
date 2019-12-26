@@ -331,10 +331,6 @@ input[type=text]:focus {
 	border-radius:50%;
 }
 
-.game .cell.active {
-  animation: none;
-}
-
 .game .cell.offset {
   transform: translateY(-50%);
 }
@@ -345,10 +341,6 @@ input[type=text]:focus {
 
 .game .cell.fell {
   animation: longPuyo calc(2s / 30) 5;
-}
-
-.game .cell.blinked {
-  background-color: navy;
 }
 
 .game .cell.falling {
@@ -377,24 +369,32 @@ input[type=text]:focus {
   75% { transform: scaleX(0.85); }
 }
 
-.game .cell0{
+.game .cell.none {
 	background-color: navy;
   animation: none;
 }
 
-.game .cell1{
+.game .cell.red {
 	background-color: red;
 }
-.game .cell2{
+.game .cell.blue {
 	background-color: blue;
 }
 
-.game .cell3{
+.game .cell.green {
 	background-color: green;
 }
 
-.game .cell4{
+.game .cell.yellow {
 	background-color: yellow;
+}
+
+.game .cell.purple {
+  background-color: purple;
+}
+
+.game .cell.blinked {
+  background-color: navy;
 }
 
 #score {

@@ -1,29 +1,26 @@
 import Cell from './cell.js';
 import Chainsim from './chainsim.js';
 import Controller from './controller.js';
-
-const colorCount = 4;
-const height = 14;
-const width = 6;
-const axisSpawnX = 2;
-const axisSpawnY = 2; // spawn axis puyo in 12th row
-const garbageRate = 70;
+import Sequence from './sequence.js';
 
 class Board extends React.Component {
-  static randomColor() {
-    return Math.floor(Math.random() * colorCount) + 1;
-  }
-
   constructor(props) {
     super(props);
     // state:
     //   boardData (elems have x, y, color)
+    //     color: none, red, green, blue, yellow, purple
     //   currPuyo1 { x, y, color }
     //   currPuyo2 (axis puyo)
     //   isOffset  (currPuyo offset half space up)
     //   score
     //   nextColors1 { color1, color2 }
     //   nextColors2
+    this.height = 14;
+    this.width = 6;
+    this.axisSpawnX = 2;
+    this.axisSpawnY = 2; // spawn axis puyo in 12th row
+    this.garbageRate = 70;
+
     this.gravityOn = true;
     this.gravityTimeout = null;
     this.rowsHeldDownIn = new Set();
@@ -47,7 +44,7 @@ class Board extends React.Component {
       color,
       distance,
     } = this.splitPuyo;
-    Object.assign(data[y][x], { color: 0, state: 'none' });
+    Object.assign(data[y][x], { color: 'none', state: 'none' });
     Object.assign(data[y + distance][x], { color, state: 'fell' });
     this.setState({ boardData: data });
     this.splitPuyo.x = -1;
@@ -79,20 +76,24 @@ class Board extends React.Component {
 
   reset(isMounted) {
     // state: none, landed, offset, blinked, falling, fell (from splitting or chaining)
-    const data = Array.from({ length: height }, (_, y) => Array.from({ length: width }, (_, x) => ({
-      x,
-      y,
-      color: 0,
-      state: 'none',
-    })));
+    const data = Array.from({ length: this.height }, (_, y) => (
+      Array.from({ length: this.width }, (_, x) => ({
+        x,
+        y,
+        color: 'none',
+        state: 'none',
+      }))
+    ));
+    const numSeq = 65536;
+    this.sequence = new Sequence(Math.floor(Math.random() * numSeq));
     const state = {
       boardData: data,
       currPuyo1: { x: -1, y: -1 },
       currPuyo2: { x: -1, y: -1 },
       isOffset: false,
       score: 0,
-      nextColors1: { color1: Board.randomColor(), color2: Board.randomColor() },
-      nextColors2: { color1: Board.randomColor(), color2: Board.randomColor() },
+      nextColors1: this.sequence.getColors(),
+      nextColors2: this.sequence.getColors(),
     };
     if (isMounted) {
       this.setState(state);
@@ -120,6 +121,7 @@ class Board extends React.Component {
       counterclockwise: { f: () => { that.rotatePuyo.bind(that)(-1); }, delay: 0, repeat: 0 },
       clockwise: { f: () => { that.rotatePuyo.bind(that)(1); }, delay: 0, repeat: 0 },
       gravity: { f: () => { that.toggleGravity.bind(that)(); }, delay: 0, repeat: 0 },
+      reset: { f: () => { that.reset.bind(that)(true); }, delay: 0, repeat: 0 },
     };
     const keys = {
       ArrowLeft: 'left',
@@ -130,17 +132,18 @@ class Board extends React.Component {
       d: 'counterclockwise',
       f: 'clockwise',
       g: 'gravity',
+      Escape: 'reset',
     };
     this.controller = new Controller(controls, keys);
   }
 
   spawnPuyo() {
     this.setState(({ nextColors1, nextColors2 }) => ({
-      currPuyo1: { x: axisSpawnX, y: axisSpawnY - 1, color: nextColors1.color1 },
-      currPuyo2: { x: axisSpawnX, y: axisSpawnY, color: nextColors1.color2 },
+      currPuyo1: { x: this.axisSpawnX, y: this.axisSpawnY - 1, color: nextColors1.color1 },
+      currPuyo2: { x: this.axisSpawnX, y: this.axisSpawnY, color: nextColors1.color2 },
       isOffset: true,
-      nextColors1: { color1: nextColors2.color1, color2: nextColors2.color2 },
-      nextColors2: { color1: Board.randomColor(), color2: Board.randomColor() },
+      nextColors1: nextColors2,
+      nextColors2: this.sequence.getColors(),
     }));
     this.lockTimeout = null;
     this.failedRotate = false;
@@ -186,10 +189,10 @@ class Board extends React.Component {
 
   checkIfLegalMove(puyo1, puyo2) {
     const { boardData: data } = this.state;
-    return Chainsim.checkIfValidLoc(puyo1)
-      && Chainsim.checkIfValidLoc(puyo2)
-      && data[puyo1.y][puyo1.x].color === 0
-      && data[puyo2.y][puyo2.x].color === 0
+    return this.chainsim.checkIfValidLoc(puyo1)
+      && this.chainsim.checkIfValidLoc(puyo2)
+      && data[puyo1.y][puyo1.x].color === 'none'
+      && data[puyo2.y][puyo2.x].color === 'none'
       && puyo2.y > 0; // forbid rotating axis puyo into 14th row
   }
 
@@ -252,13 +255,12 @@ class Board extends React.Component {
       this.puyosToDrop = dropped;
       setTimeout(() => { this.blinkPopped(0, chainScore); }, this.timing.startPopDelay);
     } else {
-      if (this.chainsim.board[axisSpawnY][axisSpawnX] !== 0) {
+      if (this.chainsim.board[this.axisSpawnY][this.axisSpawnX] !== 0) {
         this.handleDeath();
         return;
       }
       if (this.checkAllClear()) {
-        this.setState(({ score }) => ({ score: score + 30 * garbageRate }));
-        console.log('All Clear!');
+        this.setState(({ score }) => ({ score: score + 30 * this.garbageRate }));
       }
       setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
     }
@@ -285,7 +287,7 @@ class Board extends React.Component {
   popPopped() {
     const { boardData: data } = this.state;
     for (const { x, y } of this.puyosToPop) {
-      Object.assign(data[y][x], { color: 0, state: 'none' });
+      Object.assign(data[y][x], { color: 'none', state: 'none' });
     }
     this.setState({ boardData: data });
   }
@@ -298,7 +300,7 @@ class Board extends React.Component {
         const puyo = data[y][x];
         if (step === 0) {
           Object.assign(data[y + 1][x], { color: puyo.color, state: 'offset' });
-          Object.assign(puyo, { color: 0, state: 'none' });
+          Object.assign(puyo, { color: 'none', state: 'none' });
           this.puyosToDrop[i].puyo.y++;
         } else {
           if (dist === 1) {
@@ -328,7 +330,7 @@ class Board extends React.Component {
   checkAllClear() {
     const { boardData: data } = this.state;
     // exclude 14th row from all clear check
-    return data.slice(1).every((row) => row.every((puyo) => puyo.color === 0));
+    return data.slice(1).every((row) => row.every((puyo) => puyo.color === 'none'));
   }
 
   handleDeath() {
@@ -337,8 +339,8 @@ class Board extends React.Component {
 
   findLowestPosition(col) {
     const { boardData: data } = this.state;
-    for (let i = height - 1; i >= 0; i--) {
-      if (data[i][col].color === 0) {
+    for (let i = this.height - 1; i >= 0; i--) {
+      if (data[i][col].color === 'none') {
         return i;
       }
     }
@@ -436,7 +438,7 @@ class Board extends React.Component {
     } else {
       isActive = false;
     }
-    const classList = [];
+    const classList = [puyo.color];
     if (isActive) {
       classList.push('active');
       if (isOffset) {
@@ -456,7 +458,6 @@ class Board extends React.Component {
       const v = Math.sqrt(v0 * v0 + 2 * a * d);
       return (
         <Cell {...{
-          color: puyo.color,
           classList,
           style: {
             '--d': d,
@@ -468,7 +469,7 @@ class Board extends React.Component {
         />
       );
     }
-    return <Cell {...{ color: puyo.color, classList }} />;
+    return <Cell {...{ classList }} />;
   }
 
   renderBoard() {
@@ -486,11 +487,11 @@ class Board extends React.Component {
     return (
       <div className="board">
         <div id="preview">
-          <Cell color={nextColors1.color1} classList={[]} />
-          <Cell color={nextColors1.color2} classList={[]} />
-          <Cell color={0} classList={[]} />
-          <Cell color={nextColors2.color1} classList={[]} />
-          <Cell color={nextColors2.color2} classList={[]} />
+          <Cell classList={[nextColors1.color2]} />
+          <Cell classList={[nextColors1.color1]} />
+          <Cell classList={['none']} />
+          <Cell classList={[nextColors2.color2]} />
+          <Cell classList={[nextColors2.color1]} />
         </div>
         <div className="clear" />
         { this.renderBoard() }

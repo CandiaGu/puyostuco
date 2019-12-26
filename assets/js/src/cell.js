@@ -1,6 +1,6 @@
 const Cell = (props) => {
-  const { color, classList } = props;
-  const className = 'cell cell' + color + classList.reduce((acc, cur) => acc + ' ' + cur, '');
+  const { classList } = props;
+  const className = 'cell' + classList.reduce((acc, cur) => acc + ' ' + cur, '');
   if (classList.includes('falling')) {
     const { style, onAnimationEnd } = props;
     return <div className={className} style={style} onAnimationEnd={onAnimationEnd} />;
@@ -16,7 +16,6 @@ const {
   func,
 } = PropTypes;
 Cell.propTypes = {
-  color: number.isRequired,
   classList: arrayOf(string).isRequired,
   style: shape({ '--d': number.isRequired, '--t': number.isRequired, '--y': number.isRequired }),
   onAnimationEnd: func,

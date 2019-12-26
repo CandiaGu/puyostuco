@@ -1,12 +1,4 @@
-const puyoMinPop = 4;
-const height = 14;
-const width = 6;
-
 class Chainsim {
-  static checkIfValidLoc(puyo) {
-    return puyo.x >= 0 && puyo.x < width && puyo.y >= 0 && puyo.y < height;
-  }
-
   static chainPower(chain) {
     switch (chain) {
       case 1: return 0;
@@ -28,7 +20,17 @@ class Chainsim {
   }
 
   constructor() {
-    this.board = Array.from({ length: height }, () => Array.from({ length: width }, () => 0));
+    this.puyoMinPop = 4;
+    this.height = 14;
+    this.width = 6;
+
+    this.board = Array.from({ length: this.height }, () => (
+      Array.from({ length: this.width }, () => 0)
+    ));
+  }
+
+  checkIfValidLoc(puyo) {
+    return puyo.x >= 0 && puyo.x < this.width && puyo.y >= 0 && puyo.y < this.height;
   }
 
   placePuyo(puyo1, puyo2) {
@@ -112,7 +114,7 @@ class Chainsim {
       if (!Chainsim.checkIfAlreadyVisited(can, checkedLocations)) {
         const color = this.board[can.y][can.x];
         const group = this.checkPuyoHelper(can, checkedLocations, color);
-        if (group.length >= puyoMinPop) {
+        if (group.length >= this.puyoMinPop) {
           puyosToPop.push(...group);
           colorList.add(color);
           bonus += Chainsim.groupBonus(group.length);
@@ -136,7 +138,7 @@ class Chainsim {
       const nb = { x: x + dx, y: y + dy };
       if (
         nb.y > 1 // prevent ghost row from popping
-        && Chainsim.checkIfValidLoc(nb)
+        && this.checkIfValidLoc(nb)
         && this.board[nb.y][nb.x] === color
         && !Chainsim.checkIfAlreadyVisited(nb, checkedLocations)
       ) {
