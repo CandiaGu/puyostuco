@@ -490,8 +490,7 @@ class Board extends React.Component {
 
   renderBoard() {
     const { boardData: data, nextColors1, nextColors2 } = this.state;
-    // hide 13th and 14th rows
-    return data.map((datarow, y) => y > 1 && datarow.map((dataitem) => (
+    return data.map((datarow, y) => datarow.map((dataitem) => (
       <div key={dataitem.x * datarow.length + dataitem.y}>
         { this.renderCell(dataitem) }
         { dataitem.x === datarow.length - 1 && (
@@ -516,7 +515,7 @@ class Board extends React.Component {
     const { score } = this.state;
     return (
       <div className="board">
-        <div className="clear" />
+        <div id="rectangle" />
         { this.renderBoard() }
         <div id="score">
           <h1>{ score }</h1>

@@ -406,3 +406,13 @@ input[type=text]:focus {
 #score {
   color: white;
 }
+
+#rectangle {
+  width: 441px;
+  height: 113px;
+  background: white;
+  margin-left: -20px;
+  position: absolute;
+  margin-top: -20px;
+  z-index: 99999;
+}
