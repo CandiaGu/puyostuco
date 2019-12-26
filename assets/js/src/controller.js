@@ -3,7 +3,6 @@ class Controller {
     this.controls = controls;
     this.keys = keys;
     this.timers = {};
-    this.locked = true;
     document.addEventListener('keydown', this.onKeyDown.bind(this), false);
     document.addEventListener('keyup', this.onKeyUp.bind(this), false);
     window.addEventListener('blur', this.onBlur.bind(this), false);
