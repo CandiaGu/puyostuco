@@ -86,6 +86,10 @@ class Board extends React.Component {
   }
 
   reset(isMounted) {
+    // clear timeouts
+    for (let id = window.setTimeout(() => {}, 0); id >= 0; id--) {
+      window.clearTimeout(id);
+    }
     // state: none, landed, offset, blinked, falling, ghost, fell (from splitting or chaining)
     const data = Array.from({ length: this.height }, (_, y) => (
       Array.from({ length: this.width }, (_, x) => ({
@@ -499,7 +503,7 @@ class Board extends React.Component {
       <div key={dataitem.x * datarow.length + dataitem.y}>
         { this.renderCell(dataitem) }
         { dataitem.x === datarow.length - 1 && (
-          <div>
+          <>
             { (() => {
               switch (dataitem.y) {
                 case 2: return <Cell classList={[nextColors1.color1]} />;
@@ -510,7 +514,7 @@ class Board extends React.Component {
               }
             })() }
             <div className="clear" />
-          </div>
+          </>
         ) }
       </div>
     )));
