@@ -10,6 +10,7 @@
     ],
     "globals": {
         "Atomics": "readonly",
+        "Fragment": "readonly",
         "PropTypes": "readonly",
         "React": "readonly",
         "ReactDOM": "readonly",
