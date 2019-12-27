@@ -460,6 +460,10 @@ class Board extends React.Component {
     if (currState === 'falling' && Board.locsEqual(this.splitPuyo, dataitem)) {
       return this.renderSplit();
     }
+    // is it hidden?
+    if (dataitem.y < 2) {
+      return <Cell classList={['none']} />;
+    }
     // do we know for certain it's nothing?
     if (currState === 'none' || currState === 'falling') {
       return <Cell classList={[dataitem.color, dataitem.state]} />;
@@ -490,13 +494,13 @@ class Board extends React.Component {
 
   renderBoard() {
     const { boardData: data, nextColors1, nextColors2 } = this.state;
-    return data.map((datarow, y) => datarow.map((dataitem) => (
+    return data.map((datarow) => datarow.map((dataitem) => (
       <div key={dataitem.x * datarow.length + dataitem.y}>
         { this.renderCell(dataitem) }
         { dataitem.x === datarow.length - 1 && (
           <div>
             { (() => {
-              switch (y) {
+              switch (dataitem.y) {
                 case 2: return <Cell classList={[nextColors1.color1]} />;
                 case 3: return <Cell classList={[nextColors1.color2]} />;
                 case 5: return <Cell classList={[nextColors2.color1]} />;
@@ -514,9 +518,10 @@ class Board extends React.Component {
   render() {
     const { score } = this.state;
     return (
-      <div className="board">
-        <div id="rectangle" />
-        { this.renderBoard() }
+      <div>
+        <div className="board">
+          { this.renderBoard() }
+        </div>
         <div id="score">
           <h1>{ score }</h1>
         </div>

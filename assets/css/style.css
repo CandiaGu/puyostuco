@@ -22,6 +22,7 @@ a:hover {
 	display: flex;
 	justify-content: center;
 	align-items: center;
+  z-index: 99999;
 }
 
 h3{
@@ -317,6 +318,12 @@ input[type=text]:focus {
 	padding:4%;
 }
 
+.game .board {
+  --two-rows-height: calc(100% / 7);
+  clip-path: inset(var(--two-rows-height) 0 0);
+  margin-top: calc(-1 * var(--two-rows-height));
+}
+
 .game .cell {
 	border: solid 1px blue;
 	float: left;
@@ -405,14 +412,4 @@ input[type=text]:focus {
 
 #score {
   color: white;
-}
-
-#rectangle {
-  width: 441px;
-  height: 113px;
-  background: white;
-  margin-left: -20px;
-  position: absolute;
-  margin-top: -20px;
-  z-index: 99999;
 }
