@@ -36,6 +36,7 @@ class Board extends React.Component {
     this.gravityOn = true;
     this.gravityTimeout = null;
     this.rowsHeldDownIn = new Set();
+    this.leftRightLockTimeout = null;
     this.createTiming();
     this.createController();
     this.reset(false);
@@ -81,6 +82,7 @@ class Board extends React.Component {
       framesPerSec,
       leftRightDelay: 10 * msPerFrame,
       leftRightRepeat: 2 * msPerFrame,
+      leftRightLock: 2 * msPerFrame,
       downRepeat: 1 * msPerFrame,
       gravityRepeat: 13 * msPerFrame,
       lockDelay: 31 * msPerFrame,
@@ -100,6 +102,7 @@ class Board extends React.Component {
     for (let id = window.setTimeout(() => {}, 0); id >= 0; id--) {
       window.clearTimeout(id);
     }
+    this.recentLeftRight = 0;
     // state: none, landed, offset, blinked, falling, ghost, fell (from splitting or chaining)
     const data = Array.from({ length: this.height }, (_, y) => (
       Array.from({ length: this.width }, (_, x) => ({
@@ -428,17 +431,23 @@ class Board extends React.Component {
 
   moveLeftRight(dx) {
     const { currPuyo1, currPuyo2, currState } = this.state;
-    if (currState !== 'active' && currState !== 'offset') return;
+    if (this.recentLeftRight === -dx || (currState !== 'active' && currState !== 'offset')) return;
     const newPuyo1 = { ...currPuyo1 };
     newPuyo1.x += dx;
     const newPuyo2 = { ...currPuyo2 };
     newPuyo2.x += dx;
-    this.tryMove(newPuyo1, newPuyo2);
+    if (this.tryMove(newPuyo1, newPuyo2)) {
+      this.recentLeftRight = dx;
+      clearTimeout(this.leftRightLockTimeout);
+      this.leftRightLockTimeout = setTimeout(() => {
+        this.recentLeftRight = 0;
+      }, this.timing.leftRightLock);
+    }
   }
 
   moveDown() {
     const { currPuyo1, currPuyo2, currState } = this.state;
-    if (currState !== 'active' && currState !== 'offset') return;
+    if (this.recentLeftRight || (currState !== 'active' && currState !== 'offset')) return;
     if (!this.rowsHeldDownIn.has(currPuyo2.y)) {
       this.setState(({ score }) => ({ score: score + 1 }));
       this.rowsHeldDownIn.add(currPuyo2.y);
