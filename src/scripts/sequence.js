@@ -1,10 +1,12 @@
 /* eslint no-bitwise: 'off' */
+import { random } from './utils.js';
+
 class Sequence {
   constructor(seed) {
     this.numSeq = 65536;
     this.seqLen = 256;
 
-    this.rand = typeof seed === 'undefined' ? Math.floor(Math.random() * this.numSeq) : seed;
+    this.rand = typeof seed === 'undefined' ? random(this.numSeq) : seed;
     this.rand &= 0xFFFF;
     this.seq = this.computeSeq();
     this.index = 0;

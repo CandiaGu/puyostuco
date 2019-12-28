@@ -318,12 +318,13 @@ input[type=text]:focus {
 	border-radius: 25px;
 	margin-bottom: 15vh;
 	padding:4%;
+  --cell-height: 47;
 }
 
 .game .board {
-  --two-rows-height: calc(100% / 7);
-  clip-path: inset(var(--two-rows-height) 0 0);
-  margin-top: calc(-1 * var(--two-rows-height));
+  --invisible-rows-height: calc(var(--invisible-rows-count) * var(--cell-height) * 1px);
+  clip-path: inset(var(--invisible-rows-height) 0 0);
+  margin-top: calc(-1 * var(--invisible-rows-height));
 }
 
 .game .cell {
@@ -331,7 +332,6 @@ input[type=text]:focus {
 	float: left;
 	line-height: 45px;
 	height: 45px;
-  --height: 47;
 	text-align: center;
 	width: 45px;
 	cursor: pointer;
@@ -360,7 +360,7 @@ input[type=text]:focus {
 }
 
 .game .cell.falling {
-  --y1: calc(var(--y) * var(--t) / var(--height));
+  --y1: calc(var(--y) * var(--t) / var(--cell-height));
   animation:
     fall
     forwards
@@ -408,11 +408,19 @@ input[type=text]:focus {
   background-color: purple;
 }
 
+.game .cell.gray {
+  background-color: gray;
+}
+
 .game .cell.blinked {
   background-color: navy;
 }
 
 #score {
+  color: white;
+}
+
+#garbage {
   color: white;
 }
 

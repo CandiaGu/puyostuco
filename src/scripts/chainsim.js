@@ -1,3 +1,5 @@
+import { findLocInList } from './utils.js';
+
 class Chainsim {
   static chainPower(chain) {
     switch (chain) {
@@ -19,18 +21,28 @@ class Chainsim {
     return puyos - 3;
   }
 
-  constructor() {
+  constructor(twelfthRow) {
     this.puyoMinPop = 4;
-    this.height = 14;
+    this.twelfthRow = twelfthRow;
+    this.height = 12 + twelfthRow;
     this.width = 6;
 
     this.board = Array.from({ length: this.height }, () => (
-      Array.from({ length: this.width }, () => 0)
+      Array.from({ length: this.width }, () => 'none')
     ));
   }
 
   checkIfValidLoc(puyo) {
     return puyo.x >= 0 && puyo.x < this.width && puyo.y >= 0 && puyo.y < this.height;
+  }
+
+  addGarbage(garbagePuyoList) {
+    for (const { x, y, distance: d } of garbagePuyoList) {
+      // don't add garbage to 14th row
+      if (y + d >= this.twelfthRow - 1) {
+        this.board[y + d][x] = 'gray';
+      }
+    }
   }
 
   placePuyo(puyo1, puyo2) {
@@ -52,28 +64,18 @@ class Chainsim {
   }
 
   computeLink() {
-    const { puyosToPop, bonus } = this.checkPuyoPop(this.lastDropped);
+    const { puyosToPop, score } = this.checkPuyoPop(this.lastDropped);
     if (puyosToPop.length === 0) {
       return null;
     }
     for (const { x, y } of puyosToPop) {
-      this.board[y][x] = 0;
+      this.board[y][x] = 'none';
     }
     // drop puyos
     const droppedPuyos = this.dropPuyo(puyosToPop);
-    const multiplier = Math.min(Math.max(Chainsim.chainPower(this.chainNum) + bonus, 1), 999);
-    const score = 10 * puyosToPop.length * multiplier;
     this.lastDropped = droppedPuyos.map(({ puyo: { x, y }, dist }) => ({ x, y: y + dist }));
     this.chainNum++;
     return { popped: puyosToPop, dropped: droppedPuyos, score };
-  }
-
-
-  static checkIfAlreadyVisited(puyo, checkedLocations) {
-    if (puyo.x in checkedLocations) {
-      return checkedLocations[puyo.x].has(puyo.y);
-    }
-    return false;
   }
 
   dropPuyo(poppedPuyos) {
@@ -85,12 +87,12 @@ class Chainsim {
       xLowY.set(x, Math.max(y, xLowY.get(x) || 0));
     }
     for (const [x, lowY] of xLowY) {
-      // loops end at 1 to avoid dropping 14th row
       // row for next dropped puyo
       let floor = lowY;
       // find puyos to drop
-      for (let y = lowY; y >= 1; y--) {
-        if (this.board[y][x] !== 0) {
+      // end loop early to avoid dropping 14th row
+      for (let y = lowY; y >= this.twelfthRow - 1; y--) {
+        if (this.board[y][x] !== 'none') {
           this.board[floor][x] = this.board[y][x];
           droppedPuyos.push({ puyo: { x, y }, dist: floor - y });
           floor -= 1;
@@ -98,7 +100,7 @@ class Chainsim {
       }
       // no more puyos to drop
       for (; floor >= 1; floor--) {
-        this.board[floor][x] = 0;
+        this.board[floor][x] = 'none';
       }
     }
     return droppedPuyos;
@@ -106,43 +108,58 @@ class Chainsim {
 
   // find all puyos that should pop
   checkPuyoPop(candidates) {
-    const checkedLocations = {};
+    const checkedLocations = [];
+    const poppedGarbageList = [];
     const puyosToPop = [];
     const colorList = new Set();
-    let bonus = 0;
+    let bonus = Chainsim.chainPower(this.chainNum);
     for (const can of candidates) {
-      if (!Chainsim.checkIfAlreadyVisited(can, checkedLocations)) {
+      if (!findLocInList(can, checkedLocations).found) {
         const color = this.board[can.y][can.x];
-        const group = this.checkPuyoHelper(can, checkedLocations, color);
+        if (color === 'gray') continue;
+        const garbageList = [];
+        const group = (
+          this.checkPuyoHelper(can, checkedLocations, garbageList, poppedGarbageList, color)
+        );
         if (group.length >= this.puyoMinPop) {
           puyosToPop.push(...group);
+          poppedGarbageList.push(...garbageList);
           colorList.add(color);
           bonus += Chainsim.groupBonus(group.length);
         }
       }
     }
     bonus += Chainsim.colorBonus(colorList.size);
-    return { puyosToPop, bonus };
+    const score = 10 * puyosToPop.length * Math.min(Math.max(bonus, 1), 999);
+    puyosToPop.push(...poppedGarbageList);
+    return { puyosToPop, score };
   }
 
-  // recursive function that modifies checkedLocations
-  checkPuyoHelper(puyo, checkedLocations, color) {
+  // recursive function that modifies checkedLocations and garbageList
+  checkPuyoHelper(puyo, checkedLocations, garbageList, poppedGarbageList, color) {
     const { x, y } = puyo;
     const group = [];
-    if (!(x in checkedLocations)) {
-      checkedLocations[x] = new Set();
-    }
-    checkedLocations[x].add(y);
-    group.push({ x, y });
+    checkedLocations.push(puyo);
+    group.push(puyo);
     for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
       const nb = { x: x + dx, y: y + dy };
-      if (
-        nb.y > 1 // prevent ghost row from popping
-        && this.checkIfValidLoc(nb)
-        && this.board[nb.y][nb.x] === color
-        && !Chainsim.checkIfAlreadyVisited(nb, checkedLocations)
-      ) {
-        group.push(...this.checkPuyoHelper(nb, checkedLocations, color));
+      if (this.checkIfValidLoc(nb)) {
+        const c = this.board[nb.y][nb.x];
+        if (
+          c === 'gray'
+          && !findLocInList(nb, garbageList).found
+          && !findLocInList(nb, poppedGarbageList).found
+        ) {
+          garbageList.push(nb);
+        } else if (
+          nb.y >= this.twelfthRow // prevent ghost row from popping
+          && c === color
+          && !findLocInList(nb, checkedLocations).found
+        ) {
+          group.push(
+            ...this.checkPuyoHelper(nb, checkedLocations, garbageList, poppedGarbageList, color),
+          );
+        }
       }
     }
     return group;
