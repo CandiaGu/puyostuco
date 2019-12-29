@@ -436,6 +436,10 @@ input[type=text]:focus {
   display: grid;
 }
 
+.preview .cell {
+  border: 1px solid navy;
+}
+
 /* avoid FUOC */
 html {
   display: block;
