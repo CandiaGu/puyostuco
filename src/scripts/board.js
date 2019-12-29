@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import Cell from './cell.js';
 import Chainsim from './chainsim.js';
 import Controller from './controller.js';
@@ -6,13 +7,16 @@ import Sequence from './sequence.js';
 import {
   locsEqual,
   findLocInList,
-  random,
   sample,
 } from './utils.js';
 
 class Board extends React.Component {
   constructor(props) {
     super(props);
+    const {
+      keys,
+      seed,
+    } = props;
     // state:
     //   boardData (elems have x, y, color)
     //     color: none, red, green, blue, yellow, purple, gray
@@ -38,8 +42,40 @@ class Board extends React.Component {
     this.rowsHeldDownIn = new Set();
     this.leftRightLockTimeout = null;
     this.createTiming();
-    this.createController();
-    this.reset(false);
+    this.createController(keys);
+    this.recentLeftRight = 0;
+    const data = Array.from({ length: this.height }, (_, y) => (
+      Array.from({ length: this.width }, (_, x) => ({
+        x,
+        y,
+        color: 'none',
+        state: 'none', // none, landed, offset, blinked, falling, ghost, fell, exploding
+      }))
+    ));
+    this.sequence = new Sequence(seed);
+    this.state = {
+      boardData: data,
+      currState: 'none',
+      score: 0,
+      nextColors1: this.sequence.getColors(),
+      nextColors2: this.sequence.getColors(),
+      splitPuyo: null,
+      garbageCount: 0,
+      garbagePuyoList: [],
+    };
+    this.chainsim = new Chainsim(this.twelfthRow);
+  }
+
+  componentDidMount() {
+    setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
+  }
+
+  componentWillUnmount() {
+    // clear timeouts
+    for (let id = window.setTimeout(() => {}, 0); id >= 0; id--) {
+      window.clearTimeout(id);
+    }
+    this.controller.release();
   }
 
   onFallingAnimationEnd() {
@@ -97,44 +133,7 @@ class Board extends React.Component {
     };
   }
 
-  reset(isMounted) {
-    // clear timeouts
-    for (let id = window.setTimeout(() => {}, 0); id >= 0; id--) {
-      window.clearTimeout(id);
-    }
-    this.recentLeftRight = 0;
-    // state: none, landed, offset, blinked, falling, ghost, fell, exploding
-    const data = Array.from({ length: this.height }, (_, y) => (
-      Array.from({ length: this.width }, (_, x) => ({
-        x,
-        y,
-        color: 'none',
-        state: 'none',
-      }))
-    ));
-    const numSeq = 65536;
-    this.sequence = new Sequence(random(numSeq));
-    clearTimeout(this.gravityTimeout);
-    const state = {
-      boardData: data,
-      currState: 'none',
-      score: 0,
-      nextColors1: this.sequence.getColors(),
-      nextColors2: this.sequence.getColors(),
-      splitPuyo: null,
-      garbageCount: 0,
-      garbagePuyoList: [],
-    };
-    if (isMounted) {
-      this.setState(state);
-    } else {
-      this.state = state;
-    }
-    this.chainsim = new Chainsim(this.twelfthRow);
-    setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
-  }
-
-  createController() {
+  createController(keys) {
     const that = this;
     const controls = {
       left: {
@@ -151,20 +150,7 @@ class Board extends React.Component {
       counterclockwise: { f: () => { that.rotatePuyo.bind(that)(-1); }, delay: 0, repeat: 0 },
       clockwise: { f: () => { that.rotatePuyo.bind(that)(1); }, delay: 0, repeat: 0 },
       gravity: { f: () => { that.toggleGravity.bind(that)(); }, delay: 0, repeat: 0 },
-      reset: { f: () => { that.reset.bind(that)(true); }, delay: 0, repeat: 0 },
       garbage: { f: () => { that.addGarbage.bind(that)(5); }, delay: 0, repeat: 0 },
-    };
-    const keys = {
-      ArrowLeft: 'left',
-      ArrowRight: 'right',
-      ArrowDown: 'down',
-      z: 'counterclockwise',
-      x: 'clockwise',
-      d: 'counterclockwise',
-      f: 'clockwise',
-      g: 'gravity',
-      Escape: 'reset',
-      t: 'garbage',
     };
     this.controller = new Controller(controls, keys);
   }
@@ -400,7 +386,8 @@ class Board extends React.Component {
   }
 
   handleDeath() {
-    this.reset(true);
+    const { handleDeath } = this.props;
+    handleDeath();
   }
 
   findLowestPosition(col) {
@@ -626,7 +613,7 @@ class Board extends React.Component {
       nextColors2,
     } = this.state;
     return (
-      <>
+      <div className="player">
         <div className="garbage">
           <h2>{ garbageCount }</h2>
         </div>
@@ -650,9 +637,21 @@ class Board extends React.Component {
         <div className="score">
           <h1>{ score }</h1>
         </div>
-      </>
+      </div>
     );
   }
 }
+
+const {
+  objectOf,
+  string,
+  number,
+  func,
+} = PropTypes;
+Board.propTypes = {
+  keys: objectOf(string).isRequired,
+  seed: number.isRequired,
+  handleDeath: func.isRequired,
+};
 
 export default Board;

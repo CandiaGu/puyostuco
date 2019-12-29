@@ -309,10 +309,9 @@ input[type=text]:focus {
 }
 .game-wrapper{
 	display: grid;
-	grid-template-columns: minmax(100px, 1fr) minmax(320px, 1fr) minmax(100px, 1fr);
+	grid-template-columns: minmax(100px, 1fr) minmax(320px, 2fr) minmax(100px, 1fr);
 }
 .game {
-	max-width: 400px;
 	margin: 0;
 	background: navy;
 	border-radius: 25px;
@@ -438,6 +437,10 @@ input[type=text]:focus {
 
 .preview .cell {
   border: 1px solid navy;
+}
+
+.player {
+  float: left;
 }
 
 /* avoid FUOC */
