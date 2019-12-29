@@ -15,7 +15,7 @@ class Board extends React.Component {
     super(props);
     // state:
     //   boardData (elems have x, y, color)
-    //     color: none, red, green, blue, yellow, purple
+    //     color: none, red, green, blue, yellow, purple, gray
     //   currPuyo1 { x, y, color }
     //   currPuyo2 (axis puyo)
     //   currState: none, active, offset
@@ -103,7 +103,7 @@ class Board extends React.Component {
       window.clearTimeout(id);
     }
     this.recentLeftRight = 0;
-    // state: none, landed, offset, blinked, falling, ghost, fell (from splitting or chaining)
+    // state: none, landed, offset, blinked, falling, ghost, fell, exploding
     const data = Array.from({ length: this.height }, (_, y) => (
       Array.from({ length: this.width }, (_, x) => ({
         x,
@@ -330,20 +330,23 @@ class Board extends React.Component {
 
   blinkPopped(step, chainScore) {
     const { boardData: data } = this.state;
-    for (const { x, y } of this.puyosToPop) {
-      data[y][x].state = data[y][x].state === 'blinked' ? 'none' : 'blinked';
-    }
-    this.setState({ boardData: data });
     const blinks = 12;
-    if (step === blinks) {
+    if (step < blinks) {
+      for (const { x, y } of this.puyosToPop) {
+        data[y][x].state = data[y][x].state === 'blinked' ? 'none' : 'blinked';
+      }
+      setTimeout(() => { this.blinkPopped(step + 1, chainScore); }, this.timing.blinkRepeat);
+    } else {
+      for (const { x, y } of this.puyosToPop) {
+        data[y][x].state = data[y][x].color === 'gray' ? 'blinked' : 'exploding';
+      }
       setTimeout(() => {
         this.popPopped();
         this.setState(({ score }) => ({ score: score + chainScore }));
         this.dropDroppedHalfCell(0);
       }, this.timing.startDropDelay - blinks * this.timing.blinkRepeat);
-    } else {
-      setTimeout(() => { this.blinkPopped(step + 1, chainScore); }, this.timing.blinkRepeat);
     }
+    this.setState({ boardData: data });
   }
 
   popPopped() {
@@ -366,7 +369,7 @@ class Board extends React.Component {
           this.puyosToDrop[i].puyo.y++;
         } else {
           if (dist === 1) {
-            puyo.state = 'fell';
+            puyo.state = puyo.color === 'gray' ? 'none' : 'fell';
           } else {
             puyo.state = 'none';
             canDrop = true;
@@ -606,39 +609,45 @@ class Board extends React.Component {
   }
 
   renderBoard() {
-    const { boardData: data, nextColors1, nextColors2 } = this.state;
+    const { boardData: data } = this.state;
     return data.map((datarow) => datarow.map((dataitem) => (
       <div key={dataitem.x * datarow.length + dataitem.y}>
         { this.renderCell(dataitem) }
-        { dataitem.x === datarow.length - 1 && (
-          <>
-            { (() => {
-              switch (dataitem.y - this.twelfthRow) {
-                case 0: return <Cell classList={[nextColors1.color1]} />;
-                case 1: return <Cell classList={[nextColors1.color2]} />;
-                case 3: return <Cell classList={[nextColors2.color1]} />;
-                case 4: return <Cell classList={[nextColors2.color2]} />;
-                default: return null;
-              }
-            })() }
-            <div className="clear" />
-          </>
-        ) }
+        { dataitem.x === datarow.length - 1 && <div className="clear" /> }
       </div>
     )));
   }
 
   render() {
-    const { score, garbageCount } = this.state;
+    const {
+      score,
+      garbageCount,
+      nextColors1,
+      nextColors2,
+    } = this.state;
     return (
       <>
-        <div id="garbage">
+        <div className="garbage">
           <h2>{ garbageCount }</h2>
         </div>
-        <div className="board" style={{ '--invisible-rows-count': this.twelfthRow }}>
-          { this.renderBoard() }
-        </div>
-        <div id="score">
+        <>
+          <div className="board" style={{ '--invisible-rows-count': this.twelfthRow }}>
+            { this.renderBoard() }
+          </div>
+          <div className="preview">
+            <Cell classList={[nextColors1.color1]} />
+            <div className="clear" />
+            <Cell classList={[nextColors1.color2]} />
+            <div className="clear" />
+            <Cell classList={['none']} />
+            <div className="clear" />
+            <Cell classList={[nextColors2.color1]} />
+            <div className="clear" />
+            <Cell classList={[nextColors2.color2]} />
+            <div className="clear" />
+          </div>
+        </>
+        <div className="score">
           <h1>{ score }</h1>
         </div>
       </>

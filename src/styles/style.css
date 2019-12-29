@@ -318,25 +318,23 @@ input[type=text]:focus {
 	border-radius: 25px;
 	margin-bottom: 15vh;
 	padding:4%;
-  --cell-height: 47;
+  display: flow-root;
 }
 
 .game .board {
-  --invisible-rows-height: calc(var(--invisible-rows-count) * var(--cell-height) * 1px);
+  --cell-size: 45;
+  float: left;
+  width: calc(6px * var(--cell-size));
+  background: dimgray;
+  --invisible-rows-height: calc(var(--invisible-rows-count) * var(--cell-size) * 1px);
   clip-path: inset(var(--invisible-rows-height) 0 0);
   margin-top: calc(-1 * var(--invisible-rows-height));
 }
 
 .game .cell {
-	border: solid 1px blue;
 	float: left;
-	line-height: 45px;
 	height: 45px;
-	text-align: center;
 	width: 45px;
-	cursor: pointer;
-	color: #333333;
-	font-weight: 600;
 	border-radius:50%;
 }
 
@@ -359,8 +357,19 @@ input[type=text]:focus {
   animation: longPuyo calc(2s / 30) 5;
 }
 
+.game .cell.exploding {
+  animation: exploding forwards 0.4s;
+}
+
+@keyframes exploding {
+  to {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
 .game .cell.falling {
-  --y1: calc(var(--y) * var(--t) / var(--cell-height));
+  --y1: calc(var(--y) * var(--t) / var(--cell-size));
   animation:
     fall
     forwards
@@ -369,24 +378,21 @@ input[type=text]:focus {
 }
 
 @keyframes fall {
-  from { transform: none; }
   to { transform: translateY(calc(var(--d) * 100%)); }
 }
 
 @keyframes shortPuyo {
-  from, 62.5%, 87.5%, to { transform: none; }
+  62.5%, 87.5% { transform: none; }
   12.5%, 50% { transform: scaleY(0.85); }
   25%, 37.5%, 75% { transform: scaleX(0.85); }
 }
 
 @keyframes longPuyo {
-  from, to { transform: none; }
   25% { transform: scaleY(0.85); }
   75% { transform: scaleX(0.85); }
 }
 
 .game .cell.none {
-	background-color: navy;
 }
 
 .game .cell.red {
@@ -409,19 +415,24 @@ input[type=text]:focus {
 }
 
 .game .cell.gray {
-  background-color: gray;
+  background-color: lightgray;
 }
 
 .game .cell.blinked {
-  background-color: navy;
+  background-color: initial;
 }
 
-#score {
+.score {
+  color: white;
+  clear: left;
+}
+
+.garbage {
   color: white;
 }
 
-#garbage {
-  color: white;
+.preview {
+  display: grid;
 }
 
 /* avoid FUOC */
