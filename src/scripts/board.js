@@ -16,7 +16,11 @@ class Board extends React.Component {
     const {
       keys,
       seed,
+      sendGarbage,
+      droppedGarbage,
     } = props;
+    this.sendGarbage = sendGarbage;
+    this.droppedGarbage = droppedGarbage;
     // state:
     //   boardData (elems have x, y, color)
     //     color: none, red, green, blue, yellow, purple, gray
@@ -27,7 +31,6 @@ class Board extends React.Component {
     //   nextColors1 { color1, color2 }
     //   nextColors2
     //   splitPuyo
-    //   garbageCount
     //   garbagePuyoList
     this.twelfthRow = 8; // leave space to spawn garbage
     this.height = 12 + this.twelfthRow;
@@ -60,10 +63,10 @@ class Board extends React.Component {
       nextColors1: this.sequence.getColors(),
       nextColors2: this.sequence.getColors(),
       splitPuyo: null,
-      garbageCount: 0,
       garbagePuyoList: [],
     };
     this.chainsim = new Chainsim(this.twelfthRow);
+    this.lastScoreCutoff = 0;
   }
 
   componentDidMount() {
@@ -150,13 +153,8 @@ class Board extends React.Component {
       counterclockwise: { f: () => { that.rotatePuyo.bind(that)(-1); }, delay: 0, repeat: 0 },
       clockwise: { f: () => { that.rotatePuyo.bind(that)(1); }, delay: 0, repeat: 0 },
       gravity: { f: () => { that.toggleGravity.bind(that)(); }, delay: 0, repeat: 0 },
-      garbage: { f: () => { that.addGarbage.bind(that)(5); }, delay: 0, repeat: 0 },
     };
     this.controller = new Controller(controls, keys);
-  }
-
-  addGarbage(num) {
-    this.setState(({ garbageCount }) => ({ garbageCount: garbageCount + num }));
   }
 
   spawnPuyo() {
@@ -261,6 +259,7 @@ class Board extends React.Component {
     Object.assign(data[puyo1.y][puyo1.x], { color: puyo1.color, state: state1 });
     Object.assign(data[puyo2.y][puyo2.x], { color: puyo2.color, state: state2 });
     this.chainsim.placePuyo(placedPuyo1, placedPuyo2);
+    this.didChain = false;
     if (state1 === 'falling' || state2 === 'falling') {
       this.setState({ boardData: data, currState: 'none', splitPuyo });
     } else {
@@ -272,11 +271,18 @@ class Board extends React.Component {
   handleLink() {
     const poppedDroppedScore = this.chainsim.computeLink();
     if (poppedDroppedScore) {
+      this.didChain = true;
       const { popped, dropped, score: chainScore } = poppedDroppedScore;
       this.puyosToPop = popped;
       this.puyosToDrop = dropped;
       setTimeout(() => { this.blinkPopped(0, chainScore); }, this.timing.startPopDelay);
     } else {
+      if (this.didChain) {
+        const { score } = this.state;
+        const garbageSent = Math.floor((score - this.lastScoreCutoff) / this.garbageRate);
+        this.lastScoreCutoff += garbageSent * this.garbageRate;
+        this.sendGarbage(garbageSent);
+      }
       if (this.checkAllClear()) {
         this.setState(({ score }) => ({ score: score + this.rockGarbage * this.garbageRate }));
       }
@@ -285,7 +291,7 @@ class Board extends React.Component {
   }
 
   handleGarbage() {
-    const { garbageCount } = this.state;
+    const { garbageCount } = this.props;
     if (garbageCount > 0) {
       const garbage = Math.min(garbageCount, this.rockGarbage);
       // garbage starts at 16th row
@@ -308,7 +314,8 @@ class Board extends React.Component {
       })));
       this.chainsim.addGarbage(garbagePuyoList);
       this.garbageFallingCount = garbage;
-      this.setState((state) => ({ garbageCount: state.garbageCount - garbage, garbagePuyoList }));
+      this.droppedGarbage();
+      this.setState({ garbagePuyoList });
     } else {
       setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
     }
@@ -608,10 +615,10 @@ class Board extends React.Component {
   render() {
     const {
       score,
-      garbageCount,
       nextColors1,
       nextColors2,
     } = this.state;
+    const { garbageCount } = this.props;
     return (
       <div className="player">
         <div className="garbage">
@@ -652,6 +659,9 @@ Board.propTypes = {
   keys: objectOf(string).isRequired,
   seed: number.isRequired,
   handleDeath: func.isRequired,
+  garbageCount: number.isRequired,
+  sendGarbage: func.isRequired,
+  droppedGarbage: func.isRequired,
 };
 
 export default Board;

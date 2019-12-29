@@ -8,13 +8,7 @@ import Controller from './controller.js';
 class Game extends React.Component {
   constructor(props) {
     super(props);
-    this.numSeq = 65536;
-    const key = (new Date()).getTime();
-    this.state = {
-      key1: key + '1',
-      key2: key + '2',
-      seed: random(this.numSeq),
-    };
+    this.rockGarbage = 30;
     this.keys = {
       ArrowLeft: 'left',
       ArrowRight: 'right',
@@ -26,14 +20,14 @@ class Game extends React.Component {
       g: 'gravity',
       t: 'garbage',
     };
-    this.createController();
     this.reset = this.reset.bind(this);
+    this.createController();
+    this.reset(true);
   }
 
   createController() {
-    const that = this;
     const controls = {
-      reset: { f: () => { that.reset.bind(that)(); }, delay: 0, repeat: 0 },
+      reset: { f: this.reset, delay: 0, repeat: 0 },
     };
     const keys = {
       Escape: 'reset',
@@ -41,13 +35,21 @@ class Game extends React.Component {
     this.controller = new Controller(controls, keys);
   }
 
-  reset() {
+  reset(unmounted) {
     const key = (new Date()).getTime();
-    this.setState({
+    const numSeq = 65536;
+    const state = {
       key1: key + '1',
       key2: key + '2',
-      seed: random(this.numSeq),
-    });
+      seed: random(numSeq),
+      garbage1: 0,
+      garbage2: 0,
+    };
+    if (unmounted) {
+      this.state = state;
+    } else {
+      this.setState(state);
+    }
   }
 
   render() {
@@ -55,14 +57,50 @@ class Game extends React.Component {
       key1,
       key2,
       seed,
+      garbage1,
+      garbage2,
     } = this.state;
     return (
       <div className="game-wrapper">
         <div />
         <div className="margin-auto">
           <div className="game">
-            <Board key={key1} keys={this.keys} seed={seed} handleDeath={this.reset} />
-            <Board key={key2} keys={this.keys} seed={seed} handleDeath={this.reset} />
+            <Board
+              key={key1}
+              keys={this.keys}
+              seed={seed}
+              handleDeath={this.reset}
+              garbageCount={garbage1}
+              sendGarbage={((garbage) => {
+                this.setState((state) => ({
+                  garbage1: Math.max(0, state.garbage1 - garbage),
+                  garbage2: state.garbage2 + Math.max(0, garbage - state.garbage1),
+                }));
+              })}
+              droppedGarbage={(() => {
+                this.setState((state) => (
+                  { garbage1: Math.max(0, state.garbage1 - this.rockGarbage) }
+                ));
+              })}
+            />
+            <Board
+              key={key2}
+              keys={this.keys}
+              seed={seed}
+              handleDeath={this.reset}
+              garbageCount={garbage2}
+              sendGarbage={((garbage) => {
+                this.setState((state) => ({
+                  garbage1: state.garbage1 + Math.max(0, garbage - state.garbage2),
+                  garbage2: Math.max(0, state.garbage2 - garbage),
+                }));
+              })}
+              droppedGarbage={(() => {
+                this.setState((state) => (
+                  { garbage2: Math.max(0, state.garbage2 - this.rockGarbage) }
+                ));
+              })}
+            />
           </div>
         </div>
         <div />
