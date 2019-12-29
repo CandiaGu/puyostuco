@@ -192,6 +192,7 @@ class Board extends React.Component {
       this.gravityTimeout = setTimeout(() => { this.applyGravity(); }, this.timing.gravityRepeat);
     }
     this.rowsHeldDownIn.clear();
+    this.kickUpCount = 0;
   }
 
   startLockTimeout() {
@@ -470,6 +471,7 @@ class Board extends React.Component {
   rotatePuyo(direction) {
     const { currPuyo1, currPuyo2, currState } = this.state;
     if (currState !== 'active' && currState !== 'offset') return;
+    // offsets from axis puyo to other puyo
     const dx = -direction * (currPuyo1.y - currPuyo2.y);
     const dy = direction * (currPuyo1.x - currPuyo2.x);
     const newPuyo1 = { ...currPuyo2 };
@@ -477,15 +479,25 @@ class Board extends React.Component {
     newPuyo1.y += dy;
     newPuyo1.color = currPuyo1.color;
     if (!this.tryMove(newPuyo1, currPuyo2)) {
+      const kickUpMax = 8;
+      if (this.kickUpCount === kickUpMax && dy === 1) return;
       // kick
       newPuyo1.x -= dx;
       newPuyo1.y -= dy;
       const newPuyo2 = { ...currPuyo2 };
       newPuyo2.x -= dx;
       newPuyo2.y -= dy;
-      if (!this.tryMove(newPuyo1, newPuyo2) && currPuyo1.x === currPuyo2.x) {
+      if (this.tryMove(newPuyo1, newPuyo2)) {
+        if (dy === 1) {
+          this.kickUpCount++;
+        }
+      } else if (currPuyo1.x === currPuyo2.x) {
         // quick turn
         if (this.failedRotate) {
+          if (currPuyo2.y > currPuyo1.y) {
+            if (this.kickUpCount === kickUpMax) return;
+            this.kickUpCount++;
+          }
           this.tryMove(newPuyo1, { ...currPuyo1, color: currPuyo2.color });
           this.failedRotate = false;
         } else {
