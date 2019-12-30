@@ -1,4 +1,3 @@
 node_modules/
 *.swp
 dist/
-src/scripts/firebase.js
