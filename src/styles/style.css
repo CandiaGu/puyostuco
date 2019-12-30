@@ -307,12 +307,10 @@ input[type=text]:focus {
 	clear: both;
 	content: "";
 }
-.game-wrapper{
-	display: grid;
-	grid-template-columns: minmax(100px, 1fr) minmax(320px, 2fr) minmax(100px, 1fr);
-}
-.game {
-	margin: 0;
+
+#game {
+  width: fit-content;
+	margin: auto;
 	background: navy;
 	border-radius: 25px;
 	margin-bottom: 15vh;
@@ -320,7 +318,7 @@ input[type=text]:focus {
   display: flow-root;
 }
 
-.game .board {
+#game .board {
   --cell-size: 47;
   float: left;
   width: calc(6px * var(--cell-size));
@@ -330,7 +328,7 @@ input[type=text]:focus {
   margin-top: calc(-1 * var(--invisible-rows-height));
 }
 
-.game .cell {
+#game .cell {
   border: 1px solid #242424;
 	float: left;
 	height: 45px;
@@ -338,26 +336,26 @@ input[type=text]:focus {
 	border-radius:50%;
 }
 
-.game .cell.active {
+#game .cell.active {
 }
 
-.game .cell.ghost {
+#game .cell.ghost {
   transform: scale(0.5);
 }
 
-.game .cell.offset {
+#game .cell.offset {
   transform: translateY(-50%);
 }
 
-.game .cell.landed {
+#game .cell.landed {
   animation: shortPuyo calc(8s / 30);
 }
 
-.game .cell.fell {
+#game .cell.fell {
   animation: longPuyo calc(2s / 30) 5;
 }
 
-.game .cell.exploding {
+#game .cell.exploding {
   animation: exploding forwards 0.4s;
 }
 
@@ -368,7 +366,7 @@ input[type=text]:focus {
   }
 }
 
-.game .cell.falling {
+#game .cell.falling {
   --y1: calc(var(--y) * var(--t) / var(--cell-size));
   animation:
     fall
@@ -392,33 +390,33 @@ input[type=text]:focus {
   75% { transform: scaleX(0.85); }
 }
 
-.game .cell.none {
+#game .cell.none {
 }
 
-.game .cell.red {
+#game .cell.red {
 	background-color: red;
 }
-.game .cell.blue {
+#game .cell.blue {
 	background-color: blue;
 }
 
-.game .cell.green {
+#game .cell.green {
 	background-color: green;
 }
 
-.game .cell.yellow {
+#game .cell.yellow {
 	background-color: yellow;
 }
 
-.game .cell.purple {
+#game .cell.purple {
   background-color: purple;
 }
 
-.game .cell.gray {
+#game .cell.gray {
   background-color: lightgray;
 }
 
-.game .cell.blinked {
+#game .cell.blinked {
   background-color: initial;
 }
 

@@ -281,7 +281,10 @@ class Board extends React.Component {
         const { score } = this.state;
         const garbageSent = Math.floor((score - this.lastScoreCutoff) / this.garbageRate);
         this.lastScoreCutoff += garbageSent * this.garbageRate;
-        this.sendGarbage(garbageSent);
+        const { isMulti } = this.props;
+        if (isMulti) {
+          this.sendGarbage(garbageSent);
+        }
       }
       if (this.checkAllClear()) {
         this.setState(({ score }) => ({ score: score + this.rockGarbage * this.garbageRate }));
@@ -654,13 +657,15 @@ const {
   string,
   number,
   func,
+  bool,
 } = PropTypes;
 Board.propTypes = {
   keys: objectOf(string).isRequired,
   seed: number.isRequired,
   handleDeath: func.isRequired,
+  isMulti: bool.isRequired,
   garbageCount: number.isRequired,
-  sendGarbage: func.isRequired,
+  sendGarbage: func,
   droppedGarbage: func.isRequired,
 };
 
