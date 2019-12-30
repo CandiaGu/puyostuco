@@ -8,7 +8,7 @@ import Controller from './controller.js';
 class Game extends React.Component {
   constructor(props) {
     super(props);
-    this.numPlayers = 2;
+    this.numPlayers = 1;
     this.rockGarbage = 30;
     this.keys = {
       ArrowLeft: 'left',
