@@ -114,7 +114,8 @@ class Chainsim {
     const colorList = new Set();
     let bonus = Chainsim.chainPower(this.chainNum);
     for (const can of candidates) {
-      if (!findLocInList(can, checkedLocations).found) {
+      // prevent ghost row from popping
+      if (can.y >= this.twelfthRow && !findLocInList(can, checkedLocations).found) {
         const color = this.board[can.y][can.x];
         if (color === 'gray') continue;
         const garbageList = [];
