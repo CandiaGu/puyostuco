@@ -451,7 +451,7 @@ input[type=text]:focus {
   display: grid;
 }
 
-.preview .cell {
+#game .preview .cell {
   border: 1px solid navy;
 }
 
