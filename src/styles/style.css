@@ -355,17 +355,6 @@ input[type=text]:focus {
   animation: longPuyo calc(2s / 30) 5;
 }
 
-#game .cell.exploding {
-  animation: exploding forwards 0.4s;
-}
-
-@keyframes exploding {
-  to {
-    opacity: 0;
-    transform: scale(1.5);
-  }
-}
-
 #game .cell.falling {
   --y1: calc(var(--y) * var(--t) / var(--cell-size));
   animation:
@@ -416,8 +405,29 @@ input[type=text]:focus {
   background-color: lightgray;
 }
 
-#game .cell.blinked {
-  background-color: initial;
+#game .cell.gray.blinking {
+  animation: blinking calc(1s / 30) ease calc(7s / 60) 13 alternate forwards;
+}
+
+#game .cell.blinking {
+  animation-name: blinking, exploding;
+  animation-duration: calc(1s / 30), 0.4s;
+  animation-timing-function: ease;
+  animation-delay: calc(7s / 60), calc(19s / 30);
+  animation-iteration-count: 12, 1;
+  animation-direction: alternate, normal;
+  animation-fill-mode: forwards;
+}
+
+@keyframes blinking {
+  to { background-color: initial; }
+}
+
+@keyframes exploding {
+  to {
+    opacity: 0;
+    transform: scale(1.5);
+  }
 }
 
 .score {

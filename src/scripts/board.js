@@ -56,7 +56,7 @@ class Board extends React.Component {
         x,
         y,
         color: 'none',
-        state: 'none', // none, landed, offset, blinked, falling, ghost, fell, exploding
+        state: 'none', // none, landed, offset, falling, ghost, fell, blinking
       }))
     ));
     this.sequence = new Sequence(seed);
@@ -360,9 +360,16 @@ class Board extends React.Component {
     if (poppedDroppedScore) {
       this.didChain = true;
       const { popped, dropped, score: chainScore } = poppedDroppedScore;
-      this.puyosToPop = popped;
       this.puyosToDrop = dropped;
-      setTimeout(() => { this.blinkPopped(0, chainScore); }, this.timing.startPopDelay);
+      for (const { x, y } of popped) {
+        this.update({ boardData: { [y]: { [x]: { state: 'blinking' } } } });
+      }
+      setTimeout(() => {
+        this.popPopped(popped);
+        const { score } = this.state;
+        this.update({ score: score + chainScore });
+        this.dropDroppedHalfCell(0);
+      }, this.timing.startDropDelay);
     } else {
       if (this.didChain) {
         const { score } = this.state;
@@ -412,45 +419,8 @@ class Board extends React.Component {
     }
   }
 
-  blinkPopped(step, chainScore) {
-    const { boardData } = this.state;
-    const blinks = 12;
-    if (step < blinks) {
-      for (const { x, y } of this.puyosToPop) {
-        this.update({
-          boardData: {
-            [y]: {
-              [x]: {
-                state: boardData[y][x].state === 'blinked' ? 'none' : 'blinked',
-              },
-            },
-          },
-        });
-      }
-      setTimeout(() => { this.blinkPopped(step + 1, chainScore); }, this.timing.blinkRepeat);
-    } else {
-      for (const { x, y } of this.puyosToPop) {
-        this.update({
-          boardData: {
-            [y]: {
-              [x]: {
-                state: boardData[y][x].color === 'gray' ? 'blinked' : 'exploding',
-              },
-            },
-          },
-        });
-      }
-      setTimeout(() => {
-        this.popPopped();
-        const { score } = this.state;
-        this.update({ score: score + chainScore });
-        this.dropDroppedHalfCell(0);
-      }, this.timing.startDropDelay - blinks * this.timing.blinkRepeat);
-    }
-  }
-
-  popPopped() {
-    for (const { x, y } of this.puyosToPop) {
+  popPopped(popped) {
+    for (const { x, y } of popped) {
       this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
     }
   }
