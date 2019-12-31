@@ -8,7 +8,7 @@ import Controller from './controller.js';
 class Game extends React.Component {
   constructor(props) {
     super(props);
-    this.numPlayers = 1;
+    this.numPlayers = 2;
     this.rockGarbage = 30;
     this.keys = {
       ArrowLeft: 'left',
@@ -81,7 +81,7 @@ class Game extends React.Component {
               keys={this.keys}
               seed={seed}
               handleDeath={this.reset}
-              isMulti={this.numPlayers > 1}
+              multiplayer={i === 0 ? 'send' : 'receive'}
               garbageCount={garbage}
               sendGarbage={(g) => {
                 this.setState((state) => {

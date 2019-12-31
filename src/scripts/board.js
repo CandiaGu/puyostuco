@@ -20,9 +20,11 @@ class Board extends React.Component {
     const {
       keys,
       seed,
+      multiplayer, // none, send, receive
       sendGarbage,
       droppedGarbage,
     } = props;
+    this.multiplayer = multiplayer;
     this.sendGarbage = sendGarbage;
     this.droppedGarbage = droppedGarbage;
     // state:
@@ -49,7 +51,9 @@ class Board extends React.Component {
     this.rowsHeldDownIn = new Set();
     this.leftRightLockTimeout = null;
     this.createTiming();
-    this.createController(keys);
+    if (this.multiplayer !== 'receive') {
+      this.createController(keys);
+    }
     this.recentLeftRight = 0;
     this.sequence = new Sequence(seed);
     this.state = {
@@ -59,8 +63,6 @@ class Board extends React.Component {
           y,
           color: 'none',
           state: 'none', // none, landed, offset, falling, ghost, fell, blinking, dropping
-          distance: 0,
-          onAnimationEnd: null,
         }))
       )),
       currPuyo1: null,
@@ -74,16 +76,19 @@ class Board extends React.Component {
     };
     this.chainsim = new Chainsim(this.twelfthRow);
     this.lastScoreCutoff = 0;
-    this.online = false;
   }
 
   componentDidMount() {
-    if (this.online) {
-      this.refList = [];
+    if (this.multiplayer !== 'none') {
+      if (this.multiplayer === 'receive') {
+        this.refList = [];
+      }
       this.ref = {};
       this.initRef(this.ref, firebase.database().ref('user'), this.state, []);
     }
-    setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
+    if (this.multiplayer !== 'receive') {
+      setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
+    }
   }
 
   componentWillUnmount() {
@@ -91,11 +96,12 @@ class Board extends React.Component {
     for (let id = window.setTimeout(() => {}, 0); id >= 0; id--) {
       window.clearTimeout(id);
     }
-    this.controller.release();
-    if (this.online) {
+    if (this.multiplayer === 'receive') {
       for (const ref of this.refList) {
         ref.off('value');
       }
+    } else {
+      this.controller.release();
     }
   }
 
@@ -137,7 +143,6 @@ class Board extends React.Component {
       this.update({ boardData: { [y + d]: { [x]: { color: 'gray', state: 'none' } } } });
     }
     this.garbageFallingCount--;
-    // don't rerender until end
     if (this.garbageFallingCount === 0) {
       this.update({ garbagePuyoList: false });
       setTimeout(() => { this.spawnPuyo(); },
@@ -153,33 +158,35 @@ class Board extends React.Component {
           || refPtr[key];
       }
     } else {
-      this.refList.push(ref);
-      ref.set(state);
-      ref.on('value', (snapshot) => {
-        const val = snapshot.val();
-        this.setState((oldState) => {
-          const newState = deepClone(oldState);
-          let obj = newState;
-          keyList.forEach((key, i) => {
-            if (i < keyList.length - 1) {
-              obj = obj[key];
-            } else {
-              obj[key] = val;
-            }
+      if (this.multiplayer === 'send') {
+        ref.set(state);
+      } else if (this.multiplayer === 'receive') {
+        this.refList.push(ref);
+        ref.on('value', (snapshot) => {
+          const val = snapshot.val();
+          this.setState((oldState) => {
+            const newState = deepClone(oldState);
+            let obj = newState;
+            keyList.forEach((key, i) => {
+              if (i < keyList.length - 1) {
+                obj = obj[key];
+              } else {
+                obj[key] = val;
+              }
+            });
+            return newState;
           });
-          return newState;
         });
-      });
+      }
       return ref;
     }
     return null;
   }
 
   update(state) {
-    if (this.online) {
+    this.setState((oldState) => deepMerge(oldState, state));
+    if (this.multiplayer === 'send') {
       deepUpdateRef(this.ref, state);
-    } else {
-      this.setState((oldState) => deepMerge(oldState, state));
     }
   }
 
@@ -239,7 +246,7 @@ class Board extends React.Component {
       currPuyo1: { x: this.axisSpawnX, y: this.axisSpawnY - 1, color: nextColors1.color1 },
       currPuyo2: { x: this.axisSpawnX, y: this.axisSpawnY, color: nextColors1.color2 },
       currState: 'offset',
-      nextColors1: nextColors2,
+      nextColors1: { ...nextColors2 },
       nextColors2: this.sequence.getColors(),
     });
     this.lockTimeout = null;
@@ -387,7 +394,7 @@ class Board extends React.Component {
                 }
                 setTimeout(() => {
                   this.update({ boardData: { [y + dist]: { [x]: { color, state: endState } } } });
-                }, this.timing.oneFrame);
+                }, 0);
                 this.dropCount--;
                 if (this.dropCount === 0) {
                   setTimeout(() => { this.handleLink(); },
@@ -406,8 +413,7 @@ class Board extends React.Component {
         const { score } = this.state;
         const garbageSent = Math.floor((score - this.lastScoreCutoff) / this.garbageRate);
         this.lastScoreCutoff += garbageSent * this.garbageRate;
-        const { isMulti } = this.props;
-        if (isMulti) {
+        if (this.multiplayer === 'send') {
           this.sendGarbage(garbageSent);
         }
       }
@@ -597,7 +603,7 @@ class Board extends React.Component {
           '--t': (2.0 * d) / (v + v0) / this.timing.framesPerSec,
           '--y': v0 / 3.0,
         }}
-        onAnimationEnd={onAnimationEnd}
+        onAnimationEnd={this.multiplayer === 'receive' ? undefined : onAnimationEnd}
       />
     );
   }
@@ -617,7 +623,7 @@ class Board extends React.Component {
         <Cell
           classList={[dataitem.color, 'dropping']}
           style={{ '--distance': dataitem.distance }}
-          onAnimationEnd={dataitem.onAnimationEnd}
+          onAnimationEnd={this.multiPlayer === 'receive' ? undefined : dataitem.onAnimationEnd}
         />
       );
     }
@@ -737,13 +743,12 @@ const {
   string,
   number,
   func,
-  bool,
 } = PropTypes;
 Board.propTypes = {
   keys: objectOf(string).isRequired,
   seed: number.isRequired,
   handleDeath: func.isRequired,
-  isMulti: bool.isRequired,
+  multiplayer: string.isRequired,
   garbageCount: number.isRequired,
   sendGarbage: func,
   droppedGarbage: func.isRequired,
