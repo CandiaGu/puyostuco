@@ -8,6 +8,9 @@ import {
   locsEqual,
   findLocInList,
   sample,
+  deepClone,
+  deepMerge,
+  deepUpdateRef,
 } from './utils.js';
 import firebase from './firebase.js';
 
@@ -48,7 +51,7 @@ class Board extends React.Component {
     this.createTiming();
     this.createController(keys);
     this.recentLeftRight = 0;
-    const data = Array.from({ length: this.height }, (_, y) => (
+    const boardData = Array.from({ length: this.height }, (_, y) => (
       Array.from({ length: this.width }, (_, x) => ({
         x,
         y,
@@ -58,7 +61,7 @@ class Board extends React.Component {
     ));
     this.sequence = new Sequence(seed);
     this.state = {
-      boardData: data,
+      boardData,
       currPuyo1: null,
       currPuyo2: null,
       currState: 'none',
@@ -68,14 +71,17 @@ class Board extends React.Component {
       splitPuyo: null,
       garbagePuyoList: false,
     };
-    this.ref = firebase.database().ref('user');
     this.chainsim = new Chainsim(this.twelfthRow);
     this.lastScoreCutoff = 0;
+    this.online = false;
   }
 
   componentDidMount() {
-    this.ref.set(this.state);
-    this.ref.on('value', (snapshot) => { this.setState({ ...snapshot.val() }); });
+    if (this.online) {
+      this.refList = [];
+      this.ref = {};
+      this.initRef(this.ref, firebase.database().ref('user'), this.state, []);
+    }
     setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
   }
 
@@ -85,38 +91,94 @@ class Board extends React.Component {
       window.clearTimeout(id);
     }
     this.controller.release();
-    this.ref.off('value');
+    if (this.online) {
+      for (const ref of this.refList) {
+        ref.off('value');
+      }
+    }
   }
 
   onFallingAnimationEnd() {
-    const { boardData: data, splitPuyo } = this.state;
+    const { splitPuyo } = this.state;
     const {
       x,
       y,
       color,
       distance,
     } = splitPuyo;
-    Object.assign(data[y][x], { color: 'none', state: 'none' });
-    Object.assign(data[y + distance][x], { color, state: 'fell' });
-    this.ref.set({ boardData: data, currState: 'none', splitPuyo: false });
+    this.update({
+      boardData: {
+        [y]: {
+          [x]: {
+            color: 'none',
+            state: 'none',
+          },
+        },
+        [y + distance]: {
+          [x]: {
+            color,
+            state: 'fell',
+          },
+        },
+      },
+      currState: 'none',
+      splitPuyo: false,
+    });
     const delay = this.timing.startChainDelay + this.timing.fallenPuyoDelay;
     setTimeout(() => { this.handleLink(); }, delay);
   }
 
   onGarbageAnimationEnd(garbage) {
-    const { boardData: data } = this.state;
     const { x, y, distance: d } = garbage;
-    Object.assign(data[y][x], { color: 'none', state: 'none' });
+    this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
     // don't add garbage to 14th row
     if (y + d >= this.twelfthRow - 1) {
-      Object.assign(data[y + d][x], { color: 'gray', state: 'none' });
+      this.update({ boardData: { [y + d]: { [x]: { color: 'gray', state: 'none' } } } });
     }
     this.garbageFallingCount--;
     // don't rerender until end
     if (this.garbageFallingCount === 0) {
-      this.ref.set({ garbagePuyoList: false });
+      this.update({ garbagePuyoList: false });
       setTimeout(() => { this.spawnPuyo(); },
         this.timing.pieceSpawnDelay + this.timing.fallenPuyoDelay);
+    }
+  }
+
+  initRef(refPtr, ref, state, keyList) {
+    if (state && typeof state === 'object') {
+      for (const [key, value] of Object.entries(state)) {
+        refPtr[key] = {};
+        refPtr[key] = this.initRef(refPtr[key], ref.child(key), value, keyList.concat([key]))
+          || refPtr[key];
+      }
+    } else {
+      this.refList.push(ref);
+      ref.set(state);
+      ref.on('value', (snapshot) => {
+        const val = snapshot.val();
+        this.setState((oldState) => {
+          const newState = deepClone(oldState);
+          let obj = newState;
+          keyList.forEach((key, i) => {
+            if (i < keyList.length - 1) {
+              obj = obj[key];
+            } else {
+              obj[key] = val;
+            }
+          });
+          return newState;
+        });
+      });
+      return ref;
+    }
+    return null;
+  }
+
+  update(state) {
+    if (this.online) {
+      deepUpdateRef(this.ref, state);
+    } else {
+      this.setState((oldState) => deepMerge(oldState, state));
     }
   }
 
@@ -165,13 +227,13 @@ class Board extends React.Component {
   }
 
   spawnPuyo() {
-    const { boardData: data } = this.state;
-    if (data[this.axisSpawnY][this.axisSpawnX].color !== 'none') {
+    const { boardData } = this.state;
+    if (boardData[this.axisSpawnY][this.axisSpawnX].color !== 'none') {
       this.handleDeath();
       return;
     }
     const { nextColors1, nextColors2 } = this.state;
-    this.ref.set({
+    this.update({
       currPuyo1: { x: this.axisSpawnX, y: this.axisSpawnY - 1, color: nextColors1.color1 },
       currPuyo2: { x: this.axisSpawnX, y: this.axisSpawnY, color: nextColors1.color2 },
       currState: 'offset',
@@ -198,14 +260,14 @@ class Board extends React.Component {
     if ((currState !== 'active' && currState !== 'offset') || !this.gravityOn) return;
     const atLowestPosition = this.atLowestPosition(currPuyo1, currPuyo2);
     if (currState === 'offset') {
-      this.ref.set({ currState: 'active' });
+      this.update({ currState: 'active' });
       if (atLowestPosition) {
         this.startLockTimeout();
       }
     } else if (!atLowestPosition) {
       currPuyo1.y++;
       currPuyo2.y++;
-      this.ref.set({ currPuyo1, currPuyo2, currState: 'offset' });
+      this.update({ currPuyo1, currPuyo2, currState: 'offset' });
     }
     this.gravityTimeout = setTimeout(() => { this.applyGravity(); }, this.timing.gravityRepeat);
   }
@@ -221,17 +283,16 @@ class Board extends React.Component {
   }
 
   checkIfLegalMove(puyo1, puyo2) {
-    const { boardData: data } = this.state;
+    const { boardData } = this.state;
     return this.chainsim.checkIfValidLoc(puyo1)
       && this.chainsim.checkIfValidLoc(puyo2)
-      && data[puyo1.y][puyo1.x].color === 'none'
-      && data[puyo2.y][puyo2.x].color === 'none'
+      && boardData[puyo1.y][puyo1.x].color === 'none'
+      && boardData[puyo2.y][puyo2.x].color === 'none'
       && puyo2.y >= this.twelfthRow - 1; // forbid rotating axis puyo into 14th row
   }
 
   puyoLockFunctions() {
     const {
-      boardData: data,
       currPuyo1: puyo1,
       currPuyo2: puyo2,
       currState,
@@ -264,14 +325,32 @@ class Board extends React.Component {
         state2 = 'falling';
       }
     }
-    Object.assign(data[puyo1.y][puyo1.x], { color: puyo1.color, state: state1 });
-    Object.assign(data[puyo2.y][puyo2.x], { color: puyo2.color, state: state2 });
     this.chainsim.placePuyo(placedPuyo1, placedPuyo2);
     this.didChain = false;
+    this.update({
+      boardData: {
+        [puyo1.y]: {
+          [puyo1.x]: {
+            color: puyo1.color,
+            state: state1,
+          },
+        },
+      },
+    });
+    this.update({
+      boardData: {
+        [puyo2.y]: {
+          [puyo2.x]: {
+            color: puyo2.color,
+            state: state2,
+          },
+        },
+      },
+      currState: 'none',
+    });
     if (state1 === 'falling' || state2 === 'falling') {
-      this.ref.set({ boardData: data, currState: 'none', splitPuyo });
+      this.update({ splitPuyo });
     } else {
-      this.ref.set({ boardData: data, currState: 'none' });
       setTimeout(() => { this.handleLink(); }, this.timing.startChainDelay);
     }
   }
@@ -296,7 +375,7 @@ class Board extends React.Component {
       }
       if (this.checkAllClear()) {
         const { score } = this.state;
-        this.ref.set({ score: score + this.rockGarbage * this.garbageRate });
+        this.update({ score: score + this.rockGarbage * this.garbageRate });
       }
       this.handleGarbage();
     }
@@ -327,51 +406,64 @@ class Board extends React.Component {
       this.chainsim.addGarbage(garbagePuyoList);
       this.garbageFallingCount = garbage;
       this.droppedGarbage();
-      this.ref.set({ garbagePuyoList });
+      this.update({ garbagePuyoList });
     } else {
       setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
     }
   }
 
   blinkPopped(step, chainScore) {
-    const { boardData: data } = this.state;
+    const { boardData } = this.state;
     const blinks = 12;
     if (step < blinks) {
       for (const { x, y } of this.puyosToPop) {
-        data[y][x].state = data[y][x].state === 'blinked' ? 'none' : 'blinked';
+        this.update({
+          boardData: {
+            [y]: {
+              [x]: {
+                state: boardData[y][x].state === 'blinked' ? 'none' : 'blinked',
+              },
+            },
+          },
+        });
       }
       setTimeout(() => { this.blinkPopped(step + 1, chainScore); }, this.timing.blinkRepeat);
     } else {
       for (const { x, y } of this.puyosToPop) {
-        data[y][x].state = data[y][x].color === 'gray' ? 'blinked' : 'exploding';
+        this.update({
+          boardData: {
+            [y]: {
+              [x]: {
+                state: boardData[y][x].color === 'gray' ? 'blinked' : 'exploding',
+              },
+            },
+          },
+        });
       }
       setTimeout(() => {
         this.popPopped();
         const { score } = this.state;
-        this.ref.set({ score: score + chainScore });
+        this.update({ score: score + chainScore });
         this.dropDroppedHalfCell(0);
       }, this.timing.startDropDelay - blinks * this.timing.blinkRepeat);
     }
-    this.ref.set({ boardData: data });
   }
 
   popPopped() {
-    const { boardData: data } = this.state;
     for (const { x, y } of this.puyosToPop) {
-      Object.assign(data[y][x], { color: 'none', state: 'none' });
+      this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
     }
-    this.ref.set({ boardData: data });
   }
 
   dropDroppedHalfCell(step) {
-    const { boardData: data } = this.state;
+    const { boardData } = this.state;
     let canDrop = false;
     this.puyosToDrop.forEach(({ puyo: { x, y }, dist }, i) => {
       if (dist > 0) {
-        const puyo = data[y][x];
+        const puyo = { ...boardData[y][x] };
         if (step === 0) {
-          Object.assign(data[y + 1][x], { color: puyo.color, state: 'offset' });
-          Object.assign(puyo, { color: 'none', state: 'none' });
+          this.update({ boardData: { [y + 1]: { [x]: { color: puyo.color, state: 'offset' } } } });
+          this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
           this.puyosToDrop[i].puyo.y++;
         } else {
           if (dist === 1) {
@@ -380,11 +472,11 @@ class Board extends React.Component {
             puyo.state = 'none';
             canDrop = true;
           }
+          this.update({ boardData: { [y]: { [x]: { state: puyo.state } } } });
           this.puyosToDrop[i].dist--;
         }
       }
     });
-    this.ref.set({ boardData: data });
     if (step === 0) {
       setTimeout(() => { this.dropDroppedHalfCell(1); }, this.timing.dropRepeat);
     } else if (canDrop) {
@@ -399,9 +491,9 @@ class Board extends React.Component {
   }
 
   checkAllClear() {
-    const { boardData: data } = this.state;
+    const { boardData } = this.state;
     // exclude 14th row from all clear check
-    return data.every((row, y) => y < this.twelfthRow - 1
+    return boardData.every((row, y) => y < this.twelfthRow - 1
       || row.every((puyo) => puyo.color === 'none'));
   }
 
@@ -411,9 +503,9 @@ class Board extends React.Component {
   }
 
   findLowestPosition(col) {
-    const { boardData: data } = this.state;
+    const { boardData } = this.state;
     for (let i = this.height - 1; i >= 0; i--) {
-      if (data[i][col].color === 'none') {
+      if (boardData[i][col].color === 'none') {
         return i;
       }
     }
@@ -427,7 +519,7 @@ class Board extends React.Component {
 
   tryMove(puyo1, puyo2) {
     if (this.checkIfLegalMove(puyo1, puyo2)) {
-      this.ref.set({ currPuyo1: puyo1, currPuyo2: puyo2 });
+      this.update({ currPuyo1: puyo1, currPuyo2: puyo2 });
       const { currState } = this.state;
       if (this.atLowestPosition(puyo1, puyo2) && currState === 'active') {
         this.startLockTimeout();
@@ -461,22 +553,22 @@ class Board extends React.Component {
     if (this.recentLeftRight || (currState !== 'active' && currState !== 'offset')) return;
     if (!this.rowsHeldDownIn.has(currPuyo2.y)) {
       const { score } = this.state;
-      this.ref.set({ score: score + 1 });
+      this.update({ score: score + 1 });
       this.rowsHeldDownIn.add(currPuyo2.y);
     }
     if (this.atLowestPosition(currPuyo1, currPuyo2)) {
       if (currState === 'offset') {
-        this.ref.set({ currState: 'active' });
+        this.update({ currState: 'active' });
       }
       const { score } = this.state;
-      this.ref.set({ score: score + 1 });
+      this.update({ score: score + 1 });
       this.puyoLockFunctions();
     } else if (currState === 'offset') {
-      this.ref.set({ currState: 'active' });
+      this.update({ currState: 'active' });
     } else {
       currPuyo1.y++;
       currPuyo2.y++;
-      this.ref.set({ currPuyo1, currPuyo2, currState: 'offset' });
+      this.update({ currPuyo1, currPuyo2, currState: 'offset' });
     }
   }
 
@@ -618,8 +710,8 @@ class Board extends React.Component {
   }
 
   renderBoard() {
-    const { boardData: data } = this.state;
-    return data.map((datarow) => datarow.map((dataitem) => (
+    const { boardData } = this.state;
+    return boardData.map((datarow) => datarow.map((dataitem) => (
       <div key={dataitem.x * datarow.length + dataitem.y}>
         { this.renderCell(dataitem) }
         { dataitem.x === datarow.length - 1 && <div className="clear" /> }

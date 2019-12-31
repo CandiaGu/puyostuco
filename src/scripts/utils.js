@@ -31,3 +31,32 @@ export function sample(n, k) {
   }
   return arr.slice(0, k);
 }
+
+export function deepClone(object) {
+  return JSON.parse(JSON.stringify(object));
+}
+
+export function deepMerge(target, source) {
+  for (const [key, value] of Object.entries(source)) {
+    if (value && typeof value === 'object' && target[key]) {
+      deepMerge(target[key], value);
+    } else {
+      target[key] = value;
+    }
+  }
+  return target;
+}
+
+export function deepUpdateRef(ref, state) {
+  if ('root' in ref) {
+    ref.set(state);
+  } else {
+    for (const [key, value] of Object.entries(state)) {
+      if (value && typeof value === 'object') {
+        deepUpdateRef(ref[key], value);
+      } else if (ref[key]) {
+        ref[key].set(value);
+      }
+    }
+  }
+}
