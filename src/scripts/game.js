@@ -8,7 +8,8 @@ import Controller from './controller.js';
 class Game extends React.Component {
   constructor(props) {
     super(props);
-    this.numPlayers = 2;
+    this.playerNum = 0;
+    this.numPlayers = 1;
     this.rockGarbage = 30;
     this.keys = {
       ArrowLeft: 'left',
@@ -39,10 +40,12 @@ class Game extends React.Component {
         delay: 0,
         repeat: 0,
       },
+      player: { f: () => { that.playerNum = 1 - that.playerNum; }, delay: 0, repeat: 0 },
     };
     const keys = {
       Escape: 'reset',
       t: 'garbage',
+      p: 'player',
     };
     this.controller = new Controller(controls, keys);
   }
@@ -81,7 +84,8 @@ class Game extends React.Component {
               keys={this.keys}
               seed={seed}
               handleDeath={this.reset}
-              multiplayer={i === 0 ? 'send' : 'receive'}
+              multiplayer={this.numPlayers === 1 ? 'none' : i === 0 ? 'send' : 'receive'}
+              user={'user' + this.numPlayers === 1 ? '' : i === this.playerNum ? 1 : 0}
               garbageCount={garbage}
               sendGarbage={(g) => {
                 this.setState((state) => {

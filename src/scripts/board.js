@@ -21,10 +21,12 @@ class Board extends React.Component {
       keys,
       seed,
       multiplayer, // none, send, receive
+      user,
       sendGarbage,
       droppedGarbage,
     } = props;
     this.multiplayer = multiplayer;
+    this.user = user;
     this.sendGarbage = sendGarbage;
     this.droppedGarbage = droppedGarbage;
     // state:
@@ -84,7 +86,7 @@ class Board extends React.Component {
         this.refList = [];
       }
       this.ref = {};
-      this.initRef(this.ref, firebase.database().ref('user'), this.state, []);
+      this.initRef(this.ref, firebase.database().ref(this.user), this.state, []);
     }
     if (this.multiplayer !== 'receive') {
       setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
@@ -749,6 +751,7 @@ Board.propTypes = {
   seed: number.isRequired,
   handleDeath: func.isRequired,
   multiplayer: string.isRequired,
+  user: string,
   garbageCount: number.isRequired,
   sendGarbage: func,
   droppedGarbage: func.isRequired,
