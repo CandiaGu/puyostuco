@@ -51,17 +51,18 @@ class Board extends React.Component {
     this.createTiming();
     this.createController(keys);
     this.recentLeftRight = 0;
-    const boardData = Array.from({ length: this.height }, (_, y) => (
-      Array.from({ length: this.width }, (_, x) => ({
-        x,
-        y,
-        color: 'none',
-        state: 'none', // none, landed, offset, falling, ghost, fell, blinking
-      }))
-    ));
     this.sequence = new Sequence(seed);
     this.state = {
-      boardData,
+      boardData: Array.from({ length: this.height }, (_, y) => (
+        Array.from({ length: this.width }, (_, x) => ({
+          x,
+          y,
+          color: 'none',
+          state: 'none', // none, landed, offset, falling, ghost, fell, blinking, dropping
+          distance: 0,
+          onAnimationEnd: null,
+        }))
+      )),
       currPuyo1: null,
       currPuyo2: null,
       currState: 'none',
@@ -202,6 +203,7 @@ class Board extends React.Component {
       startDropDelay: 47 * msPerFrame,
       dropRepeat: 1 * msPerFrame,
       nextLinkDelay: 24 * msPerFrame,
+      oneFrame: 1 * msPerFrame,
     };
   }
 
@@ -360,15 +362,44 @@ class Board extends React.Component {
     if (poppedDroppedScore) {
       this.didChain = true;
       const { popped, dropped, score: chainScore } = poppedDroppedScore;
-      this.puyosToDrop = dropped;
       for (const { x, y } of popped) {
         this.update({ boardData: { [y]: { [x]: { state: 'blinking' } } } });
       }
       setTimeout(() => {
         this.popPopped(popped);
-        const { score } = this.state;
+        const { boardData, score } = this.state;
         this.update({ score: score + chainScore });
-        this.dropDroppedHalfCell(0);
+        if (dropped.length > 0) {
+          this.dropCount = dropped.length;
+          const isEndOfDrop = Array.from(Array(this.height), () => Array(this.width).fill(false));
+          for (const { puyo: { x, y }, dist } of dropped) {
+            isEndOfDrop[y + dist][x] = true;
+          }
+          for (const { puyo: { x, y }, dist } of dropped) {
+            const { color } = boardData[y][x];
+            const endState = color === 'gray' ? 'none' : 'fell';
+            const newElem = {
+              state: 'dropping',
+              distance: dist,
+              onAnimationEnd: () => {
+                if (!isEndOfDrop[y][x]) {
+                  this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
+                }
+                setTimeout(() => {
+                  this.update({ boardData: { [y + dist]: { [x]: { color, state: endState } } } });
+                }, this.timing.oneFrame);
+                this.dropCount--;
+                if (this.dropCount === 0) {
+                  setTimeout(() => { this.handleLink(); },
+                    this.timing.nextLinkDelay + this.timing.fallenPuyoDelay);
+                }
+              },
+            };
+            this.update({ boardData: { [y]: { [x]: newElem } } });
+          }
+        } else {
+          setTimeout(() => { this.handleLink(); }, this.timing.nextLinkDelay);
+        }
       }, this.timing.startDropDelay);
     } else {
       if (this.didChain) {
@@ -422,41 +453,6 @@ class Board extends React.Component {
   popPopped(popped) {
     for (const { x, y } of popped) {
       this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
-    }
-  }
-
-  dropDroppedHalfCell(step) {
-    const { boardData } = this.state;
-    let canDrop = false;
-    this.puyosToDrop.forEach(({ puyo: { x, y }, dist }, i) => {
-      if (dist > 0) {
-        const puyo = { ...boardData[y][x] };
-        if (step === 0) {
-          this.update({ boardData: { [y + 1]: { [x]: { color: puyo.color, state: 'offset' } } } });
-          this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
-          this.puyosToDrop[i].puyo.y++;
-        } else {
-          if (dist === 1) {
-            puyo.state = puyo.color === 'gray' ? 'none' : 'fell';
-          } else {
-            puyo.state = 'none';
-            canDrop = true;
-          }
-          this.update({ boardData: { [y]: { [x]: { state: puyo.state } } } });
-          this.puyosToDrop[i].dist--;
-        }
-      }
-    });
-    if (step === 0) {
-      setTimeout(() => { this.dropDroppedHalfCell(1); }, this.timing.dropRepeat);
-    } else if (canDrop) {
-      setTimeout(() => { this.dropDroppedHalfCell(0); }, this.timing.dropRepeat);
-    } else {
-      let delay = this.timing.nextLinkDelay;
-      if (this.puyosToDrop.length > 0) {
-        delay += this.timing.fallenPuyoDelay;
-      }
-      setTimeout(() => { this.handleLink(); }, delay);
     }
   }
 
@@ -615,6 +611,16 @@ class Board extends React.Component {
       splitPuyo,
       garbagePuyoList,
     } = this.state;
+    // is it dropping?
+    if (dataitem.state === 'dropping') {
+      return (
+        <Cell
+          classList={[dataitem.color, 'dropping']}
+          style={{ '--distance': dataitem.distance }}
+          onAnimationEnd={dataitem.onAnimationEnd}
+        />
+      );
+    }
     // is it falling?
     if (splitPuyo && locsEqual(splitPuyo, dataitem)) {
       const { distance, color } = splitPuyo;

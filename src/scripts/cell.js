@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 const Cell = (props) => {
   const { classList } = props;
   const className = 'cell' + classList.reduce((acc, cur) => acc + ' ' + cur, '');
-  if (classList.includes('falling')) {
+  if (classList.includes('falling') || classList.includes('dropping')) {
     const { style, onAnimationEnd } = props;
     return <div className={className} style={style} onAnimationEnd={onAnimationEnd} />;
   }
@@ -15,12 +15,12 @@ const {
   number,
   arrayOf,
   string,
-  shape,
+  objectOf,
   func,
 } = PropTypes;
 Cell.propTypes = {
   classList: arrayOf(string).isRequired,
-  style: shape({ '--d': number.isRequired, '--t': number.isRequired, '--y': number.isRequired }),
+  style: objectOf(number),
   onAnimationEnd: func,
 };
 

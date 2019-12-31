@@ -413,7 +413,7 @@ input[type=text]:focus {
   animation-name: blinking, exploding;
   animation-duration: calc(1s / 30), 0.4s;
   animation-timing-function: ease;
-  animation-delay: calc(7s / 60), calc(19s / 30);
+  animation-delay: calc(7s / 60), calc(31s / 60);
   animation-iteration-count: 12, 1;
   animation-direction: alternate, normal;
   animation-fill-mode: forwards;
@@ -428,6 +428,14 @@ input[type=text]:focus {
     opacity: 0;
     transform: scale(1.5);
   }
+}
+
+#game .cell.dropping {
+  animation: dropping 0.4s steps(24, jump-end) forwards calc(var(--distance) / 12);
+}
+
+@keyframes dropping {
+  to { transform: translateY(1200%); }
 }
 
 .score {
