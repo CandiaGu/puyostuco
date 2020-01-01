@@ -85,7 +85,7 @@ class Game extends React.Component {
               seed={seed}
               handleDeath={this.reset}
               multiplayer={this.numPlayers === 1 ? 'none' : i === 0 ? 'send' : 'receive'}
-              user={'user' + this.numPlayers === 1 ? '' : i === this.playerNum ? 1 : 0}
+              user={'user' + (this.numPlayers === 1 ? '' : i === this.playerNum ? 1 : 0)}
               garbageCount={garbage}
               sendGarbage={(g) => {
                 this.setState((state) => {

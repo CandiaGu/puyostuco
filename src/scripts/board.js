@@ -40,8 +40,9 @@ class Board extends React.Component {
     //   nextColors2
     //   splitPuyo
     //   garbagePuyoList
-    this.twelfthRow = 8; // leave space to spawn garbage
+    this.twelfthRow = 2; // two hidden rows
     this.height = 12 + this.twelfthRow;
+    this.extraRows = 6;
     this.width = 6;
     this.axisSpawnX = 2;
     this.axisSpawnY = this.twelfthRow; // spawn axis puyo in 12th row
@@ -695,12 +696,28 @@ class Board extends React.Component {
 
   renderBoard() {
     const { boardData } = this.state;
-    return boardData.map((datarow) => datarow.map((dataitem) => (
-      <div key={dataitem.x * datarow.length + dataitem.y}>
-        { this.renderCell(dataitem) }
-        { dataitem.x === datarow.length - 1 && <div className="clear" /> }
-      </div>
-    )));
+    const rows = [];
+    // make room for garbage to spawn
+    for (let y = -this.extraRows; y < this.height; y++) {
+      const row = [];
+      for (let x = 0; x < this.width; x++) {
+        const defaultCell = {
+          x,
+          y,
+          color: 'none',
+          state: 'none',
+        };
+        const dataitem = y < 0 ? defaultCell : boardData[y][x];
+        row.push(
+          <div key={dataitem.x * this.width + dataitem.y}>
+            { this.renderCell(dataitem) }
+            { dataitem.x === this.width - 1 && <div className="clear" /> }
+          </div>,
+        );
+      }
+      rows.push(row);
+    }
+    return rows;
   }
 
   render() {
@@ -716,7 +733,10 @@ class Board extends React.Component {
           <h2>{ garbageCount }</h2>
         </div>
         <>
-          <div className="board" style={{ '--invisible-rows-count': this.twelfthRow }}>
+          <div
+            className="board"
+            style={{ '--invisible-rows-count': this.twelfthRow + this.extraRows }}
+          >
             { this.renderBoard() }
           </div>
           <div className="preview">
