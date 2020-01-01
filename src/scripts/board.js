@@ -138,15 +138,17 @@ class Board extends React.Component {
     setTimeout(() => { this.handleLink(); }, delay);
   }
 
-  onGarbageAnimationEnd(garbage) {
-    const { x, y, distance: d } = garbage;
-    this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
-    // don't add garbage to 14th row
-    if (y + d >= this.twelfthRow - 1) {
-      this.update({ boardData: { [y + d]: { [x]: { color: 'gray', state: 'none' } } } });
-    }
+  onGarbageAnimationEnd() {
     this.garbageFallingCount--;
     if (this.garbageFallingCount === 0) {
+      const { garbagePuyoList } = this.state;
+      for (const { x, y, distance: d } of garbagePuyoList) {
+        this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
+        // don't add garbage to 14th row
+        if (y + d >= this.twelfthRow - 1) {
+          this.update({ boardData: { [y + d]: { [x]: { color: 'gray', state: 'none' } } } });
+        }
+      }
       this.update({ garbagePuyoList: false });
       setTimeout(() => { this.spawnPuyo(); },
         this.timing.pieceSpawnDelay + this.timing.fallenPuyoDelay);
@@ -657,7 +659,7 @@ class Board extends React.Component {
             default: throw new Error('bad x value');
           }
         })(),
-        onAnimationEnd: () => { this.onGarbageAnimationEnd.bind(this)(garbage); },
+        onAnimationEnd: () => { this.onGarbageAnimationEnd.bind(this)(); },
         distance: garbage.distance,
         color: 'gray',
       });
