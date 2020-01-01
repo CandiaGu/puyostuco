@@ -68,8 +68,8 @@ class Board extends React.Component {
           state: 'none', // none, landed, offset, falling, ghost, fell, blinking, dropping
         }))
       )),
-      currPuyo1: null,
-      currPuyo2: null,
+      currPuyo1: { x: 0, y: 0, color: 'none' },
+      currPuyo2: { x: 0, y: 0, color: 'none' },
       currState: 'none',
       score: 0,
       nextColors1: this.sequence.getColors(),
@@ -143,7 +143,6 @@ class Board extends React.Component {
     if (this.garbageFallingCount === 0) {
       const { garbagePuyoList } = this.state;
       for (const { x, y, distance: d } of garbagePuyoList) {
-        this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
         // don't add garbage to 14th row
         if (y + d >= this.twelfthRow - 1) {
           this.update({ boardData: { [y + d]: { [x]: { color: 'gray', state: 'none' } } } });
@@ -188,9 +187,9 @@ class Board extends React.Component {
     return null;
   }
 
-  update(state) {
+  update(state, shouldPushToDatabase = true) {
     this.setState((oldState) => deepMerge(oldState, state));
-    if (this.multiplayer === 'send') {
+    if (shouldPushToDatabase && this.multiplayer === 'send') {
       deepUpdateRef(this.ref, state);
     }
   }
@@ -274,14 +273,15 @@ class Board extends React.Component {
     if ((currState !== 'active' && currState !== 'offset') || !this.gravityOn) return;
     const atLowestPosition = this.atLowestPosition(currPuyo1, currPuyo2);
     if (currState === 'offset') {
-      this.update({ currState: 'active' });
+      this.update({ currState: 'active' }, false);
       if (atLowestPosition) {
         this.startLockTimeout();
       }
     } else if (!atLowestPosition) {
-      currPuyo1.y++;
-      currPuyo2.y++;
-      this.update({ currPuyo1, currPuyo2, currState: 'offset' });
+      const y1 = currPuyo1.y + 1;
+      const y2 = currPuyo2.y + 1;
+      this.update({ currPuyo1: { y: y1 }, currPuyo2: { y: y2 } });
+      this.update({ currState: 'offset' }, false);
     }
     this.gravityTimeout = setTimeout(() => { this.applyGravity(); }, this.timing.gravityRepeat);
   }
@@ -496,7 +496,7 @@ class Board extends React.Component {
 
   tryMove(puyo1, puyo2) {
     if (this.checkIfLegalMove(puyo1, puyo2)) {
-      this.update({ currPuyo1: puyo1, currPuyo2: puyo2 });
+      this.update({ currPuyo1: { x: puyo1.x, y: puyo1.y }, currPuyo2: { x: puyo2.x, y: puyo2.y } });
       const { currState } = this.state;
       if (this.atLowestPosition(puyo1, puyo2) && currState === 'active') {
         this.startLockTimeout();
@@ -530,22 +530,23 @@ class Board extends React.Component {
     if (this.recentLeftRight || (currState !== 'active' && currState !== 'offset')) return;
     if (!this.rowsHeldDownIn.has(currPuyo2.y)) {
       const { score } = this.state;
-      this.update({ score: score + 1 });
+      this.update({ score: score + 1 }, false);
       this.rowsHeldDownIn.add(currPuyo2.y);
     }
     if (this.atLowestPosition(currPuyo1, currPuyo2)) {
       if (currState === 'offset') {
-        this.update({ currState: 'active' });
+        this.update({ currState: 'active' }, false);
       }
       const { score } = this.state;
       this.update({ score: score + 1 });
       this.puyoLockFunctions();
     } else if (currState === 'offset') {
-      this.update({ currState: 'active' });
+      this.update({ currState: 'active' }, false);
     } else {
-      currPuyo1.y++;
-      currPuyo2.y++;
-      this.update({ currPuyo1, currPuyo2, currState: 'offset' });
+      const y1 = currPuyo1.y + 1;
+      const y2 = currPuyo2.y + 1;
+      this.update({ currPuyo1: { y: y1 }, currPuyo2: { y: y2 } });
+      this.update({ currState: 'offset' }, false);
     }
   }
 
