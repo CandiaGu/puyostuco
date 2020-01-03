@@ -7,43 +7,63 @@ import Sequence from './sequence.js';
 import {
   locsEqual,
   findLocInList,
-  sample,
-  deepClone,
+  randGenerator,
+  randSample,
   deepMerge,
-  deepUpdateRef,
 } from './utils.js';
-import firebase from './firebase.js';
 
 class Board extends React.Component {
   constructor(props) {
     super(props);
     const {
-      keys,
       seed,
+      handleDeath,
       multiplayer, // none, send, receive
-      user,
-      sendGarbage,
-      droppedGarbage,
+      myGarbageRef,
+      oppGarbageRef,
+      playerRef,
     } = props;
+    this.handleDeath = handleDeath;
     this.multiplayer = multiplayer;
-    this.user = user;
-    this.sendGarbage = sendGarbage;
-    this.droppedGarbage = droppedGarbage;
-    // state:
-    //   boardData (elems have x, y, color)
-    //     color: none, red, green, blue, yellow, purple, gray
-    //   currPuyo1 { x, y, color }
-    //   currPuyo2 (axis puyo)
-    //   currState: none, active, offset
-    //   score
-    //   nextColors1 { color1, color2 }
-    //   nextColors2
-    //   splitPuyo
-    //   garbagePuyoList
+    this.myGarbageRef = myGarbageRef;
+    this.oppGarbageRef = oppGarbageRef;
     this.twelfthRow = 2; // two hidden rows
     this.height = 12 + this.twelfthRow;
     this.extraRows = 6;
     this.width = 6;
+    this.rand = randGenerator(seed);
+    this.sequence = new Sequence(this.rand);
+    this.state = {
+      boardData: Array.from({ length: this.height }, (_, y) => (
+        Array.from({ length: this.width }, (_, x) => ({
+          x,
+          y,
+          color: 'none', // none, red, green, blue, yellow, purple, gray
+          state: 'none', // none, landed, offset, falling, ghost, fell, blinking, dropping
+        }))
+      )),
+      currPuyo1: { x: 0, y: 0, color: 'none' },
+      currPuyo2: { x: 0, y: 0, color: 'none' }, // axis puyo
+      currState: 'none', // none, active, offset
+      score: 0,
+      nextColors1: this.sequence.getColors(), // { color1, color2 }
+      nextColors2: this.sequence.getColors(),
+      splitPuyo: null,
+      garbagePuyoList: false,
+      myGarbageTotal: 0,
+      oppGarbageTotal: 0,
+    };
+    if (this.multiplayer !== 'none') {
+      this.currPuyoRef = playerRef.child('c');
+      this.currPuyoRef.set({
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+        score: 0,
+      });
+      this.dropListRef = playerRef.child('d');
+    }
     this.axisSpawnX = 2;
     this.axisSpawnY = this.twelfthRow; // spawn axis puyo in 12th row
     this.garbageRate = 70;
@@ -55,43 +75,54 @@ class Board extends React.Component {
     this.leftRightLockTimeout = null;
     this.createTiming();
     if (this.multiplayer !== 'receive') {
-      this.createController(keys);
+      this.createController();
     }
     this.recentLeftRight = 0;
-    this.sequence = new Sequence(seed);
-    this.state = {
-      boardData: Array.from({ length: this.height }, (_, y) => (
-        Array.from({ length: this.width }, (_, x) => ({
-          x,
-          y,
-          color: 'none',
-          state: 'none', // none, landed, offset, falling, ghost, fell, blinking, dropping
-        }))
-      )),
-      currPuyo1: { x: 0, y: 0, color: 'none' },
-      currPuyo2: { x: 0, y: 0, color: 'none' },
-      currState: 'none',
-      score: 0,
-      nextColors1: this.sequence.getColors(),
-      nextColors2: this.sequence.getColors(),
-      splitPuyo: null,
-      garbagePuyoList: false,
-    };
     this.chainsim = new Chainsim(this.twelfthRow);
     this.lastScoreCutoff = 0;
   }
 
   componentDidMount() {
     if (this.multiplayer !== 'none') {
+      this.oppGarbageRef.on('value', (snapshot) => {
+        this.setState({ oppGarbageTotal: snapshot.val() });
+      });
       if (this.multiplayer === 'receive') {
-        this.refList = [];
+        this.currPuyoRef.on('value', (snapshot) => {
+          const { currState } = this.state;
+          if (currState === 'offset') {
+            const {
+              x1,
+              y1,
+              x2,
+              y2,
+              score,
+            } = snapshot.val();
+            this.setState((state) => ({
+              currPuyo1: { ...state.currPuyo1, x: x1, y: y1 },
+              currPuyo2: { ...state.currPuyo2, x: x2, y: y2 },
+              score,
+            }));
+          }
+        });
+        this.dropList = [];
+        this.handleGarbageReady = false;
+        this.dropListRef.on('child_added', (snapshot) => {
+          const val = snapshot.val();
+          this.dropList.push(val);
+          if ('garbage' in val && this.handleGarbageReady) {
+            const { myGarbageTotal } = this.state;
+            this.handleGarbage(myGarbageTotal);
+          } else {
+            const { currState } = this.state;
+            if (currState !== 'none') {
+              this.puyoLockFunctions();
+            }
+          }
+        });
       }
-      this.ref = {};
-      this.initRef(this.ref, firebase.database().ref(this.user), this.state, []);
     }
-    if (this.multiplayer !== 'receive') {
-      setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
-    }
+    setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
   }
 
   componentWillUnmount() {
@@ -99,10 +130,12 @@ class Board extends React.Component {
     for (let id = window.setTimeout(() => {}, 0); id >= 0; id--) {
       window.clearTimeout(id);
     }
+    if (this.multiplayer !== 'none') {
+      this.oppGarbageRef.off('value');
+    }
     if (this.multiplayer === 'receive') {
-      for (const ref of this.refList) {
-        ref.off('value');
-      }
+      this.currPuyoRef.off('value');
+      this.dropListRef.off('child_added');
     } else {
       this.controller.release();
     }
@@ -154,44 +187,23 @@ class Board extends React.Component {
     }
   }
 
-  initRef(refPtr, ref, state, keyList) {
-    if (state && typeof state === 'object') {
-      for (const [key, value] of Object.entries(state)) {
-        refPtr[key] = {};
-        refPtr[key] = this.initRef(refPtr[key], ref.child(key), value, keyList.concat([key]))
-          || refPtr[key];
-      }
-    } else {
+  update(state) {
+    this.setState((oldState) => {
+      const newState = deepMerge(oldState, state);
       if (this.multiplayer === 'send') {
-        ref.set(state);
-      } else if (this.multiplayer === 'receive') {
-        this.refList.push(ref);
-        ref.on('value', (snapshot) => {
-          const val = snapshot.val();
-          this.setState((oldState) => {
-            const newState = deepClone(oldState);
-            let obj = newState;
-            keyList.forEach((key, i) => {
-              if (i < keyList.length - 1) {
-                obj = obj[key];
-              } else {
-                obj[key] = val;
-              }
-            });
-            return newState;
+        if ('currPuyo1' in state || 'currPuyo2' in state) {
+          const { currPuyo1, currPuyo2, score } = newState;
+          this.currPuyoRef.set({
+            x1: currPuyo1.x,
+            y1: currPuyo1.y,
+            x2: currPuyo2.x,
+            y2: currPuyo2.y,
+            score,
           });
-        });
+        }
       }
-      return ref;
-    }
-    return null;
-  }
-
-  update(state, shouldPushToDatabase = true) {
-    this.setState((oldState) => deepMerge(oldState, state));
-    if (shouldPushToDatabase && this.multiplayer === 'send') {
-      deepUpdateRef(this.ref, state);
-    }
+      return newState;
+    });
   }
 
   createTiming() {
@@ -218,7 +230,7 @@ class Board extends React.Component {
     };
   }
 
-  createController(keys) {
+  createController() {
     const that = this;
     const controls = {
       left: {
@@ -235,6 +247,16 @@ class Board extends React.Component {
       counterclockwise: { f: () => { that.rotatePuyo.bind(that)(-1); }, delay: 0, repeat: 0 },
       clockwise: { f: () => { that.rotatePuyo.bind(that)(1); }, delay: 0, repeat: 0 },
       gravity: { f: () => { that.toggleGravity.bind(that)(); }, delay: 0, repeat: 0 },
+    };
+    const keys = {
+      ArrowLeft: 'left',
+      ArrowRight: 'right',
+      ArrowDown: 'down',
+      z: 'counterclockwise',
+      x: 'clockwise',
+      d: 'counterclockwise',
+      f: 'clockwise',
+      g: 'gravity',
     };
     this.controller = new Controller(controls, keys);
   }
@@ -253,6 +275,10 @@ class Board extends React.Component {
       nextColors1: { ...nextColors2 },
       nextColors2: this.sequence.getColors(),
     });
+    if (this.multiplayer === 'receive') {
+      this.puyoLockFunctions();
+      return;
+    }
     this.lockTimeout = null;
     this.failedRotate = false;
     if (this.gravityOn) {
@@ -273,7 +299,7 @@ class Board extends React.Component {
     if ((currState !== 'active' && currState !== 'offset') || !this.gravityOn) return;
     const atLowestPosition = this.atLowestPosition(currPuyo1, currPuyo2);
     if (currState === 'offset') {
-      this.update({ currState: 'active' }, false);
+      this.update({ currState: 'active' });
       if (atLowestPosition) {
         this.startLockTimeout();
       }
@@ -281,7 +307,7 @@ class Board extends React.Component {
       const y1 = currPuyo1.y + 1;
       const y2 = currPuyo2.y + 1;
       this.update({ currPuyo1: { y: y1 }, currPuyo2: { y: y2 } });
-      this.update({ currState: 'offset' }, false);
+      this.update({ currState: 'offset' });
     }
     this.gravityTimeout = setTimeout(() => { this.applyGravity(); }, this.timing.gravityRepeat);
   }
@@ -306,11 +332,30 @@ class Board extends React.Component {
   }
 
   puyoLockFunctions() {
-    const {
+    let {
       currPuyo1: puyo1,
       currPuyo2: puyo2,
       currState,
     } = this.state;
+    if (this.multiplayer === 'receive') {
+      if (this.dropList.length === 0 || 'garbage' in this.dropList[0]) return;
+      const {
+        x1,
+        y1,
+        x2,
+        y2,
+        score,
+      } = this.dropList.pop();
+      puyo1 = { ...puyo1, x: x1, y: y1 };
+      puyo2 = { ...puyo2, x: x2, y: y2 };
+      currState = 'active';
+      this.setState({
+        currPuyo1: puyo1,
+        currPuyo2: puyo2,
+        currState,
+        score,
+      });
+    }
     if (currState !== 'active') {
       return;
     }
@@ -321,6 +366,16 @@ class Board extends React.Component {
     // check if puyo still at lowest pos
     if (!atLowestPosition1 && !atLowestPosition2) {
       return;
+    }
+    if (this.multiplayer === 'send') {
+      const { score } = this.state;
+      this.dropListRef.push({
+        x1: puyo1.x,
+        y1: puyo1.y,
+        x2: puyo2.x,
+        y2: puyo2.y,
+        score,
+      });
     }
     clearInterval(this.gravityInterval);
     const placedPuyo1 = { ...puyo1 };
@@ -414,26 +469,50 @@ class Board extends React.Component {
         }
       }, this.timing.startDropDelay);
     } else {
+      const { myGarbageTotal } = this.state;
+      let newGarbageTotal = myGarbageTotal;
       if (this.didChain) {
         const { score } = this.state;
         const garbageSent = Math.floor((score - this.lastScoreCutoff) / this.garbageRate);
         this.lastScoreCutoff += garbageSent * this.garbageRate;
-        if (this.multiplayer === 'send') {
-          this.sendGarbage(garbageSent);
-        }
+        newGarbageTotal += garbageSent;
+        this.increaseGarbageTotal(garbageSent);
       }
       if (this.checkAllClear()) {
         const { score } = this.state;
         this.update({ score: score + this.rockGarbage * this.garbageRate });
       }
-      this.handleGarbage();
+      this.handleGarbageReady = true;
+      this.handleGarbage(newGarbageTotal);
     }
   }
 
-  handleGarbage() {
-    const { garbageCount } = this.props;
-    if (garbageCount > 0) {
-      const garbage = Math.min(garbageCount, this.rockGarbage);
+  increaseGarbageTotal(garbage) {
+    this.setState(({ myGarbageTotal }) => {
+      const newGarbageTotal = myGarbageTotal + garbage;
+      if (this.multiplayer === 'send') {
+        this.myGarbageRef.set(newGarbageTotal);
+      }
+      return { myGarbageTotal: newGarbageTotal };
+    });
+  }
+
+  handleGarbage(myGarbageTotal) {
+    let myGarbage;
+    if (this.multiplayer === 'receive') {
+      if (this.dropList.length > 0 && 'garbage' in this.dropList[0]) {
+        myGarbage = this.dropList.pop().garbage;
+      } else return;
+    } else {
+      const { oppGarbageTotal } = this.state;
+      myGarbage = oppGarbageTotal - myGarbageTotal;
+    }
+    if (myGarbage > 0) {
+      this.handleGarbageReady = false;
+      const garbage = Math.min(myGarbage, this.rockGarbage);
+      if (this.multiplayer === 'send') {
+        this.dropListRef.push({ garbage });
+      }
       // garbage starts at 16th row
       const garbageSpawnRow = this.twelfthRow - 4;
       const distances = (
@@ -447,16 +526,19 @@ class Board extends React.Component {
           distance: distances[x],
         }))
       )).flat();
-      garbagePuyoList.push(...sample(this.width, garbage % this.width).map((x) => ({
+      garbagePuyoList.push(...randSample(this.rand, this.width, garbage % this.width).map((x) => ({
         x,
         y: garbageSpawnRow - fullRows,
         distance: distances[x],
       })));
       this.chainsim.addGarbage(garbagePuyoList);
       this.garbageFallingCount = garbage;
-      this.droppedGarbage();
       this.update({ garbagePuyoList });
+      this.increaseGarbageTotal(garbage);
     } else {
+      if (this.multiplayer === 'send') {
+        this.dropListRef.push({ garbage: 0 });
+      }
       setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
     }
   }
@@ -472,11 +554,6 @@ class Board extends React.Component {
     // exclude 14th row from all clear check
     return boardData.every((row, y) => y < this.twelfthRow - 1
       || row.every((puyo) => puyo.color === 'none'));
-  }
-
-  handleDeath() {
-    const { handleDeath } = this.props;
-    handleDeath();
   }
 
   findLowestPosition(col) {
@@ -530,23 +607,23 @@ class Board extends React.Component {
     if (this.recentLeftRight || (currState !== 'active' && currState !== 'offset')) return;
     if (!this.rowsHeldDownIn.has(currPuyo2.y)) {
       const { score } = this.state;
-      this.update({ score: score + 1 }, false);
+      this.update({ score: score + 1 });
       this.rowsHeldDownIn.add(currPuyo2.y);
     }
     if (this.atLowestPosition(currPuyo1, currPuyo2)) {
       if (currState === 'offset') {
-        this.update({ currState: 'active' }, false);
+        this.update({ currState: 'active' });
       }
       const { score } = this.state;
       this.update({ score: score + 1 });
       this.puyoLockFunctions();
     } else if (currState === 'offset') {
-      this.update({ currState: 'active' }, false);
+      this.update({ currState: 'active' });
     } else {
       const y1 = currPuyo1.y + 1;
       const y2 = currPuyo2.y + 1;
       this.update({ currPuyo1: { y: y1 }, currPuyo2: { y: y2 } });
-      this.update({ currState: 'offset' }, false);
+      this.update({ currState: 'offset' });
     }
   }
 
@@ -609,7 +686,7 @@ class Board extends React.Component {
           '--t': (2.0 * d) / (v + v0) / this.timing.framesPerSec,
           '--y': v0 / 3.0,
         }}
-        onAnimationEnd={this.multiplayer === 'receive' ? undefined : onAnimationEnd}
+        onAnimationEnd={onAnimationEnd}
       />
     );
   }
@@ -629,7 +706,7 @@ class Board extends React.Component {
         <Cell
           classList={[dataitem.color, 'dropping']}
           style={{ '--distance': dataitem.distance }}
-          onAnimationEnd={this.multiPlayer === 'receive' ? undefined : dataitem.onAnimationEnd}
+          onAnimationEnd={dataitem.onAnimationEnd}
         />
       );
     }
@@ -728,13 +805,18 @@ class Board extends React.Component {
       score,
       nextColors1,
       nextColors2,
+      myGarbageTotal,
+      oppGarbageTotal,
     } = this.state;
-    const { garbageCount } = this.props;
+    const myGarbage = Math.max(0, oppGarbageTotal - myGarbageTotal);
     return (
       <div className="player">
-        <div className="garbage">
-          <h2>{ garbageCount }</h2>
-        </div>
+        {this.multiplayer !== 'none'
+          && (
+            <div className="garbage">
+              <h2>{ myGarbage }</h2>
+            </div>
+          )}
         <>
           <div
             className="board"
@@ -764,20 +846,18 @@ class Board extends React.Component {
 }
 
 const {
-  objectOf,
   string,
   number,
   func,
+  shape,
 } = PropTypes;
 Board.propTypes = {
-  keys: objectOf(string).isRequired,
   seed: number.isRequired,
   handleDeath: func.isRequired,
   multiplayer: string.isRequired,
-  user: string,
-  garbageCount: number.isRequired,
-  sendGarbage: func,
-  droppedGarbage: func.isRequired,
+  myGarbageRef: shape({ set: func }),
+  oppGarbageRef: shape({ on: func.isRequired }),
+  playerRef: shape({ child: func.isRequired }),
 };
 
 export default Board;

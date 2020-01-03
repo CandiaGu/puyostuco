@@ -1,3 +1,8 @@
+/* eslint no-bitwise: 'off' */
+
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
+
 export function locsEqual(loc1, loc2) {
   return loc1.x === loc2.x && loc1.y === loc2.y;
 }
@@ -9,8 +14,23 @@ export function findLocInList(loc, locList) {
   }
   return { match: loc, found: false };
 }
-// random integer from [a, b)
-export function random(a, b) {
+
+// random unsigned 32-bit integer generator using seed
+export function* randGenerator(seed) {
+  let rand = seed & 0xFFFF;
+  for (;;) {
+    rand = ((Math.imul(rand, 0x5D588B65) + 0x269EC3) & 0xFFFFFFFF) >>> 0;
+    yield rand;
+  }
+}
+
+// random 32-bit integer seed
+export function randSeed() {
+  return Math.floor(65536 * Math.random());
+}
+
+// random integer from [a, b) using rand generator
+export function randInt(rand, a, b) {
   let min;
   let max;
   if (typeof b === 'undefined') {
@@ -20,13 +40,14 @@ export function random(a, b) {
     min = a;
     max = b;
   }
-  return min + Math.floor((max - min) * Math.random());
+  return min + Math.floor(rand.next().value % (max - min));
 }
-// sample k distinct integers from [0, n)
-export function sample(n, k) {
+
+// sample k distinct integers from [0, n) using rand generator
+export function randSample(rand, n, k) {
   const arr = Array.from({ length: n }, (_, i) => i);
   for (let i = 0; i < k; i++) {
-    const j = random(i, n);
+    const j = randInt(rand, i, n);
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr.slice(0, k);

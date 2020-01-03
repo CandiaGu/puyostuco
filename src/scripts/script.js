@@ -9,6 +9,11 @@ function selectPlayMode(mode) {
     const selectRoom = document.getElementById('select-room');
     selectRoom.style.visibility = 'visible';
   } else if (mode === 'singleplayerCPU') {
+  } else if (mode === 'game') {
+    const selectRoom = document.getElementById('select-room');
+    selectRoom.style.display = 'none';
+    const gameMultiWrapper = document.getElementById('game-multi-wrapper');
+    gameMultiWrapper.style.visibility = 'visible';
   }
 }
 
