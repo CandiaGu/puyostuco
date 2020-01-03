@@ -99,7 +99,7 @@ class GameMulti extends React.Component {
               <Board
                 key={keyList[i]}
                 seed={seed}
-                handleDeath={this.handleDeath}
+                handleDeath={i === 0 ? this.handleDeath : undefined}
                 multiplayer={i === 0 ? 'send' : 'receive'}
                 myGarbageRef={this.garbageListRef.child(playerNum)}
                 oppGarbageRef={this.garbageListRef.child(1 - playerNum)}

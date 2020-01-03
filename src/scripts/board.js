@@ -33,6 +33,8 @@ class Board extends React.Component {
     this.width = 6;
     this.rand = randGenerator(seed);
     this.sequence = new Sequence(this.rand);
+    this.axisSpawnX = 2;
+    this.axisSpawnY = this.twelfthRow; // spawn axis puyo in 12th row
     this.state = {
       boardData: Array.from({ length: this.height }, (_, y) => (
         Array.from({ length: this.width }, (_, x) => ({
@@ -42,8 +44,8 @@ class Board extends React.Component {
           state: 'none', // none, landed, offset, falling, ghost, fell, blinking, dropping
         }))
       )),
-      currPuyo1: { x: 0, y: 0, color: 'none' },
-      currPuyo2: { x: 0, y: 0, color: 'none' }, // axis puyo
+      currPuyo1: { x: this.axisSpawnX, y: this.axisSpawnY - 1, color: 'none' },
+      currPuyo2: { x: this.axisSpawnX, y: this.axisSpawnY, color: 'none' }, // axis puyo
       currState: 'none', // none, active, offset
       score: 0,
       nextColors1: this.sequence.getColors(), // { color1, color2 }
@@ -56,16 +58,14 @@ class Board extends React.Component {
     if (this.multiplayer !== 'none') {
       this.currPuyoRef = playerRef.child('c');
       this.currPuyoRef.set({
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: 0,
+        x1: this.axisSpawnX,
+        y1: this.axisSpawnY - 1,
+        x2: this.axisSpawnX,
+        y2: this.axisSpawnY,
         score: 0,
       });
       this.dropListRef = playerRef.child('d');
     }
-    this.axisSpawnX = 2;
-    this.axisSpawnY = this.twelfthRow; // spawn axis puyo in 12th row
     this.garbageRate = 70;
     this.rockGarbage = 30;
 
@@ -266,7 +266,10 @@ class Board extends React.Component {
 
   spawnPuyo() {
     const { boardData } = this.state;
-    if (boardData[this.axisSpawnY][this.axisSpawnX].color !== 'none') {
+    if (
+      boardData[this.axisSpawnY][this.axisSpawnX].color !== 'none'
+      && this.multiplayer !== 'receive'
+    ) {
       this.handleDeath();
       return;
     }
@@ -856,7 +859,7 @@ const {
 } = PropTypes;
 Board.propTypes = {
   seed: number.isRequired,
-  handleDeath: func.isRequired,
+  handleDeath: func,
   multiplayer: string.isRequired,
   myGarbageRef: shape({ set: func }),
   oppGarbageRef: shape({ on: func.isRequired }),
