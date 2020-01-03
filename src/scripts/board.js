@@ -85,10 +85,12 @@ class Board extends React.Component {
   componentDidMount() {
     if (this.multiplayer !== 'none') {
       this.oppGarbageRef.on('value', (snapshot) => {
+        if (!snapshot.exists()) return;
         this.setState({ oppGarbageTotal: snapshot.val() });
       });
       if (this.multiplayer === 'receive') {
         this.currPuyoRef.on('value', (snapshot) => {
+          if (!snapshot.exists()) return;
           const { currState } = this.state;
           if (currState === 'offset') {
             const {
@@ -108,6 +110,7 @@ class Board extends React.Component {
         this.dropList = [];
         this.handleGarbageReady = false;
         this.dropListRef.on('child_added', (snapshot) => {
+          if (!snapshot.exists()) return;
           const val = snapshot.val();
           this.dropList.push(val);
           if ('garbage' in val && this.handleGarbageReady) {
