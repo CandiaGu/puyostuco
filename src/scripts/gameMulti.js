@@ -11,11 +11,11 @@ class GameMulti extends React.Component {
   constructor(props) {
     super(props);
     this.userId = 0;
-    this.gameRef = firebase.database().ref('game');
-    this.userListRef = this.gameRef.child('userList');
-    this.seedRef = this.gameRef.child('seed');
-    this.garbageListRef = this.gameRef.child('garbageList');
-    this.playerListRef = this.gameRef.child('playerList');
+    this.gameRef = firebase.database().ref('g');
+    this.userListRef = this.gameRef.child('u');
+    this.seedRef = this.gameRef.child('s');
+    this.garbageListRef = this.gameRef.child('g');
+    this.playerListRef = this.gameRef.child('p');
     this.reset = this.reset.bind(this);
     this.createController();
     this.isMulti = false;
