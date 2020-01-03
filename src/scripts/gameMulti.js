@@ -31,6 +31,7 @@ class GameMulti extends React.Component {
       if (this.playerNum === 0) {
         this.userListRef.on('child_added', (child) => {
           if (child.val() !== this.userId) {
+            this.userListRef.off('child_added');
             this.resetRefs();
             this.seedRef.onDisconnect().remove();
           }
@@ -51,9 +52,6 @@ class GameMulti extends React.Component {
   }
 
   componentWillUnmount() {
-    if (this.playerNum === 0) {
-      this.userListRef.off('child_added');
-    }
     this.seedRef.off('value');
     this.userListRef.off('child_removed');
   }
