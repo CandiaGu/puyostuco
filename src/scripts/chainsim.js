@@ -120,7 +120,7 @@ class Chainsim {
         if (color === 'gray') continue;
         const garbageList = [];
         const group = (
-          this.checkPuyoHelper(can, checkedLocations, garbageList, poppedGarbageList, color)
+          this.checkPuyoHelper(can, color, checkedLocations, garbageList, poppedGarbageList)
         );
         if (group.length >= this.puyoMinPop) {
           puyosToPop.push(...group);
@@ -137,7 +137,7 @@ class Chainsim {
   }
 
   // recursive function that modifies checkedLocations and garbageList
-  checkPuyoHelper(puyo, checkedLocations, garbageList, poppedGarbageList, color) {
+  checkPuyoHelper(puyo, color, checkedLocations = [], garbageList = [], poppedGarbageList = []) {
     const { x, y } = puyo;
     const group = [];
     checkedLocations.push(puyo);
@@ -158,7 +158,7 @@ class Chainsim {
           && !findLocInList(nb, checkedLocations).found
         ) {
           group.push(
-            ...this.checkPuyoHelper(nb, checkedLocations, garbageList, poppedGarbageList, color),
+            ...this.checkPuyoHelper(nb, color, checkedLocations, garbageList, poppedGarbageList),
           );
         }
       }

@@ -185,6 +185,13 @@ class Board extends React.Component {
     }
   }
 
+  onPuyoAnimationEnd({ x, y }) {
+    const { boardData } = this.state;
+    const data = cloneData(boardData);
+    data[y][x].state = 'none';
+    this.setState({ boardData: data });
+  }
+
   createTiming() {
     const framesPerSec = 60.0;
     const msPerSec = 1000.0;
@@ -728,7 +735,7 @@ class Board extends React.Component {
     );
   }
 
-  renderCell(dataitem) {
+  renderCell(dataitem, ghostPuyo1, ghostPuyo2, ghostGroup) {
     // what is this cell doing?
     const {
       currPuyo1,
@@ -774,7 +781,7 @@ class Board extends React.Component {
             default: throw new Error('bad x value');
           }
         })(),
-        onAnimationEnd: () => { this.onGarbageAnimationEnd.bind(this)(); },
+        onAnimationEnd: this.onGarbageAnimationEnd.bind(this),
         distance: garbage.distance,
         color: 'gray',
       });
@@ -783,7 +790,16 @@ class Board extends React.Component {
     if (dataitem.y < this.twelfthRow) {
       return <Cell classList={['none']} />;
     }
-    // do we know for certain it's nothing?
+    // is it puyo-ing?
+    if (dataitem.state === 'landed' || dataitem.state === 'fell') {
+      return (
+        <Cell
+          classList={[dataitem.color, dataitem.state]}
+          onAnimationEnd={() => this.onPuyoAnimationEnd.bind(this)(dataitem)}
+        />
+      );
+    }
+    // is there no active piece?
     if (currState === 'none') {
       return <Cell classList={[dataitem.color, dataitem.state]} />;
     }
@@ -793,27 +809,60 @@ class Board extends React.Component {
       return <Cell classList={[currPuyo.color, currPuyo.state, currState]} />;
     }
     // is it a ghost?
-    const ghostPuyo1 = { ...currPuyo1, y: this.findLowestPosition(currPuyo1.x) };
-    const ghostPuyo2 = { ...currPuyo2, y: this.findLowestPosition(currPuyo2.x) };
-    // if ghost puyo overlap, stack them
-    if (currPuyo1.x === currPuyo2.x) {
-      if (currPuyo1.y < currPuyo2.y) {
-        ghostPuyo1.y--;
-      } else {
-        ghostPuyo2.y--;
-      }
+    const { match: ghost, found: isGhost } = findLocInList(dataitem, [ghostPuyo1, ghostPuyo2]);
+    if (isGhost) {
+      return <Cell classList={[ghost.color, 'ghost']} />;
     }
-    const { match, found } = findLocInList(dataitem, [ghostPuyo1, ghostPuyo2]);
-    if (found) {
-      return <Cell classList={[match.color, 'ghost']} />;
+    // would the ghost pop it?
+    const { found: inGhostGroup } = findLocInList(dataitem, ghostGroup);
+    if (inGhostGroup) {
+      return <Cell classList={[dataitem.color, 'ghost-group']} />;
     }
-    // now it must be nothing
+    // default
     return <Cell classList={[dataitem.color, dataitem.state]} />;
   }
 
   renderBoard() {
-    const { boardData } = this.state;
+    const {
+      boardData,
+      currPuyo1,
+      currPuyo2,
+      currState,
+    } = this.state;
     const rows = [];
+    // find ghost
+    let ghostPuyo1;
+    let ghostPuyo2;
+    let ghostGroup;
+    if (currState !== 'none') {
+      ghostPuyo1 = { ...currPuyo1, y: this.findLowestPosition(currPuyo1.x) };
+      ghostPuyo2 = { ...currPuyo2, y: this.findLowestPosition(currPuyo2.x) };
+      // if ghost puyo overlap, stack them
+      if (currPuyo1.x === currPuyo2.x) {
+        if (currPuyo1.y < currPuyo2.y) {
+          ghostPuyo1.y--;
+        } else {
+          ghostPuyo2.y--;
+        }
+      }
+      // find ghost group
+      const color1 = this.chainsim.board[ghostPuyo1.y][ghostPuyo1.x];
+      const color2 = this.chainsim.board[ghostPuyo2.y][ghostPuyo2.x];
+      this.chainsim.board[ghostPuyo1.y][ghostPuyo1.x] = ghostPuyo1.color;
+      this.chainsim.board[ghostPuyo2.y][ghostPuyo2.x] = ghostPuyo2.color;
+      const checkedLocations = [];
+      const group1 = this.chainsim.checkPuyoHelper(ghostPuyo1, ghostPuyo1.color, checkedLocations);
+      let group2 = [];
+      if (!findLocInList(ghostPuyo2, checkedLocations).found) {
+        group2 = this.chainsim.checkPuyoHelper(ghostPuyo2, ghostPuyo2.color, checkedLocations);
+      }
+      ghostGroup = [
+        ...(group1.length >= this.chainsim.puyoMinPop ? group1 : []),
+        ...(group2.length >= this.chainsim.puyoMinPop ? group2 : []),
+      ];
+      this.chainsim.board[ghostPuyo1.y][ghostPuyo1.x] = color1;
+      this.chainsim.board[ghostPuyo2.y][ghostPuyo2.x] = color2;
+    }
     // make room for garbage to spawn
     for (let y = -this.extraRows; y < this.height; y++) {
       const row = [];
@@ -827,7 +876,7 @@ class Board extends React.Component {
         const dataitem = y < 0 ? defaultCell : boardData[y][x];
         row.push(
           <div key={dataitem.x * this.width + dataitem.y}>
-            { this.renderCell(dataitem) }
+            { this.renderCell(dataitem, ghostPuyo1, ghostPuyo2, ghostGroup) }
             { dataitem.x === this.width - 1 && <div className="clear" /> }
           </div>,
         );

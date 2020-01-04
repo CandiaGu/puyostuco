@@ -2,13 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const Cell = (props) => {
-  const { classList } = props;
+  const { classList, style, onAnimationEnd } = props;
   const className = 'cell' + classList.reduce((acc, cur) => acc + ' ' + cur, '');
-  if (classList.includes('falling') || classList.includes('dropping')) {
-    const { style, onAnimationEnd } = props;
-    return <div className={className} style={style} onAnimationEnd={onAnimationEnd} />;
-  }
-  return <div className={className} />;
+  return <div className={className} style={style} onAnimationEnd={onAnimationEnd} />;
 };
 
 const {

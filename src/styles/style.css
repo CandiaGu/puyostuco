@@ -418,6 +418,14 @@ input[type=text]:focus {
   animation-fill-mode: forwards;
 }
 
+#game .cell.ghost-group {
+  animation: ghost-group 0.1s alternate infinite;
+}
+
+@keyframes ghost-group {
+  to { filter: contrast(0.8) brightness(5); }
+}
+
 @keyframes blinking {
   to { background-color: initial; }
 }
