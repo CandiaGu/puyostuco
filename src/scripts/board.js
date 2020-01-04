@@ -863,12 +863,22 @@ class Board extends React.Component {
       // find ghost group
       const color1 = this.chainsim.board[ghostPuyo1.y][ghostPuyo1.x];
       const color2 = this.chainsim.board[ghostPuyo2.y][ghostPuyo2.x];
-      this.chainsim.board[ghostPuyo1.y][ghostPuyo1.x] = ghostPuyo1.color;
-      this.chainsim.board[ghostPuyo2.y][ghostPuyo2.x] = ghostPuyo2.color;
+      // ghost row ghost puyo cannot pop
+      const isVisible1 = ghostPuyo1.y >= this.twelfthRow;
+      const isVisible2 = ghostPuyo2.y >= this.twelfthRow;
+      if (isVisible1) {
+        this.chainsim.board[ghostPuyo1.y][ghostPuyo1.x] = ghostPuyo1.color;
+      }
+      if (isVisible2) {
+        this.chainsim.board[ghostPuyo2.y][ghostPuyo2.x] = ghostPuyo2.color;
+      }
       const checkedLocations = [];
-      const group1 = this.chainsim.checkPuyoHelper(ghostPuyo1, ghostPuyo1.color, checkedLocations);
+      let group1 = [];
+      if (isVisible1) {
+        group1 = this.chainsim.checkPuyoHelper(ghostPuyo1, ghostPuyo1.color, checkedLocations);
+      }
       let group2 = [];
-      if (!findLocInList(ghostPuyo2, checkedLocations).found) {
+      if (isVisible2 && !findLocInList(ghostPuyo2, checkedLocations).found) {
         group2 = this.chainsim.checkPuyoHelper(ghostPuyo2, ghostPuyo2.color, checkedLocations);
       }
       ghostGroup = [
