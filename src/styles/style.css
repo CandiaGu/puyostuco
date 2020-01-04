@@ -449,10 +449,6 @@ input[type=text]:focus {
   text-align: center;
 }
 
-.garbage {
-  color: white;
-}
-
 .preview {
   justify-self: start;
   margin-left: 20px;

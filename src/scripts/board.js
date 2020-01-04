@@ -9,7 +9,7 @@ import {
   findLocInList,
   randGenerator,
   randSample,
-  deepMerge,
+  cloneData,
 } from './utils.js';
 
 class Board extends React.Component {
@@ -69,7 +69,7 @@ class Board extends React.Component {
     this.garbageRate = 70;
     this.rockGarbage = 30;
 
-    this.gravityOn = true; ///!!
+    this.gravityOn = true;
     this.gravityTimeout = null;
     this.rowsHeldDownIn = new Set();
     this.leftRightLockTimeout = null;
@@ -149,28 +149,18 @@ class Board extends React.Component {
   }
 
   onFallingAnimationEnd() {
-    const { splitPuyo } = this.state;
+    const { boardData, splitPuyo } = this.state;
     const {
       x,
       y,
       color,
-      distance,
+      distance: d,
     } = splitPuyo;
-    this.update({
-      boardData: {
-        [y]: {
-          [x]: {
-            color: 'none',
-            state: 'none',
-          },
-        },
-        [y + distance]: {
-          [x]: {
-            color,
-            state: 'fell',
-          },
-        },
-      },
+    const data = cloneData(boardData);
+    Object.assign(data[y][x], { color: 'none', state: 'none' });
+    Object.assign(data[y + d][x], { color, state: 'fell' });
+    this.setState({
+      boardData: data,
       currState: 'none',
       splitPuyo: false,
     });
@@ -181,36 +171,18 @@ class Board extends React.Component {
   onGarbageAnimationEnd() {
     this.garbageFallingCount--;
     if (this.garbageFallingCount === 0) {
-      const { garbagePuyoList } = this.state;
+      const { boardData, garbagePuyoList } = this.state;
+      const data = cloneData(boardData);
       for (const { x, y, distance: d } of garbagePuyoList) {
         // don't add garbage to 14th row
         if (y + d >= this.twelfthRow - 1) {
-          this.update({ boardData: { [y + d]: { [x]: { color: 'gray', state: 'none' } } } });
+          Object.assign(data[y + d][x], { color: 'gray', state: 'none' });
         }
       }
-      this.update({ garbagePuyoList: false });
+      this.setState({ boardData: data, garbagePuyoList: false });
       setTimeout(() => { this.spawnPuyo(); },
         this.timing.pieceSpawnDelay + this.timing.fallenPuyoDelay);
     }
-  }
-
-  update(state) {
-    this.setState((oldState) => {
-      const newState = deepMerge(oldState, state);
-      if (this.multiplayer === 'send') {
-        if ('currPuyo1' in state || 'currPuyo2' in state) {
-          const { currPuyo1, currPuyo2, score } = newState;
-          this.currPuyoRef.set({
-            x1: currPuyo1.x,
-            y1: currPuyo1.y,
-            x2: currPuyo2.x,
-            y2: currPuyo2.y,
-            score,
-          });
-        }
-      }
-      return newState;
-    });
   }
 
   createTiming() {
@@ -284,14 +256,13 @@ class Board extends React.Component {
       this.handleDeath();
       return;
     }
-    const { nextColors1, nextColors2 } = this.state;
-    this.update({
-      currPuyo1: { x: this.axisSpawnX, y: this.axisSpawnY - 1, color: nextColors1.color1 },
-      currPuyo2: { x: this.axisSpawnX, y: this.axisSpawnY, color: nextColors1.color2 },
+    this.setState((state) => ({
+      currPuyo1: { x: this.axisSpawnX, y: this.axisSpawnY - 1, color: state.nextColors1.color1 },
+      currPuyo2: { x: this.axisSpawnX, y: this.axisSpawnY, color: state.nextColors1.color2 },
       currState: 'offset',
-      nextColors1: { ...nextColors2 },
+      nextColors1: { ...state.nextColors2 },
       nextColors2: this.sequence.getColors(),
-    });
+    }));
     if (this.multiplayer === 'receive') {
       this.puyoLockFunctions();
       return;
@@ -316,15 +287,21 @@ class Board extends React.Component {
     if ((currState !== 'active' && currState !== 'offset') || !this.gravityOn) return;
     const atLowestPosition = this.atLowestPosition(currPuyo1, currPuyo2);
     if (currState === 'offset') {
-      this.update({ currState: 'active' });
+      this.setState({ currState: 'active' });
       if (atLowestPosition) {
         this.startLockTimeout();
       }
     } else if (!atLowestPosition) {
       const y1 = currPuyo1.y + 1;
       const y2 = currPuyo2.y + 1;
-      this.update({ currPuyo1: { y: y1 }, currPuyo2: { y: y2 } });
-      this.update({ currState: 'offset' });
+      this.setState({
+        currPuyo1: { ...currPuyo1, y: y1 },
+        currPuyo2: { ...currPuyo2, y: y2 },
+        currState: 'offset',
+      });
+      if (this.multiplayer === 'send') {
+        this.currPuyoRef.update({ y1, y2 });
+      }
     }
     this.gravityTimeout = setTimeout(() => { this.applyGravity(); }, this.timing.gravityRepeat);
   }
@@ -413,29 +390,16 @@ class Board extends React.Component {
     }
     this.chainsim.placePuyo(placedPuyo1, placedPuyo2);
     this.didChain = false;
-    this.update({
-      boardData: {
-        [puyo1.y]: {
-          [puyo1.x]: {
-            color: puyo1.color,
-            state: state1,
-          },
-        },
-      },
-    });
-    this.update({
-      boardData: {
-        [puyo2.y]: {
-          [puyo2.x]: {
-            color: puyo2.color,
-            state: state2,
-          },
-        },
-      },
+    const { boardData } = this.state;
+    const data = cloneData(boardData);
+    Object.assign(data[puyo1.y][puyo1.x], { color: puyo1.color, state: state1 });
+    Object.assign(data[puyo2.y][puyo2.x], { color: puyo2.color, state: state2 });
+    this.setState({
+      boardData: data,
       currState: 'none',
     });
     if (state1 === 'falling' || state2 === 'falling') {
-      this.update({ splitPuyo });
+      this.setState({ splitPuyo });
     } else {
       setTimeout(() => { this.handleLink(); }, this.timing.startChainDelay);
     }
@@ -446,31 +410,41 @@ class Board extends React.Component {
     if (poppedDroppedScore) {
       this.didChain = true;
       const { popped, dropped, score: chainScore } = poppedDroppedScore;
+      const { boardData } = this.state;
+      const data = cloneData(boardData);
       for (const { x, y } of popped) {
-        this.update({ boardData: { [y]: { [x]: { state: 'blinking' } } } });
+        data[y][x].state = 'blinking';
       }
+      this.setState({ boardData: data });
       setTimeout(() => {
         this.popPopped(popped);
-        const { boardData, score } = this.state;
-        this.update({ score: score + chainScore });
+        this.setState(({ score }) => ({ score: score + chainScore }));
         if (dropped.length > 0) {
           this.dropCount = dropped.length;
           const isEndOfDrop = Array.from(Array(this.height), () => Array(this.width).fill(false));
           for (const { puyo: { x, y }, dist } of dropped) {
             isEndOfDrop[y + dist][x] = true;
           }
+          const { boardData: boardDataTimeout } = this.state;
+          const dataTimeout = cloneData(boardDataTimeout);
           for (const { puyo: { x, y }, dist } of dropped) {
-            const { color } = boardData[y][x];
+            const { color } = dataTimeout[y][x];
             const endState = color === 'gray' ? 'none' : 'fell';
             const newElem = {
               state: 'dropping',
               distance: dist,
               onAnimationEnd: () => {
                 if (!isEndOfDrop[y][x]) {
-                  this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
+                  const { boardData: boardDataAnimation } = this.state;
+                  const dataAnimation = cloneData(boardDataAnimation);
+                  Object.assign(dataAnimation[y][x], { color: 'none', state: 'none' });
+                  this.setState({ boardData: dataAnimation });
                 }
                 setTimeout(() => {
-                  this.update({ boardData: { [y + dist]: { [x]: { color, state: endState } } } });
+                  const { boardData: boardDataAnimation } = this.state;
+                  const dataAnimation = cloneData(boardDataAnimation);
+                  Object.assign(dataAnimation[y + dist][x], { color, state: endState });
+                  this.setState({ boardData: dataAnimation });
                 }, 0);
                 this.dropCount--;
                 if (this.dropCount === 0) {
@@ -479,25 +453,24 @@ class Board extends React.Component {
                 }
               },
             };
-            this.update({ boardData: { [y]: { [x]: newElem } } });
+            Object.assign(dataTimeout[y][x], newElem);
           }
+          this.setState({ boardData: dataTimeout });
         } else {
           setTimeout(() => { this.handleLink(); }, this.timing.nextLinkDelay);
         }
       }, this.timing.startDropDelay);
     } else {
-      const { myGarbageTotal } = this.state;
+      const { score, myGarbageTotal } = this.state;
       let newGarbageTotal = myGarbageTotal;
       if (this.didChain) {
-        const { score } = this.state;
         const garbageSent = Math.floor((score - this.lastScoreCutoff) / this.garbageRate);
         this.lastScoreCutoff += garbageSent * this.garbageRate;
         newGarbageTotal += garbageSent;
         this.increaseGarbageTotal(garbageSent);
       }
       if (this.checkAllClear()) {
-        const { score } = this.state;
-        this.update({ score: score + this.rockGarbage * this.garbageRate });
+        this.setState((state) => ({ score: state.score + this.rockGarbage * this.garbageRate }));
       }
       this.handleGarbageReady = true;
       this.handleGarbage(newGarbageTotal);
@@ -553,7 +526,7 @@ class Board extends React.Component {
       })));
       this.chainsim.addGarbage(garbagePuyoList);
       this.garbageFallingCount = garbage;
-      this.update({ garbagePuyoList });
+      this.setState({ garbagePuyoList });
       this.increaseGarbageTotal(garbage);
     } else {
       if (this.multiplayer === 'send') {
@@ -564,9 +537,12 @@ class Board extends React.Component {
   }
 
   popPopped(popped) {
+    const { boardData } = this.state;
+    const data = cloneData(boardData);
     for (const { x, y } of popped) {
-      this.update({ boardData: { [y]: { [x]: { color: 'none', state: 'none' } } } });
+      Object.assign(data[y][x], { color: 'none', state: 'none' });
     }
+    this.setState({ boardData: data });
   }
 
   checkAllClear() {
@@ -593,7 +569,26 @@ class Board extends React.Component {
 
   tryMove(puyo1, puyo2) {
     if (this.checkIfLegalMove(puyo1, puyo2)) {
-      this.update({ currPuyo1: { x: puyo1.x, y: puyo1.y }, currPuyo2: { x: puyo2.x, y: puyo2.y } });
+      this.setState((state) => ({
+        currPuyo1: {
+          ...state.currPuyo1,
+          x: puyo1.x,
+          y: puyo1.y,
+        },
+        currPuyo2: {
+          ...state.currPuyo2,
+          x: puyo2.x,
+          y: puyo2.y,
+        },
+      }));
+      if (this.multiplayer === 'send') {
+        this.currPuyoRef.update({
+          x1: puyo1.x,
+          y1: puyo1.y,
+          x2: puyo2.x,
+          y2: puyo2.y,
+        });
+      }
       const { currState } = this.state;
       if (this.atLowestPosition(puyo1, puyo2) && currState === 'active') {
         this.startLockTimeout();
@@ -626,24 +621,29 @@ class Board extends React.Component {
     const { currPuyo1, currPuyo2, currState } = this.state;
     if (this.recentLeftRight || (currState !== 'active' && currState !== 'offset')) return;
     if (!this.rowsHeldDownIn.has(currPuyo2.y)) {
-      const { score } = this.state;
-      this.update({ score: score + 1 });
+      this.setState(({ score }) => ({ score: score + 1 }));
       this.rowsHeldDownIn.add(currPuyo2.y);
     }
     if (this.atLowestPosition(currPuyo1, currPuyo2)) {
       if (currState === 'offset') {
-        this.update({ currState: 'active' });
+        this.setState({ currState: 'active' });
       }
-      const { score } = this.state;
-      this.update({ score: score + 1 });
+      this.setState(({ score }) => ({ score: score + 1 }));
       this.puyoLockFunctions();
     } else if (currState === 'offset') {
-      this.update({ currState: 'active' });
+      this.setState({ currState: 'active' });
     } else {
       const y1 = currPuyo1.y + 1;
       const y2 = currPuyo2.y + 1;
-      this.update({ currPuyo1: { y: y1 }, currPuyo2: { y: y2 } });
-      this.update({ currState: 'offset' });
+      this.setState({
+        currPuyo1: { ...currPuyo1, y: y1 },
+        currPuyo2: { ...currPuyo2, y: y2 },
+        currState: 'offset',
+      });
+      if (this.multiplayer === 'send') {
+        const { score } = this.state;
+        this.currPuyoRef.update({ y1, y2, score });
+      }
     }
   }
 
@@ -831,47 +831,42 @@ class Board extends React.Component {
     const myGarbage = Math.max(0, oppGarbageTotal - myGarbageTotal);
     return (
       <div className="player">
-          <div>
+        <div>
           time
-          </div>
-          <div>
-            {this.multiplayer !== 'none'
-              && (
+        </div>
+        <div>
+          {this.multiplayer !== 'none'
+            && (
               <div className="garbage">
                 <h2>{ myGarbage }</h2>
               </div>
             )}
-            <div style={{backgroundColor: 'var(--board-color)', padding: 20,borderRadius: 20}}>
-              <div
-                className="board"
-                style={{ '--invisible-rows-count': this.twelfthRow + this.extraRows }}
-              >
-                { this.renderBoard() }
-              </div>
-            </div>
-            <div className="score">
-              { score }
+          <div style={{ backgroundColor: 'var(--board-color)', padding: 20, borderRadius: 20 }}>
+            <div
+              className="board"
+              style={{ '--invisible-rows-count': this.twelfthRow + this.extraRows }}
+            >
+              { this.renderBoard() }
             </div>
           </div>
-          
-          <div className="preview">
-            <div className="preview-box">
-              <Cell classList={[nextColors1.color1]} />
-              <div className="clear" />
-              <Cell classList={[nextColors1.color2]} />
-              <div className="clear" />
-            </div>
-            <div className="preview-box-offset">
-              <Cell classList={[nextColors2.color1]} />
-              <div className="clear" />
-              <Cell classList={[nextColors2.color2]} />
-              <div className="clear" />
-            </div>
-
+          <div className="score">
+            { score }
           </div>
-          
-          
-      
+        </div>
+        <div className="preview">
+          <div className="preview-box">
+            <Cell classList={[nextColors1.color1]} />
+            <div className="clear" />
+            <Cell classList={[nextColors1.color2]} />
+            <div className="clear" />
+          </div>
+          <div className="preview-box-offset">
+            <Cell classList={[nextColors2.color1]} />
+            <div className="clear" />
+            <Cell classList={[nextColors2.color2]} />
+            <div className="clear" />
+          </div>
+        </div>
       </div>
     );
   }

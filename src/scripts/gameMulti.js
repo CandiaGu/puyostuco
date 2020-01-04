@@ -91,23 +91,23 @@ class GameMulti extends React.Component {
     } = this.state;
     return (
       <div id="game">
-        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr'}}>
-        {
-          [0, 1].map((i) => {
-            const playerNum = (i + this.playerNum) % 2;
-            return (
-              <Board
-                key={keyList[i]}
-                seed={seed}
-                handleDeath={i === 0 ? this.handleDeath : undefined}
-                multiplayer={i === 0 ? 'send' : 'receive'}
-                myGarbageRef={this.garbageListRef.child(playerNum)}
-                oppGarbageRef={this.garbageListRef.child(1 - playerNum)}
-                playerRef={this.playerListRef.child(playerNum)}
-              />
-            );
-          })
-        }
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+          {
+            [0, 1].map((i) => {
+              const playerNum = (i + this.playerNum) % 2;
+              return (
+                <Board
+                  key={keyList[i]}
+                  seed={seed}
+                  handleDeath={i === 0 ? this.handleDeath : undefined}
+                  multiplayer={i === 0 ? 'send' : 'receive'}
+                  myGarbageRef={this.garbageListRef.child(playerNum)}
+                  oppGarbageRef={this.garbageListRef.child(1 - playerNum)}
+                  playerRef={this.playerListRef.child(playerNum)}
+                />
+              );
+            })
+          }
         </div>
       </div>
     );

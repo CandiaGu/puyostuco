@@ -81,3 +81,7 @@ export function deepUpdateRef(ref, state) {
     }
   }
 }
+
+export function cloneData(data) {
+  return data.map((row) => row.map((puyo) => ({ ...puyo })));
+}
