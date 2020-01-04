@@ -69,7 +69,7 @@ class Board extends React.Component {
     this.garbageRate = 70;
     this.rockGarbage = 30;
 
-    this.gravityOn = false; ///!!
+    this.gravityOn = true; ///!!
     this.gravityTimeout = null;
     this.rowsHeldDownIn = new Set();
     this.leftRightLockTimeout = null;
@@ -841,7 +841,7 @@ class Board extends React.Component {
                 <h2>{ myGarbage }</h2>
               </div>
             )}
-            <div style={{backgroundColor: 'var(--board-color)', padding: 20, borderRadius: 20}}>
+            <div style={{backgroundColor: 'var(--board-color)', padding: 20,borderRadius: 20}}>
               <div
                 className="board"
                 style={{ '--invisible-rows-count': this.twelfthRow + this.extraRows }}

@@ -323,7 +323,7 @@ input[type=text]:focus {
   --cell-size: 47;
   width: calc(6px * var(--cell-size));
   background: #162142;
-  --invisible-rows-height: calc(var(--invisible-rows-count) * var(--cell-size) * 1px);
+  --invisible-rows-height: calc(var(--invisible-rows-count) * var(--cell-size) * 1px - 17px);
   clip-path: inset(var(--invisible-rows-height) 0 0 );
   margin-top: calc(-1 * var(--invisible-rows-height));
 }
