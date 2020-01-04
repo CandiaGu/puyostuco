@@ -113,13 +113,17 @@ class Board extends React.Component {
           if (!snapshot.exists()) return;
           const val = snapshot.val();
           this.dropList.push(val);
-          if ('garbage' in val && this.handleGarbageReady) {
-            const { myGarbageTotal } = this.state;
-            this.handleGarbage(myGarbageTotal);
-          } else {
-            const { currState } = this.state;
-            if (currState !== 'none') {
-              this.puyoLockFunctions();
+          if (this.dropList.length === 1) {
+            if ('garbage' in val) {
+              if (this.handleGarbageReady) {
+                const { myGarbageTotal } = this.state;
+                this.handleGarbage(myGarbageTotal);
+              }
+            } else {
+              const { currState } = this.state;
+              if (currState !== 'none') {
+                this.puyoLockFunctions();
+              }
             }
           }
         });
@@ -265,6 +269,13 @@ class Board extends React.Component {
   }
 
   spawnPuyo() {
+    if (
+      this.multiplayer === 'receive'
+      && this.dropList.length > 0
+      && 'garbage' in this.dropList[0]
+    ) {
+      this.dropList.shift();
+    }
     const { boardData } = this.state;
     if (
       boardData[this.axisSpawnY][this.axisSpawnX].color !== 'none'
@@ -351,7 +362,7 @@ class Board extends React.Component {
         x2,
         y2,
         score,
-      } = this.dropList.pop();
+      } = this.dropList[0];
       puyo1 = { ...puyo1, x: x1, y: y1 };
       puyo2 = { ...puyo2, x: x2, y: y2 };
       currState = 'active';
@@ -506,8 +517,11 @@ class Board extends React.Component {
   handleGarbage(myGarbageTotal) {
     let myGarbage;
     if (this.multiplayer === 'receive') {
+      if (this.dropList.length > 0 && !('garbage' in this.dropList[0])) {
+        this.dropList.shift();
+      }
       if (this.dropList.length > 0 && 'garbage' in this.dropList[0]) {
-        myGarbage = this.dropList.pop().garbage;
+        myGarbage = this.dropList[0].garbage;
       } else return;
     } else {
       const { oppGarbageTotal } = this.state;
