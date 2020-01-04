@@ -274,6 +274,19 @@ class Board extends React.Component {
     }
     this.rowsHeldDownIn.clear();
     this.kickUpCount = 0;
+    if (this.multiplayer !== 'receive') {
+      if (
+        'left' in this.controller.timers
+        && boardData[this.axisSpawnY][this.axisSpawnX - 1].color === 'none'
+      ) {
+        this.lockLeftRight(-1);
+      } else if (
+        'right' in this.controller.timers
+        && boardData[this.axisSpawnY][this.axisSpawnX + 1].color === 'none'
+      ) {
+        this.lockLeftRight(1);
+      }
+    }
   }
 
   startLockTimeout() {
@@ -601,6 +614,14 @@ class Board extends React.Component {
     return false;
   }
 
+  lockLeftRight(dx) {
+    this.recentLeftRight = dx;
+    clearTimeout(this.leftRightLockTimeout);
+    this.leftRightLockTimeout = setTimeout(() => {
+      this.recentLeftRight = 0;
+    }, this.timing.leftRightLock);
+  }
+
   moveLeftRight(dx) {
     const { currPuyo1, currPuyo2, currState } = this.state;
     if (this.recentLeftRight === -dx || (currState !== 'active' && currState !== 'offset')) return;
@@ -609,11 +630,7 @@ class Board extends React.Component {
     const newPuyo2 = { ...currPuyo2 };
     newPuyo2.x += dx;
     if (this.tryMove(newPuyo1, newPuyo2)) {
-      this.recentLeftRight = dx;
-      clearTimeout(this.leftRightLockTimeout);
-      this.leftRightLockTimeout = setTimeout(() => {
-        this.recentLeftRight = 0;
-      }, this.timing.leftRightLock);
+      this.lockLeftRight(dx);
     }
   }
 
