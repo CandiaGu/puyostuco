@@ -270,6 +270,16 @@ class Board extends React.Component {
       nextColors1: { ...state.nextColors2 },
       nextColors2: this.sequence.getColors(),
     }));
+    if (this.multiplayer === 'send') {
+      const { score } = this.state;
+      this.currPuyoRef.update({
+        x1: this.axisSpawnX,
+        y1: this.axisSpawnY - 1,
+        x2: this.axisSpawnX,
+        y2: this.axisSpawnY,
+        score,
+      });
+    }
     if (this.multiplayer === 'receive') {
       this.puyoLockFunctions();
       return;
