@@ -91,6 +91,7 @@ class GameMulti extends React.Component {
     } = this.state;
     return (
       <div id="game">
+        <div style="display: grid; grid-template-columns: 1fr 1fr">
         {
           [0, 1].map((i) => {
             const playerNum = (i + this.playerNum) % 2;
@@ -107,6 +108,7 @@ class GameMulti extends React.Component {
             );
           })
         }
+        </div>
       </div>
     );
   }
