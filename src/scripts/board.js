@@ -809,14 +809,16 @@ class Board extends React.Component {
       return <Cell classList={[currPuyo.color, currPuyo.state, currState]} />;
     }
     // is it a ghost?
-    const { match: ghost, found: isGhost } = findLocInList(dataitem, [ghostPuyo1, ghostPuyo2]);
-    if (isGhost) {
-      return <Cell classList={[ghost.color, 'ghost']} />;
-    }
-    // would the ghost pop it?
-    const { found: inGhostGroup } = findLocInList(dataitem, ghostGroup);
-    if (inGhostGroup) {
-      return <Cell classList={[dataitem.color, 'ghost-group']} />;
+    if (this.multiplayer !== 'receive') {
+      const { match: ghost, found: isGhost } = findLocInList(dataitem, [ghostPuyo1, ghostPuyo2]);
+      if (isGhost) {
+        return <Cell classList={[ghost.color, 'ghost']} />;
+      }
+      // would the ghost pop it?
+      const { found: inGhostGroup } = findLocInList(dataitem, ghostGroup);
+      if (inGhostGroup) {
+        return <Cell classList={[dataitem.color, 'ghost-group']} />;
+      }
     }
     // default
     return <Cell classList={[dataitem.color, dataitem.state]} />;
@@ -834,7 +836,7 @@ class Board extends React.Component {
     let ghostPuyo1;
     let ghostPuyo2;
     let ghostGroup;
-    if (currState !== 'none') {
+    if (this.multiplayer !== 'receive' && currState !== 'none') {
       ghostPuyo1 = { ...currPuyo1, y: this.findLowestPosition(currPuyo1.x) };
       ghostPuyo2 = { ...currPuyo2, y: this.findLowestPosition(currPuyo2.x) };
       // if ghost puyo overlap, stack them
