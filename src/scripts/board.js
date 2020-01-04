@@ -450,40 +450,43 @@ class Board extends React.Component {
         this.popPopped(popped);
         this.setState(({ score }) => ({ score: score + chainScore }));
         if (dropped.length > 0) {
-          this.dropCount = dropped.length;
-          const isEndOfDrop = Array.from(Array(this.height), () => Array(this.width).fill(false));
-          for (const { puyo: { x, y }, dist } of dropped) {
-            isEndOfDrop[y + dist][x] = true;
+          const dropByDist = {};
+          for (const { puyo, dist } of dropped) {
+            if (!(dist in dropByDist)) {
+              dropByDist[dist] = [];
+            }
+            dropByDist[dist].push(puyo);
           }
+          const maxDist = Math.max.apply(null, Object.keys(dropByDist));
+          this.dropByDistCount = Object.fromEntries(
+            Object.entries(dropByDist).map(([k, v]) => [k, v.length]),
+          );
           const { boardData: boardDataTimeout } = this.state;
           const dataTimeout = cloneData(boardDataTimeout);
-          for (const { puyo: { x, y }, dist } of dropped) {
-            const { color } = dataTimeout[y][x];
-            const endState = color === 'gray' ? 'none' : 'fell';
+          for (const { puyo, dist } of dropped) {
             const newElem = {
               state: 'dropping',
               distance: dist,
               onAnimationEnd: () => {
-                if (!isEndOfDrop[y][x]) {
+                this.dropByDistCount[dist]--;
+                if (this.dropByDistCount[dist] === 0) {
                   const { boardData: boardDataAnimation } = this.state;
                   const dataAnimation = cloneData(boardDataAnimation);
-                  Object.assign(dataAnimation[y][x], { color: 'none', state: 'none' });
+                  for (const { x, y } of dropByDist[dist]) {
+                    const { color } = dataAnimation[y][x];
+                    const endState = color === 'gray' ? 'none' : 'fell';
+                    Object.assign(dataAnimation[y][x], { color: 'none', state: 'none' });
+                    Object.assign(dataAnimation[y + dist][x], { color, state: endState });
+                  }
                   this.setState({ boardData: dataAnimation });
-                }
-                setTimeout(() => {
-                  const { boardData: boardDataAnimation } = this.state;
-                  const dataAnimation = cloneData(boardDataAnimation);
-                  Object.assign(dataAnimation[y + dist][x], { color, state: endState });
-                  this.setState({ boardData: dataAnimation });
-                }, 0);
-                this.dropCount--;
-                if (this.dropCount === 0) {
-                  setTimeout(() => { this.handleLink(); },
-                    this.timing.nextLinkDelay + this.timing.fallenPuyoDelay);
+                  if (dist === maxDist) {
+                    setTimeout(() => { this.handleLink(); },
+                      this.timing.nextLinkDelay + this.timing.fallenPuyoDelay);
+                  }
                 }
               },
             };
-            Object.assign(dataTimeout[y][x], newElem);
+            Object.assign(dataTimeout[puyo.y][puyo.x], newElem);
           }
           this.setState({ boardData: dataTimeout });
         } else {
