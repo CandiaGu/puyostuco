@@ -30,7 +30,7 @@ module.exports = {
     ],
   },
   output: {
-    path: path.resolve('/dist'),
+    path: path.join(__dirname, '/dist'),
     filename: '[name].js',
   },
   plugins: [
