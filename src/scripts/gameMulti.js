@@ -57,9 +57,8 @@ class GameMulti extends React.Component {
   }
 
   createController() {
-    const that = this;
     const controls = {
-      reset: { f: that.resetRefs, delay: 0, repeat: 0 },
+      reset: { f: this.handleDeath.bind(this), delay: 0, repeat: 0 },
     };
     const keys = {
       Escape: 'reset',
