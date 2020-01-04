@@ -69,7 +69,7 @@ class Board extends React.Component {
     this.garbageRate = 70;
     this.rockGarbage = 30;
 
-    this.gravityOn = true;
+    this.gravityOn = false; ///!!
     this.gravityTimeout = null;
     this.rowsHeldDownIn = new Set();
     this.leftRightLockTimeout = null;
@@ -817,35 +817,47 @@ class Board extends React.Component {
     const myGarbage = Math.max(0, oppGarbageTotal - myGarbageTotal);
     return (
       <div className="player">
-        {this.multiplayer !== 'none'
-          && (
-            <div className="garbage">
-              <h2>{ myGarbage }</h2>
+          <div>
+          time
+          </div>
+          <div>
+            {this.multiplayer !== 'none'
+              && (
+              <div className="garbage">
+                <h2>{ myGarbage }</h2>
+              </div>
+            )}
+            <div style={{backgroundColor: 'var(--board-color)', padding: 20, borderRadius: 20}}>
+              <div
+                className="board"
+                style={{ '--invisible-rows-count': this.twelfthRow + this.extraRows }}
+              >
+                { this.renderBoard() }
+              </div>
             </div>
-          )}
-        <>
-          <div
-            className="board"
-            style={{ '--invisible-rows-count': this.twelfthRow + this.extraRows }}
-          >
-            { this.renderBoard() }
+            <div className="score">
+              { score }
+            </div>
           </div>
+          
           <div className="preview">
-            <Cell classList={[nextColors1.color1]} />
-            <div className="clear" />
-            <Cell classList={[nextColors1.color2]} />
-            <div className="clear" />
-            <Cell classList={['none']} />
-            <div className="clear" />
-            <Cell classList={[nextColors2.color1]} />
-            <div className="clear" />
-            <Cell classList={[nextColors2.color2]} />
-            <div className="clear" />
+            <div className="preview-box">
+              <Cell classList={[nextColors1.color1]} />
+              <div className="clear" />
+              <Cell classList={[nextColors1.color2]} />
+              <div className="clear" />
+            </div>
+            <div className="preview-box-offset">
+              <Cell classList={[nextColors2.color1]} />
+              <div className="clear" />
+              <Cell classList={[nextColors2.color2]} />
+              <div className="clear" />
+            </div>
+
           </div>
-        </>
-        <div className="score">
-          <h1>{ score }</h1>
-        </div>
+          
+          
+      
       </div>
     );
   }

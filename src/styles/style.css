@@ -4,6 +4,7 @@ body{
 	font-family: 'Varela Round', sans-serif;
 	margin:0;
 	color: navy;
+	--board-color: #162142;
 
 }
 
@@ -311,25 +312,23 @@ input[type=text]:focus {
 #game {
   width: fit-content;
 	margin: auto;
-	background: navy;
 	border-radius: 25px;
 	margin-bottom: 15vh;
 	padding:4%;
   display: flow-root;
 }
 
+
 #game .board {
   --cell-size: 47;
-  float: left;
   width: calc(6px * var(--cell-size));
-  background: #242424;
+  background: #162142;
   --invisible-rows-height: calc(var(--invisible-rows-count) * var(--cell-size) * 1px);
-  clip-path: inset(var(--invisible-rows-height) 0 0);
+  clip-path: inset(var(--invisible-rows-height) 0 0 );
   margin-top: calc(-1 * var(--invisible-rows-height));
 }
 
 #game .cell {
-  border: 1px solid #242424;
 	float: left;
 	height: 45px;
 	width: 45px;
@@ -439,8 +438,15 @@ input[type=text]:focus {
 }
 
 .score {
-  color: white;
+  color: var(--board-color);
   clear: left;
+  margin-top: 15px;
+  border: solid 4px;
+  border-radius: 30px;
+  padding: 15px;
+  font-size: 1.5em;
+  font-weight: bold;
+  text-align: center;
 }
 
 .garbage {
@@ -448,15 +454,33 @@ input[type=text]:focus {
 }
 
 .preview {
-  display: grid;
+  justify-self: start;
+  margin-left: 20px;
 }
 
-#game .preview .cell {
-  border: 1px solid navy;
+#game .preview-box{
+  position:absolute;
+  background-color: var(--board-color);
+  border-radius: 20px;
+  padding:25px;
 }
+#game .preview-box-offset{
+  position:absolute;
+  background-color: var(--board-color);
+  border-radius: 20px;
+  padding:25px;
+  position: relative;
+  left:70px;
+  top: 60px;
+  z-index: -1;
+
+}
+
+
 
 .player {
-  float: left;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 /* avoid FUOC */
