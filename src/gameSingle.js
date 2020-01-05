@@ -1,8 +1,6 @@
 import React from 'react';
-import { render } from 'react-dom';
 import Board from './board.js';
-import '../styles/style.css';
-import { randSeed } from './utils.js';
+import { randSeed, disableMovementKeyHandler } from './utils.js';
 import Controller from './controller.js';
 
 class GameSingle extends React.Component {
@@ -11,6 +9,16 @@ class GameSingle extends React.Component {
     this.reset = this.reset.bind(this);
     this.createController();
     this.reset(true);
+  }
+
+  componentDidMount() {
+    // disable default for arrow keys
+    window.addEventListener('keydown', disableMovementKeyHandler, false);
+  }
+
+  componentWillUnmount() {
+    this.controller.release();
+    window.removeEventListener('keydown', disableMovementKeyHandler, false);
   }
 
   createController() {
@@ -54,13 +62,4 @@ class GameSingle extends React.Component {
   }
 }
 
-const domContainer = document.getElementById('game-single-wrapper');
-render(<GameSingle />, domContainer);
-
-// disable default for arrow keys
-window.addEventListener('keydown', (e) => {
-  // space and arrow keys
-  if (new Set([32, 37, 38, 39, 40]).has(e.keyCode)) {
-    e.preventDefault();
-  }
-}, false);
+export default GameSingle;

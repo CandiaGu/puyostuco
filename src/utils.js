@@ -3,11 +3,11 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 
-export function locsEqual(loc1, loc2) {
+function locsEqual(loc1, loc2) {
   return loc1.x === loc2.x && loc1.y === loc2.y;
 }
 
-export function findLocInList(loc, locList) {
+function findLocInList(loc, locList) {
   const match = locList.find((loc2) => locsEqual(loc, loc2));
   if (match) {
     return { match, found: true };
@@ -16,7 +16,7 @@ export function findLocInList(loc, locList) {
 }
 
 // random unsigned 32-bit integer generator using seed
-export function* randGenerator(seed) {
+function* randGenerator(seed) {
   let rand = seed & 0xFFFF;
   for (;;) {
     rand = ((Math.imul(rand, 0x5D588B65) + 0x269EC3) & 0xFFFFFFFF) >>> 0;
@@ -25,12 +25,12 @@ export function* randGenerator(seed) {
 }
 
 // random 32-bit integer seed
-export function randSeed() {
+function randSeed() {
   return Math.floor(65536 * Math.random());
 }
 
 // random integer from [a, b) using rand generator
-export function randInt(rand, a, b) {
+function randInt(rand, a, b) {
   let min;
   let max;
   if (typeof b === 'undefined') {
@@ -44,7 +44,7 @@ export function randInt(rand, a, b) {
 }
 
 // sample k distinct integers from [0, n) using rand generator
-export function randSample(rand, n, k) {
+function randSample(rand, n, k) {
   const arr = Array.from({ length: n }, (_, i) => i);
   for (let i = 0; i < k; i++) {
     const j = randInt(rand, i, n);
@@ -53,35 +53,23 @@ export function randSample(rand, n, k) {
   return arr.slice(0, k);
 }
 
-export function deepClone(object) {
-  return JSON.parse(JSON.stringify(object));
-}
-
-export function deepMerge(target, source) {
-  for (const [key, value] of Object.entries(source)) {
-    if (value && typeof value === 'object' && target[key]) {
-      deepMerge(target[key], value);
-    } else {
-      target[key] = value;
-    }
-  }
-  return target;
-}
-
-export function deepUpdateRef(ref, state) {
-  if ('root' in ref) {
-    ref.set(state);
-  } else {
-    for (const [key, value] of Object.entries(state)) {
-      if (value && typeof value === 'object') {
-        deepUpdateRef(ref[key], value);
-      } else if (ref[key]) {
-        ref[key].set(value);
-      }
-    }
-  }
-}
-
-export function cloneData(data) {
+function cloneData(data) {
   return data.map((row) => row.map((puyo) => ({ ...puyo })));
 }
+
+function disableMovementKeyHandler(e) {
+  // space and arrow keys
+  if (new Set([32, 37, 38, 39, 40]).has(e.keyCode)) {
+    e.preventDefault();
+  }
+}
+
+export {
+  locsEqual,
+  findLocInList,
+  randGenerator,
+  randSeed,
+  randSample,
+  cloneData,
+  disableMovementKeyHandler,
+};

@@ -486,8 +486,3 @@ input[type=text]:focus {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
 }
-
-/* avoid FUOC */
-html {
-  display: block;
-}

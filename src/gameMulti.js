@@ -1,9 +1,7 @@
 import React from 'react';
-import { render } from 'react-dom';
 import 'firebase/database';
 import Board from './board.js';
-import '../styles/style.css';
-import { randSeed } from './utils.js';
+import { randSeed, disableMovementKeyHandler } from './utils.js';
 import Controller from './controller.js';
 import firebase from './firebase.js';
 
@@ -27,14 +25,21 @@ class GameMulti extends React.Component {
       this.playerNum = userList.numChildren();
       this.userId = this.playerNum;
       this.userRef = this.userListRef.push(this.userId);
-      this.userRef.onDisconnect().remove();
       if (this.playerNum === 0) {
         this.userListRef.on('child_added', (child) => {
           if (child.val() !== this.userId) {
             this.userListRef.off('child_added');
+            this.userListRef.once('child_removed', () => {
+              this.isMulti = false;
+              this.reset();
+            });
             this.resetRefs();
-            this.seedRef.onDisconnect().remove();
           }
+        });
+      } else {
+        this.userListRef.once('child_removed', () => {
+          this.isMulti = false;
+          this.reset();
         });
       }
       this.seedRef.on('value', (seed) => {
@@ -44,16 +49,20 @@ class GameMulti extends React.Component {
           this.reset();
         }
       });
-      this.userListRef.on('child_removed', () => {
-        this.isMulti = false;
-        this.reset();
-      });
     });
+    // disable default for arrow keys
+    window.addEventListener('keydown', disableMovementKeyHandler, false);
   }
 
   componentWillUnmount() {
+    this.userRef.remove();
+    if (this.playerNum === 0) {
+      this.seedRef.remove();
+    }
     this.seedRef.off('value');
     this.userListRef.off('child_removed');
+    this.controller.release();
+    window.removeEventListener('keydown', disableMovementKeyHandler, false);
   }
 
   createController() {
@@ -114,13 +123,4 @@ class GameMulti extends React.Component {
   }
 }
 
-const domContainer = document.getElementById('game-multi-wrapper');
-render(<GameMulti />, domContainer);
-
-// disable default for arrow keys
-window.addEventListener('keydown', (e) => {
-  // space and arrow keys
-  if (new Set([32, 37, 38, 39, 40]).has(e.keyCode)) {
-    e.preventDefault();
-  }
-}, false);
+export default GameMulti;
