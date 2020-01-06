@@ -52,6 +52,7 @@ class Board extends React.Component {
       nextColors2: this.sequence.getColors(),
       splitPuyo: null,
       garbagePuyoList: false,
+      highestPopping: null,
       myGarbageTotal: 0,
       oppGarbageTotal: 0,
     };
@@ -442,10 +443,16 @@ class Board extends React.Component {
       const { popped, dropped, score: chainScore } = poppedDroppedScore;
       const { boardData } = this.state;
       const data = cloneData(boardData);
+      let minY = this.height;
+      let minX;
       for (const { x, y } of popped) {
         data[y][x].state = 'blinking';
+        if (y < minY || (y === minY && x < minX)) {
+          minY = y;
+          minX = x;
+        }
       }
-      this.setState({ boardData: data });
+      this.setState({ boardData: data, highestPopping: { x: minX, y: minY } });
       setTimeout(() => {
         this.popPopped(popped);
         this.setState(({ score }) => ({ score: score + chainScore }));
@@ -756,6 +763,7 @@ class Board extends React.Component {
       currState,
       splitPuyo,
       garbagePuyoList,
+      highestPopping,
     } = this.state;
     // is it dropping?
     if (dataitem.state === 'dropping') {
@@ -809,6 +817,16 @@ class Board extends React.Component {
         <Cell
           classList={[dataitem.color, dataitem.state]}
           onAnimationEnd={() => this.onPuyoAnimationEnd.bind(this)(dataitem)}
+        />
+      );
+    }
+    // does it have chain text?
+    if (dataitem.state === 'blinking' && locsEqual(dataitem, highestPopping)) {
+      return (
+        <Cell
+          classList={[dataitem.color, dataitem.state]}
+          style={{ zIndex: 1 }}
+          chainNum={this.chainsim.chainNum - 1}
         />
       );
     }
@@ -925,7 +943,8 @@ class Board extends React.Component {
         <div>
           time
         </div>
-        <div>
+        {/* z-index allows chain text to overlap preview box */}
+        <div style={{ zIndex: 1 }}>
           {this.multiplayer !== 'none'
             && (
               <div className="garbage">

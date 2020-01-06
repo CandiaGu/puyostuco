@@ -324,7 +324,8 @@ input[type=text]:focus {
   width: calc(6px * var(--cell-size));
   background: #162142;
   --invisible-rows-height: calc(var(--invisible-rows-count) * var(--cell-size) * 1px - 17px);
-  clip-path: inset(var(--invisible-rows-height) 0 0 );
+  /* avoid clipping chain text on sides */
+  clip-path: inset(var(--invisible-rows-height) -200px 0 );
   margin-top: calc(-1 * var(--invisible-rows-height));
 }
 
@@ -333,6 +334,8 @@ input[type=text]:focus {
 	height: 45px;
 	width: 45px;
 	border-radius:50%;
+  position: relative; /* to allow drawing chain text on top */
+  --exploding-delay: calc(31s / 60);
 }
 
 #game .cell.active {
@@ -412,10 +415,25 @@ input[type=text]:focus {
   animation-name: blinking, exploding;
   animation-duration: calc(1s / 30), 0.4s;
   animation-timing-function: ease;
-  animation-delay: calc(7s / 60), calc(31s / 60);
+  animation-delay: calc(7s / 60), var(--exploding-delay);
   animation-iteration-count: 12, 1;
   animation-direction: alternate, normal;
   animation-fill-mode: forwards;
+}
+
+#game .cell .chain-text {
+  color: yellow;
+  font-size: 40px;
+  white-space: nowrap;
+  -webkit-text-stroke: 1px black;
+  animation: reveal var(--exploding-delay);
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    font-size: 0px;
+  }
 }
 
 #game .cell.ghost-group {
