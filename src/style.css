@@ -322,7 +322,6 @@ input[type=text]:focus {
 #game .board {
   --cell-size: 47;
   width: calc(6px * var(--cell-size));
-  background: #162142;
   --invisible-rows-height: calc(var(--invisible-rows-count) * var(--cell-size) * 1px - 17px);
   /* avoid clipping chain text on sides */
   clip-path: inset(var(--invisible-rows-height) -200px 0 );
@@ -334,7 +333,7 @@ input[type=text]:focus {
 	height: 45px;
 	width: 45px;
 	border-radius:50%;
-  position: relative; /* allow drawing chain text in front and red X behind */
+  position: relative;
   --exploding-delay: calc(31s / 60);
 }
 
@@ -440,6 +439,23 @@ input[type=text]:focus {
   color: red;
   font-size: 40px;
   text-align: center;
+}
+
+#game .all-clear-text {
+  color: white;
+  font-size: 90px;
+  -webkit-text-stroke: 9px orange;
+  animation: slide 0.5s ease-out forwards;
+  text-align: center;
+  width: calc(6px * var(--cell-size));
+  line-height: 69px;
+  font-family: fantasy;
+  z-index: -1; /* behind cells */
+  position: absolute;
+}
+
+@keyframes slide {
+  to { transform: translateY(calc(-12px * var(--cell-size))); }
 }
 
 #game .cell.ghost-group {

@@ -53,6 +53,7 @@ class Board extends React.Component {
       splitPuyo: null,
       garbagePuyoList: false,
       highestPopping: null,
+      showAllClearText: false,
       myGarbageTotal: 0,
       oppGarbageTotal: 0,
     };
@@ -441,6 +442,10 @@ class Board extends React.Component {
     const poppedDroppedScore = this.chainsim.computeLink();
     if (poppedDroppedScore) {
       this.didChain = true;
+      const { showAllClearText } = this.state;
+      if (showAllClearText) {
+        this.setState({ showAllClearText: false });
+      }
       const { popped, dropped, score: chainScore } = poppedDroppedScore;
       const { boardData } = this.state;
       const data = cloneData(boardData);
@@ -511,7 +516,10 @@ class Board extends React.Component {
         this.increaseGarbageTotal(garbageSent);
       }
       if (this.checkAllClear()) {
-        this.setState((state) => ({ score: state.score + this.rockGarbage * this.garbageRate }));
+        this.setState((state) => ({
+          score: state.score + this.rockGarbage * this.garbageRate,
+          showAllClearText: true,
+        }));
       }
       this.handleGarbageReady = true;
       this.handleGarbage(newGarbageTotal);
@@ -952,6 +960,7 @@ class Board extends React.Component {
       score,
       nextColors1,
       nextColors2,
+      showAllClearText,
       myGarbageTotal,
       oppGarbageTotal,
     } = this.state;
@@ -975,6 +984,7 @@ class Board extends React.Component {
               style={{ '--invisible-rows-count': this.twelfthRow + this.extraRows }}
             >
               { this.renderBoard() }
+              {showAllClearText && <p className="all-clear-text">ALL CLEAR</p>}
             </div>
           </div>
           <div className="score">
