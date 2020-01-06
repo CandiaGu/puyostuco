@@ -334,7 +334,7 @@ input[type=text]:focus {
 	height: 45px;
 	width: 45px;
 	border-radius:50%;
-  position: relative; /* to allow drawing chain text on top */
+  position: relative; /* allow drawing chain text in front and red X behind */
   --exploding-delay: calc(31s / 60);
 }
 
@@ -434,6 +434,12 @@ input[type=text]:focus {
     opacity: 0;
     font-size: 0px;
   }
+}
+
+#game .cell .red-X {
+  color: red;
+  font-size: 40px;
+  text-align: center;
 }
 
 #game .cell.ghost-group {

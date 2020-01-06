@@ -69,6 +69,7 @@ class Board extends React.Component {
     }
     this.garbageRate = 70;
     this.rockGarbage = 30;
+    this.redXLoc = { x: 2, y: this.twelfthRow };
 
     this.gravityOn = true;
     this.gravityTimeout = null;
@@ -826,12 +827,25 @@ class Board extends React.Component {
         <Cell
           classList={[dataitem.color, dataitem.state]}
           style={{ zIndex: 1 }}
-          chainNum={this.chainsim.chainNum - 1}
+          Component={<div className="chain-text">{(this.chainsim.chainNum - 1) + '-chain!'}</div>}
         />
       );
     }
+    // prepare red X stuff
+    const redXCell = (
+      <Cell
+        classList={['none', 'none']}
+        style={{ zIndex: -1 }}
+        Component={<div className="red-X">X</div>}
+      />
+    );
+    const isRedXLoc = locsEqual(dataitem, this.redXLoc);
     // is there no active piece?
     if (currState === 'none') {
+      // is it the red X?
+      if (dataitem.color === 'none' && isRedXLoc) {
+        return redXCell;
+      }
       return <Cell classList={[dataitem.color, dataitem.state]} />;
     }
     // is it active?
@@ -850,6 +864,10 @@ class Board extends React.Component {
       if (inGhostGroup) {
         return <Cell classList={[dataitem.color, 'ghost-group']} />;
       }
+    }
+    // is it the red X?
+    if (isRedXLoc) {
+      return redXCell;
     }
     // default
     return <Cell classList={[dataitem.color, dataitem.state]} />;
@@ -988,6 +1006,7 @@ const {
   func,
   shape,
 } = PropTypes;
+
 Board.propTypes = {
   seed: number.isRequired,
   handleDeath: func,
@@ -995,6 +1014,13 @@ Board.propTypes = {
   myGarbageRef: shape({ set: func }),
   oppGarbageRef: shape({ on: func.isRequired }),
   playerRef: shape({ child: func.isRequired }),
+};
+
+Board.defaultProps = {
+  handleDeath: undefined,
+  myGarbageRef: undefined,
+  oppGarbageRef: undefined,
+  playerRef: undefined,
 };
 
 export default Board;
