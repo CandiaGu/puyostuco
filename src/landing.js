@@ -1,12 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Header from './header.js';
 import * as ROUTES from './routes.js';
 
 const Landing = () => (
   <>
-    <Header page="landing" />
-
     <div className="home-container">
       <Link to={ROUTES.PLAY} className="box play">
         <div>

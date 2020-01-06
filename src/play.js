@@ -1,13 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Header from './header.js';
 import { selectMultiplayer } from './script.js';
 import * as ROUTES from './routes.js';
 
 const Play = () => (
   <>
-    <Header page="play" />
-
     <div id="play-options" className="play-options">
       {/* include keyboard listener and tabIndex for accessibility */}
       <a

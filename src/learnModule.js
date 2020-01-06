@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Header from './header.js';
 import { onLoadLearnModule, selectAndReloadModule } from './script.js';
 import learnContent from './learnContent.js';
 import * as ROUTES from './routes.js';
@@ -13,7 +12,6 @@ class LearnModule extends React.Component {
   render() {
     return (
       <>
-        <Header page="learn-module" />
         {learnContent.map(({ title, subtitle, text }, i) => {
           const next = i < learnContent.length - 1 ? i + 1 : 0;
           const nextTitle = learnContent[next].title;
@@ -35,7 +33,7 @@ class LearnModule extends React.Component {
                 </p>
                 <Link
                   className="next centered-box"
-                  to={ROUTES.LEARNMODULE}
+                  to={ROUTES.LEARN_MODULE}
                   onClick={() => { selectAndReloadModule(nextTitle.toLowerCase()); }}
                 >
                   next &gt;

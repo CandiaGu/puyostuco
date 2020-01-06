@@ -1,15 +1,16 @@
 import React from 'react';
-import 'firebase/database';
+import PropTypes from 'prop-types';
 import Board from './board.js';
 import { randSeed, disableMovementKeyHandler } from './utils.js';
 import Controller from './controller.js';
-import firebase from './firebase.js';
+import { withFirebase } from './firebase.js';
 
 class GameMulti extends React.Component {
   constructor(props) {
     super(props);
+    const { firebase } = this.props;
     this.userId = 0;
-    this.gameRef = firebase.database().ref('g');
+    this.gameRef = firebase.ref().child('g');
     this.userListRef = this.gameRef.child('u');
     this.seedRef = this.gameRef.child('s');
     this.garbageListRef = this.gameRef.child('g');
@@ -123,4 +124,15 @@ class GameMulti extends React.Component {
   }
 }
 
-export default GameMulti;
+const {
+  shape,
+  func,
+} = PropTypes;
+
+GameMulti.propTypes = {
+  firebase: shape({
+    ref: func.isRequired,
+  }).isRequired,
+};
+
+export default withFirebase(GameMulti);
