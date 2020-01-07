@@ -25,18 +25,32 @@ a:hover {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-  z-index: 99999;
+  	z-index: 99999;
 }
 
 h3{
 	margin:0;
 }
 
+input {
+	width: 100%;
+	padding: 10px 15px;
+	margin: 8px 0;
+	box-sizing: border-box;
+	border: 3px solid blue;
+	outline: none;
+	border-radius: 25px;
+	font-size: 120%;
+}
+
+input:focus {
+	outline: none;
+}
 
 
 /********* Header *********/
 header{
-	margin-bottom: 5%;
+	margin-bottom: 3%;
 }
 
 .home-header{
@@ -78,6 +92,35 @@ header{
 	width: 20px;
 	border-radius: 50%;
 	display: inline-block;
+}
+
+
+/********* Sign In *********/
+.sign-in-form{
+	display:flex;
+	flex-direction: column;
+	justify-content: center;
+	background-color: whitesmoke;
+	margin-left: 30%;
+	margin-right: 30%;
+	padding: 2%;
+	border-radius: 10%;
+}
+
+.sign-in-button{
+	background-color: red;
+	color:white;
+	padding: 15px 25px;
+	border-radius:25px;
+	margin-bottom: 3%;
+	margin-top: 1%;
+	font-size: 20px;
+	font-family: 'Varela Round', sans-serif;
+	width:100%;
+}
+
+.click-link{
+	color:blue;
 }
 
 /********* Home *********/
@@ -181,21 +224,6 @@ header{
 
 .select-room{
 	width: 40%;
-}
-
-input[type=text] {
-	width: 100%;
-	padding: 10px 15px;
-	margin: 8px 0;
-	box-sizing: border-box;
-	border: 3px solid blue;
-	outline: none;
-	border-radius: 25px;
-	font-size: 120%;
-}
-
-input[type=text]:focus {
-	outline: none;
 }
 
 .select-room-option-1{

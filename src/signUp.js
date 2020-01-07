@@ -120,11 +120,11 @@ SignUpFormBase.propTypes = {
 };
 
 const SignUpLink = () => (
-  <p>
+  <div>
     Don&apos;t have an account?
     {' '}
-    <Link to={ROUTES.SIGN_UP}>Sign Up</Link>
-  </p>
+    <Link to={ROUTES.SIGN_UP} className="click-link">Sign Up</Link>
+  </div>
 );
 
 const SignUpForm = withRouter(withFirebase(SignUpFormBase));
