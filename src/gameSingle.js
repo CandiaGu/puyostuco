@@ -26,7 +26,7 @@ class GameSingle extends React.Component {
       reset: { f: this.reset, delay: 0, repeat: 0 },
     };
     const keys = {
-      Escape: 'reset',
+      r: 'reset',
     };
     this.controller = new Controller(controls, keys);
   }

@@ -57,6 +57,7 @@ class Board extends React.Component {
       myGarbageTotal: 0,
       oppGarbageTotal: 0,
       time: 0,
+      paused: false,
     };
     if (this.multiplayer !== 'none') {
       this.currPuyoRef = playerRef.child('c');
@@ -84,6 +85,7 @@ class Board extends React.Component {
     this.recentLeftRight = 0;
     this.chainsim = new Chainsim(this.twelfthRow);
     this.lastScoreCutoff = 0;
+    this.unpause = null;
   }
 
   componentDidMount() {
@@ -133,8 +135,16 @@ class Board extends React.Component {
         });
       }
     }
-    setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
-    setInterval(() => { this.setState(({ time }) => ({ time: time + 1 })); }, 1000);
+    this.setPausableTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
+    setInterval(() => {
+      this.setState(({ time, paused }) => {
+        let newTime = time;
+        if (!paused) {
+          newTime++;
+        }
+        return { time: newTime };
+      });
+    }, 1000);
   }
 
   componentWillUnmount() {
@@ -170,7 +180,7 @@ class Board extends React.Component {
       splitPuyo: false,
     });
     const delay = this.timing.startChainDelay + this.timing.fallenPuyoDelay;
-    setTimeout(() => { this.handleLink(); }, delay);
+    this.setPausableTimeout(() => { this.handleLink(); }, delay);
   }
 
   onGarbageAnimationEnd() {
@@ -185,7 +195,7 @@ class Board extends React.Component {
         }
       }
       this.setState({ boardData: data, garbagePuyoList: false });
-      setTimeout(() => { this.spawnPuyo(); },
+      this.setPausableTimeout(() => { this.spawnPuyo(); },
         this.timing.pieceSpawnDelay + this.timing.fallenPuyoDelay);
     }
   }
@@ -195,6 +205,17 @@ class Board extends React.Component {
     const data = cloneData(boardData);
     data[y][x].state = 'none';
     this.setState({ boardData: data });
+  }
+
+  setPausableTimeout(func, delay) {
+    setTimeout(() => {
+      const { paused } = this.state;
+      if (paused) {
+        this.unpause = func;
+      } else {
+        func();
+      }
+    }, delay);
   }
 
   createTiming() {
@@ -238,6 +259,7 @@ class Board extends React.Component {
       counterclockwise: { f: () => { that.rotatePuyo.bind(that)(-1); }, delay: 0, repeat: 0 },
       clockwise: { f: () => { that.rotatePuyo.bind(that)(1); }, delay: 0, repeat: 0 },
       gravity: { f: () => { that.toggleGravity.bind(that)(); }, delay: 0, repeat: 0 },
+      pause: { f: () => { that.pause.bind(that)(); }, delay: 0, repeat: 0 },
     };
     const keys = {
       ArrowLeft: 'left',
@@ -248,8 +270,31 @@ class Board extends React.Component {
       d: 'counterclockwise',
       f: 'clockwise',
       g: 'gravity',
+      ...this.multiplayer === 'none' ? { Escape: 'pause' } : {},
     };
     this.controller = new Controller(controls, keys);
+  }
+
+  pause() {
+    this.setState(({ paused }) => {
+      if (!paused) {
+        this.gravityWasOn = this.gravityOn;
+        if (this.gravityOn) {
+          this.toggleGravity();
+        }
+      } else {
+        setTimeout(() => {
+          if (this.gravityWasOn) {
+            this.toggleGravity(true);
+          }
+          if (this.unpause) {
+            this.unpause();
+            this.unpause = null;
+          }
+        }, 0);
+      }
+      return { paused: !paused };
+    });
   }
 
   spawnPuyo() {
@@ -313,7 +358,10 @@ class Board extends React.Component {
 
   startLockTimeout() {
     if (!this.lockTimeout) {
-      this.lockTimeout = setTimeout(this.puyoLockFunctions.bind(this), this.timing.lockDelay);
+      this.lockTimeout = this.setPausableTimeout(
+        this.puyoLockFunctions.bind(this),
+        this.timing.lockDelay,
+      );
     }
   }
 
@@ -341,7 +389,9 @@ class Board extends React.Component {
     this.gravityTimeout = setTimeout(() => { this.applyGravity(); }, this.timing.gravityRepeat);
   }
 
-  toggleGravity() {
+  toggleGravity(unPausing = false) {
+    const { paused } = this.state;
+    if (paused && !unPausing) return;
     if (this.gravityOn) {
       this.gravityOn = false;
       clearTimeout(this.gravityTimeout);
@@ -406,7 +456,6 @@ class Board extends React.Component {
         score,
       });
     }
-    clearInterval(this.gravityInterval);
     const placedPuyo1 = { ...puyo1 };
     const placedPuyo2 = { ...puyo2 };
     let state1 = 'landed';
@@ -436,7 +485,7 @@ class Board extends React.Component {
     if (state1 === 'falling' || state2 === 'falling') {
       this.setState({ splitPuyo });
     } else {
-      setTimeout(() => { this.handleLink(); }, this.timing.startChainDelay);
+      this.setPausableTimeout(() => { this.handleLink(); }, this.timing.startChainDelay);
     }
   }
 
@@ -461,7 +510,7 @@ class Board extends React.Component {
         }
       }
       this.setState({ boardData: data, highestPopping: { x: minX, y: minY } });
-      setTimeout(() => {
+      this.setPausableTimeout(() => {
         this.popPopped(popped);
         this.setState(({ score }) => ({ score: score + chainScore }));
         if (dropped.length > 0) {
@@ -495,7 +544,7 @@ class Board extends React.Component {
                   }
                   this.setState({ boardData: dataAnimation });
                   if (dist === maxDist) {
-                    setTimeout(() => { this.handleLink(); },
+                    this.setPausableTimeout(() => { this.handleLink(); },
                       this.timing.nextLinkDelay + this.timing.fallenPuyoDelay);
                   }
                 }
@@ -505,7 +554,7 @@ class Board extends React.Component {
           }
           this.setState({ boardData: dataTimeout });
         } else {
-          setTimeout(() => { this.handleLink(); }, this.timing.nextLinkDelay);
+          this.setPausableTimeout(() => { this.handleLink(); }, this.timing.nextLinkDelay);
         }
       }, this.timing.startDropDelay);
     } else {
@@ -583,7 +632,7 @@ class Board extends React.Component {
       if (this.multiplayer === 'send') {
         this.dropListRef.push({ garbage: 0 });
       }
-      setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
+      this.setPausableTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
     }
   }
 
@@ -661,8 +710,17 @@ class Board extends React.Component {
   }
 
   moveLeftRight(dx) {
-    const { currPuyo1, currPuyo2, currState } = this.state;
-    if (this.recentLeftRight === -dx || (currState !== 'active' && currState !== 'offset')) return;
+    const {
+      currPuyo1,
+      currPuyo2,
+      currState,
+      paused,
+    } = this.state;
+    if (
+      this.recentLeftRight === -dx
+      || (currState !== 'active' && currState !== 'offset')
+      || paused
+    ) return;
     const newPuyo1 = { ...currPuyo1 };
     newPuyo1.x += dx;
     const newPuyo2 = { ...currPuyo2 };
@@ -673,8 +731,17 @@ class Board extends React.Component {
   }
 
   moveDown() {
-    const { currPuyo1, currPuyo2, currState } = this.state;
-    if (this.recentLeftRight || (currState !== 'active' && currState !== 'offset')) return;
+    const {
+      currPuyo1,
+      currPuyo2,
+      currState,
+      paused,
+    } = this.state;
+    if (
+      this.recentLeftRight
+      || (currState !== 'active' && currState !== 'offset')
+      || paused
+    ) return;
     if (!this.rowsHeldDownIn.has(currPuyo2.y)) {
       this.setState(({ score }) => ({ score: score + 1 }));
       this.rowsHeldDownIn.add(currPuyo2.y);
@@ -703,8 +770,13 @@ class Board extends React.Component {
   }
 
   rotatePuyo(direction) {
-    const { currPuyo1, currPuyo2, currState } = this.state;
-    if (currState !== 'active' && currState !== 'offset') return;
+    const {
+      currPuyo1,
+      currPuyo2,
+      currState,
+      paused,
+    } = this.state;
+    if ((currState !== 'active' && currState !== 'offset') || paused) return;
     // offsets from axis puyo to other puyo
     const dx = -direction * (currPuyo1.y - currPuyo2.y);
     const dy = direction * (currPuyo1.x - currPuyo2.x);
