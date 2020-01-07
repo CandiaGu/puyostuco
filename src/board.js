@@ -35,6 +35,7 @@ class Board extends React.Component {
     this.sequence = new Sequence(this.rand);
     this.axisSpawnX = 2;
     this.axisSpawnY = this.twelfthRow; // spawn axis puyo in 12th row
+    const initGarbage = { pending: 0, sentPlusDropped: 0 };
     this.state = {
       boardData: Array.from({ length: this.height }, (_, y) => (
         Array.from({ length: this.width }, (_, x) => ({
@@ -54,8 +55,8 @@ class Board extends React.Component {
       garbagePuyoList: false,
       highestPopping: null,
       showAllClearText: false,
-      myGarbageTotal: 0,
-      oppGarbageTotal: 0,
+      myGarbage: { ...initGarbage },
+      oppGarbage: { ...initGarbage },
       time: 0,
       paused: false,
     };
@@ -92,7 +93,7 @@ class Board extends React.Component {
     if (this.multiplayer !== 'none') {
       this.oppGarbageRef.on('value', (snapshot) => {
         if (!snapshot.exists()) return;
-        this.setState({ oppGarbageTotal: snapshot.val() });
+        this.setState({ oppGarbage: snapshot.val() });
       });
       if (this.multiplayer === 'receive') {
         this.currPuyoRef.on('value', (snapshot) => {
@@ -122,8 +123,8 @@ class Board extends React.Component {
           if (this.dropList.length === 1) {
             if ('garbage' in val) {
               if (this.handleGarbageReady) {
-                const { myGarbageTotal } = this.state;
-                this.handleGarbage(myGarbageTotal);
+                const { myGarbage: { sentPlusDropped } } = this.state;
+                this.handleGarbage(sentPlusDropped);
               }
             } else {
               const { currState } = this.state;
@@ -512,7 +513,17 @@ class Board extends React.Component {
       this.setState({ boardData: data, highestPopping: { x: minX, y: minY } });
       this.setPausableTimeout(() => {
         this.popPopped(popped);
-        this.setState(({ score }) => ({ score: score + chainScore }));
+        this.setState(({ score, myGarbage }) => {
+          const newScore = score + chainScore;
+          const garbageSent = Math.floor((newScore - this.lastScoreCutoff) / this.garbageRate);
+          this.lastScoreCutoff += garbageSent * this.garbageRate;
+          const newGarbage = { ...myGarbage };
+          newGarbage.pending += garbageSent;
+          if (this.multiplayer === 'send') {
+            this.myGarbageRef.set(newGarbage);
+          }
+          return { score: newScore, myGarbage: newGarbage };
+        });
         if (dropped.length > 0) {
           const dropByDist = {};
           for (const { puyo, dist } of dropped) {
@@ -558,13 +569,14 @@ class Board extends React.Component {
         }
       }, this.timing.startDropDelay);
     } else {
-      const { score, myGarbageTotal } = this.state;
-      let newGarbageTotal = myGarbageTotal;
       if (this.didChain) {
-        const garbageSent = Math.floor((score - this.lastScoreCutoff) / this.garbageRate);
-        this.lastScoreCutoff += garbageSent * this.garbageRate;
-        newGarbageTotal += garbageSent;
-        this.increaseGarbageTotal(garbageSent);
+        this.setState(({ myGarbage: { pending, sentPlusDropped } }) => {
+          const newGarbage = { pending: 0, sentPlusDropped: sentPlusDropped + pending };
+          if (this.multiplayer === 'send') {
+            this.myGarbageRef.set(newGarbage);
+          }
+          return { myGarbage: newGarbage };
+        });
       }
       if (this.checkAllClear()) {
         this.setState((state) => ({
@@ -573,36 +585,27 @@ class Board extends React.Component {
         }));
       }
       this.handleGarbageReady = true;
-      this.handleGarbage(newGarbageTotal);
+      const { myGarbage: { pending, sentPlusDropped } } = this.state;
+      this.handleGarbage(sentPlusDropped + pending);
     }
   }
 
-  increaseGarbageTotal(garbage) {
-    this.setState(({ myGarbageTotal }) => {
-      const newGarbageTotal = myGarbageTotal + garbage;
-      if (this.multiplayer === 'send') {
-        this.myGarbageRef.set(newGarbageTotal);
-      }
-      return { myGarbageTotal: newGarbageTotal };
-    });
-  }
-
-  handleGarbage(myGarbageTotal) {
-    let myGarbage;
+  handleGarbage(mySentPlusDropped) {
+    let garbageQueued;
     if (this.multiplayer === 'receive') {
       if (this.dropList.length > 0 && !('garbage' in this.dropList[0])) {
         this.dropList.shift();
       }
       if (this.dropList.length > 0 && 'garbage' in this.dropList[0]) {
-        myGarbage = this.dropList[0].garbage;
+        garbageQueued = this.dropList[0].garbage;
       } else return;
     } else {
-      const { oppGarbageTotal } = this.state;
-      myGarbage = oppGarbageTotal - myGarbageTotal;
+      const { oppGarbage } = this.state;
+      garbageQueued = oppGarbage.sentPlusDropped - mySentPlusDropped;
     }
-    if (myGarbage > 0) {
+    if (garbageQueued > 0) {
       this.handleGarbageReady = false;
-      const garbage = Math.min(myGarbage, this.rockGarbage);
+      const garbage = Math.min(garbageQueued, this.rockGarbage);
       if (this.multiplayer === 'send') {
         this.dropListRef.push({ garbage });
       }
@@ -626,8 +629,14 @@ class Board extends React.Component {
       })));
       this.chainsim.addGarbage(garbagePuyoList);
       this.garbageFallingCount = garbage;
-      this.setState({ garbagePuyoList });
-      this.increaseGarbageTotal(garbage);
+      this.setState(({ myGarbage }) => {
+        const newGarbage = { ...myGarbage };
+        newGarbage.sentPlusDropped += garbage;
+        if (this.multiplayer === 'send') {
+          this.myGarbageRef.set(newGarbage);
+        }
+        return { garbagePuyoList, myGarbage: newGarbage };
+      });
     } else {
       if (this.multiplayer === 'send') {
         this.dropListRef.push({ garbage: 0 });
@@ -1035,11 +1044,12 @@ class Board extends React.Component {
       nextColors1,
       nextColors2,
       showAllClearText,
-      myGarbageTotal,
-      oppGarbageTotal,
+      myGarbage,
+      oppGarbage,
       time,
     } = this.state;
-    const myGarbage = Math.max(0, oppGarbageTotal - myGarbageTotal);
+    const totalGarbage = ({ pending, sentPlusDropped }) => pending + sentPlusDropped;
+    const garbagePending = Math.max(0, totalGarbage(oppGarbage) - totalGarbage(myGarbage));
     return (
       <div className="player">
         {this.multiplayer === 'none' && (
@@ -1052,7 +1062,7 @@ class Board extends React.Component {
           {this.multiplayer !== 'none'
             && (
               <div className="garbage">
-                <h2>{ myGarbage }</h2>
+                <h2>{ garbagePending }</h2>
               </div>
             )}
           <div style={{ backgroundColor: 'var(--board-color)', padding: 20, borderRadius: 20 }}>
@@ -1099,7 +1109,7 @@ Board.propTypes = {
   handleDeath: func,
   multiplayer: string.isRequired,
   myGarbageRef: shape({ set: func }),
-  oppGarbageRef: shape({ on: func.isRequired }),
+  oppGarbageRef: shape({ on: func.isRequired, off: func.isRequired }),
   playerRef: shape({ child: func.isRequired }),
 };
 

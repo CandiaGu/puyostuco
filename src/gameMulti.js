@@ -24,8 +24,12 @@ class GameMulti extends React.Component {
   componentDidMount() {
     this.userListRef.once('value', (userList) => {
       this.playerNum = userList.numChildren();
+      if (this.playerNum === 0) {
+        this.seedRef.onDisconnect().remove();
+      }
       this.userId = this.playerNum;
       this.userRef = this.userListRef.push(this.userId);
+      this.userRef.onDisconnect().remove();
       if (this.playerNum === 0) {
         this.userListRef.on('child_added', (child) => {
           if (child.val() !== this.userId) {
@@ -84,7 +88,8 @@ class GameMulti extends React.Component {
   }
 
   resetRefs() {
-    this.garbageListRef.set([0, 0]);
+    const initGarbage = { pending: 0, sentPlusDropped: 0 };
+    this.garbageListRef.set([{ ...initGarbage }, { ...initGarbage }]);
     this.playerListRef.set([0, 0]);
     this.seedRef.set(randSeed());
   }
