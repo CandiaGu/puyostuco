@@ -33,8 +33,9 @@ class PasswordForgetFormBase extends Component {
       .catch((error) => {
         this.setState({ error });
       });
-    event.preventDefault(); // prevent reload
     this.setState({passwordReset: true});
+    event.preventDefault(); // prevent reload
+    
   };
 
   onChange = (event) => {

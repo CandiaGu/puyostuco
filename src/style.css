@@ -63,6 +63,11 @@ header{
 
 }
 
+.reg-header{
+	display: grid;
+	grid-template-columns: 33%;
+}
+
 .puyo-box{
 	color:white;
 	background-color: navy;
