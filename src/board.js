@@ -56,6 +56,7 @@ class Board extends React.Component {
       showAllClearText: false,
       myGarbageTotal: 0,
       oppGarbageTotal: 0,
+      time: 0,
     };
     if (this.multiplayer !== 'none') {
       this.currPuyoRef = playerRef.child('c');
@@ -133,6 +134,7 @@ class Board extends React.Component {
       }
     }
     setTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
+    setInterval(() => { this.setState(({ time }) => ({ time: time + 1 })); }, 1000);
   }
 
   componentWillUnmount() {
@@ -963,13 +965,16 @@ class Board extends React.Component {
       showAllClearText,
       myGarbageTotal,
       oppGarbageTotal,
+      time,
     } = this.state;
     const myGarbage = Math.max(0, oppGarbageTotal - myGarbageTotal);
     return (
       <div className="player">
-        <div>
-          time
-        </div>
+        {this.multiplayer === 'none' && (
+          <div>
+            {'time: ' + time + ' s'}
+          </div>
+        )}
         {/* z-index allows chain text to overlap preview box */}
         <div style={{ zIndex: 1 }}>
           {this.multiplayer !== 'none'
