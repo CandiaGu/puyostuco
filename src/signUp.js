@@ -5,8 +5,8 @@ import { withFirebase } from './firebase.js';
 import * as ROUTES from './routes.js';
 
 const SignUp = () => (
-  <div>
-    <h1>SignUp</h1>
+  <div className="sign-in-form centered-box" style = {{marginBottom: '5%'}}>
+    <h1 style={{marginTop: 0}}>Sign Up</h1>
     <SignUpForm />
   </div>
 );
@@ -66,20 +66,25 @@ class SignUpFormBase extends Component {
 
     return (
       <form onSubmit={this.onSubmit}>
+        <h3>username</h3>
         <input
           name="username"
           value={username}
           onChange={this.onChange}
           type="text"
-          placeholder="Full Name"
+          placeholder="Username"
+          style={{marginBottom: '5%'}}
         />
+        <h3>email</h3>
         <input
           name="email"
           value={email}
           onChange={this.onChange}
           type="text"
           placeholder="Email Address"
+          style={{marginBottom: '5%'}}
         />
+        <h3>password</h3>
         <input
           name="passwordOne"
           value={passwordOne}
@@ -93,8 +98,9 @@ class SignUpFormBase extends Component {
           onChange={this.onChange}
           type="password"
           placeholder="Confirm Password"
+          style={{marginBottom: '5%'}}
         />
-        <button disabled={isInvalid} type="submit">
+        <button disabled={isInvalid} type="submit" className="centered-box sign-in-button">
           Sign Up
         </button>
 
