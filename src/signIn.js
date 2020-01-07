@@ -69,7 +69,7 @@ class SignInFormBase extends Component {
           style={{marginBottom: '5%'}}
         />
         <button disabled={isInvalid} type="submit" className="centered-box sign-in-button">
-          Sign In
+          SIGN IN
         </button>
 
         {error && <p>{error.message}</p>}

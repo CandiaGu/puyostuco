@@ -5,7 +5,7 @@ import { withFirebase } from './firebase.js';
 import * as ROUTES from './routes.js';
 
 const SignUp = () => (
-  <div className="sign-in-form centered-box" style = {{marginBottom: '5%'}}>
+  <div className="sign-in-form" style = {{marginBottom: '5%'}}>
     <h1 style={{marginTop: 0}}>Sign Up</h1>
     <SignUpForm />
   </div>
@@ -101,7 +101,7 @@ class SignUpFormBase extends Component {
           style={{marginBottom: '5%'}}
         />
         <button disabled={isInvalid} type="submit" className="centered-box sign-in-button">
-          Sign Up
+          SIGN UP
         </button>
 
         {error && <p>{error.message}</p>}
