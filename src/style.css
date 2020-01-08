@@ -95,6 +95,17 @@ header{
 	border-radius: 15px;
 }
 
+.sign-out{
+	font-family: 'Varela Round', sans-serif;
+	margin:5%;
+	border: solid 2px navy;
+	padding:2%;
+	padding-left: 3%;
+	padding-right: 3%;
+	border-radius: 15px;
+	font-size: 20px;
+	color: navy;
+}
 .dot {
 	margin: 4%;
 	height: 20px;

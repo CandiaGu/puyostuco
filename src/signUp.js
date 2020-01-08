@@ -2,12 +2,14 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Link, withRouter } from 'react-router-dom';
 import { withFirebase } from './firebase.js';
+import { SignInLink } from './signIn.js';
 import * as ROUTES from './routes.js';
 
 const SignUp = () => (
   <div className="sign-in-form" style = {{marginBottom: '5%'}}>
     <h1 style={{marginTop: 0}}>Sign Up</h1>
     <SignUpForm />
+    <SignInLink />
   </div>
 );
 
