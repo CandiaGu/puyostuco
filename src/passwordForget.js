@@ -33,9 +33,8 @@ class PasswordForgetFormBase extends Component {
       .catch((error) => {
         this.setState({ error });
       });
-    this.setState({passwordReset: true});
+    this.setState({ passwordReset: true });
     event.preventDefault(); // prevent reload
-    
   };
 
   onChange = (event) => {
@@ -43,32 +42,34 @@ class PasswordForgetFormBase extends Component {
   };
 
   render() {
-    const { email, error } = this.state;
+    const { email, error, passwordReset } = this.state;
     const isInvalid = email === '';
     return (
-      <div style={{width:'100%'}}>
-        {!this.state.passwordReset ? 
-        <form onSubmit={this.onSubmit}>
-          <h3>email</h3>
-          <input
-            name="email"
-            value={email}
-            onChange={this.onChange}
-            type="text"
-            placeholder="Email Address"
-          />
-          <button disabled={isInvalid} type="submit" className="centered-box sign-in-button">
+      <div style={{ width: '100%' }}>
+        {!passwordReset
+          ? (
+            <form onSubmit={this.onSubmit}>
+              <h3>email</h3>
+              <input
+                name="email"
+                value={email}
+                onChange={this.onChange}
+                type="text"
+                placeholder="Email Address"
+              />
+              <button disabled={isInvalid} type="submit" className="centered-box sign-in-button">
             Reset My Password
-          </button>
+              </button>
 
-          {error && <p>{error.message}</p>}
-        </form>
-        :
-        <div>
-          <h2>Your password was reset!</h2>
+              {error && <p>{error.message}</p>}
+            </form>
+          )
+          : (
+            <div>
+              <h2>Your password was reset!</h2>
           Please check your email for further instructions :-)
-        </div>
-        }
+            </div>
+          )}
       </div>
     );
   }

@@ -6,8 +6,8 @@ import { SignInLink } from './signIn.js';
 import * as ROUTES from './routes.js';
 
 const SignUp = () => (
-  <div className="sign-in-form" style = {{marginBottom: '5%'}}>
-    <h1 style={{marginTop: 0}}>Sign Up</h1>
+  <div className="sign-in-form" style={{ marginBottom: '5%' }}>
+    <h1 style={{ marginTop: 0 }}>Sign Up</h1>
     <SignUpForm />
     <SignInLink />
   </div>
@@ -75,7 +75,7 @@ class SignUpFormBase extends Component {
           onChange={this.onChange}
           type="text"
           placeholder="Username"
-          style={{marginBottom: '5%'}}
+          style={{ marginBottom: '5%' }}
         />
         <h3>email</h3>
         <input
@@ -84,7 +84,7 @@ class SignUpFormBase extends Component {
           onChange={this.onChange}
           type="text"
           placeholder="Email Address"
-          style={{marginBottom: '5%'}}
+          style={{ marginBottom: '5%' }}
         />
         <h3>password</h3>
         <input
@@ -100,7 +100,7 @@ class SignUpFormBase extends Component {
           onChange={this.onChange}
           type="password"
           placeholder="Confirm Password"
-          style={{marginBottom: '5%'}}
+          style={{ marginBottom: '5%' }}
         />
         <button disabled={isInvalid} type="submit" className="centered-box sign-in-button">
           SIGN UP

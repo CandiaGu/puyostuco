@@ -45,10 +45,8 @@ const Header = ({ location }) => {
     default: page = path;
   }
   let headerStyle = 'other';
-  if(page==='landing')
-    headerStyle = 'home'
-  else if(page==='registration')
-    headerStyle = 'reg'
+  if (page === 'landing') headerStyle = 'home';
+  else if (page === 'registration') headerStyle = 'reg';
   return (
     <header className={(headerStyle) + '-header'}>
 
@@ -93,9 +91,8 @@ const Header = ({ location }) => {
           ))}
 
       </div>
-      {page != 'registration' &&
-      (<AccountBox />)
-      }
+      {page !== 'registration'
+      && (<AccountBox />)}
 
     </header>
   );

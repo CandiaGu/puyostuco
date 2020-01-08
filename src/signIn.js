@@ -8,7 +8,7 @@ import * as ROUTES from './routes.js';
 
 const SignIn = () => (
   <div className="sign-in-form">
-    <h1 style={{marginTop: 0}}>Sign In</h1>
+    <h1 style={{ marginTop: 0 }}>Sign In</h1>
     <SignInForm />
     <PasswordForgetLink />
     <SignUpLink />
@@ -57,7 +57,7 @@ class SignInFormBase extends Component {
           onChange={this.onChange}
           type="text"
           placeholder="Email Address"
-          style={{marginBottom: '5%'}}
+          style={{ marginBottom: '5%' }}
         />
         <h3>password</h3>
         <input
@@ -66,7 +66,7 @@ class SignInFormBase extends Component {
           onChange={this.onChange}
           type="password"
           placeholder="Password"
-          style={{marginBottom: '5%'}}
+          style={{ marginBottom: '5%' }}
         />
         <button disabled={isInvalid} type="submit" className="centered-box sign-in-button">
           SIGN IN
