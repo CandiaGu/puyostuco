@@ -36,9 +36,21 @@ const AccountBox = () => (
 
 const Header = ({ location }) => {
   const path = location.pathname.slice(1);
-  const page = path === 'landing' ? '' : path;
+  let page;
+  switch (path) {
+    case '': page = 'landing'; break;
+    case 'signin':
+    case 'signup':
+    case 'pw-forget': page = 'registration'; break;
+    default: page = path;
+  }
+  let headerStyle = 'other';
+  if(page==='landing')
+    headerStyle = 'home'
+  else if(page==='registration')
+    headerStyle = 'reg'
   return (
-    <header className={(page === 'landing' ? 'home' : 'other') + '-header'}>
+    <header className={(headerStyle) + '-header'}>
 
       {page === 'landing'
         && (
@@ -69,7 +81,7 @@ const Header = ({ location }) => {
           </h1>
         </Link>
 
-        {page !== 'landing'
+        {page !== 'landing' && page !== 'registration'
           && (page === 'learn-module' ? (
             <Link className="learn-header-extension centered-box" to={ROUTES.LEARN}>
               LEARN
@@ -81,8 +93,9 @@ const Header = ({ location }) => {
           ))}
 
       </div>
-
-      <AccountBox />
+      {page != 'registration' &&
+      (<AccountBox />)
+      }
 
     </header>
   );

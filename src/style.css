@@ -25,24 +25,47 @@ a:hover {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-  z-index: 99999;
+  	z-index: 99999;
 }
 
 h3{
 	margin:0;
 }
 
+input {
+	width: 100%;
+	padding: 10px 15px;
+	margin: 8px 0;
+	box-sizing: border-box;
+	border: 3px solid blue;
+	outline: none;
+	border-radius: 25px;
+	font-size: 120%;
+}
+
+input:focus {
+	outline: none;
+}
+
+form {
+	width: 100%;
+}
 
 
 /********* Header *********/
 header{
-	margin-bottom: 5%;
+	margin-bottom: 3%;
 }
 
 .home-header{
 	display: grid;
 	grid-template-columns: 33% 34% 33%;
 
+}
+
+.reg-header{
+	display: grid;
+	grid-template-columns: 33%;
 }
 
 .puyo-box{
@@ -72,12 +95,55 @@ header{
 	border-radius: 15px;
 }
 
+.sign-out{
+	font-family: 'Varela Round', sans-serif;
+	margin:5%;
+	border: solid 2px navy;
+	padding:2%;
+	padding-left: 3%;
+	padding-right: 3%;
+	border-radius: 15px;
+	font-size: 20px;
+	color: navy;
+}
 .dot {
 	margin: 4%;
 	height: 20px;
 	width: 20px;
 	border-radius: 50%;
 	display: inline-block;
+}
+
+
+/********* Sign In *********/
+.sign-in-form{
+	display:flex;
+	flex-direction: column;
+	justify-content: stretch;
+	background-color: whitesmoke;
+	align-items: center;
+	margin-left: 30%;
+	margin-right: 30%;
+	padding: 2%;
+	padding-right: 5%; 
+	padding-left: 5%;
+	border-radius: 10%;
+}
+
+.sign-in-button{
+	background-color: red;
+	color:white;
+	padding: 15px 25px;
+	border-radius:25px;
+	margin-bottom: 3%;
+	margin-top: 1%;
+	font-size: 20px;
+	font-family: 'Varela Round', sans-serif;
+	width:100%;
+}
+
+.click-link{
+	color:blue;
 }
 
 /********* Home *********/
@@ -181,21 +247,6 @@ header{
 
 .select-room{
 	width: 40%;
-}
-
-input[type=text] {
-	width: 100%;
-	padding: 10px 15px;
-	margin: 8px 0;
-	box-sizing: border-box;
-	border: 3px solid blue;
-	outline: none;
-	border-radius: 25px;
-	font-size: 120%;
-}
-
-input[type=text]:focus {
-	outline: none;
 }
 
 .select-room-option-1{
@@ -395,7 +446,7 @@ input[type=text]:focus {
 }
 
 #game .cell.yellow {
-	background-color: yellow;
+	background-color: gold;
 }
 
 #game .cell.purple {
@@ -421,12 +472,11 @@ input[type=text]:focus {
 }
 
 #game .cell .chain-text {
-  color: yellow;
+  color: white;
   font-size: 40px;
+  font-weight: 900;
   white-space: nowrap;
-  -webkit-text-stroke: 1px black;
   animation: reveal var(--exploding-delay);
-  font-family: fantasy;
 }
 
 @keyframes reveal {
@@ -445,12 +495,11 @@ input[type=text]:focus {
 #game .all-clear-text {
   color: white;
   font-size: 90px;
-  -webkit-text-stroke: 9px orange;
+  font-weight: 900;
   animation: slide 0.5s ease-out forwards;
   text-align: center;
   width: calc(6px * var(--cell-size));
   line-height: 69px;
-  font-family: fantasy;
   z-index: -1; /* behind cells */
   position: absolute;
 }

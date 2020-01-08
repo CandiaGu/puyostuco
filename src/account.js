@@ -11,8 +11,6 @@ const Account = () => (
 Account:
           {authUser.email}
         </h1>
-        <PasswordForgetForm />
-        <PasswordChangeForm />
       </div>
     )}
   </AuthUserContext.Consumer>

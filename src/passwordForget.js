@@ -5,8 +5,8 @@ import { withFirebase } from './firebase.js';
 import * as ROUTES from './routes.js';
 
 const PasswordForget = () => (
-  <div>
-    <h1>Password Forget</h1>
+  <div className="sign-in-form">
+    <h1>I forgot my password :(</h1>
     <PasswordForgetForm />
   </div>
 );
@@ -14,6 +14,7 @@ const PasswordForget = () => (
 const INITIAL_STATE = {
   email: '',
   error: null,
+  passwordReset: false,
 };
 
 class PasswordForgetFormBase extends Component {
@@ -32,7 +33,9 @@ class PasswordForgetFormBase extends Component {
       .catch((error) => {
         this.setState({ error });
       });
+    this.setState({passwordReset: true});
     event.preventDefault(); // prevent reload
+    
   };
 
   onChange = (event) => {
@@ -43,20 +46,30 @@ class PasswordForgetFormBase extends Component {
     const { email, error } = this.state;
     const isInvalid = email === '';
     return (
-      <form onSubmit={this.onSubmit}>
-        <input
-          name="email"
-          value={email}
-          onChange={this.onChange}
-          type="text"
-          placeholder="Email Address"
-        />
-        <button disabled={isInvalid} type="submit">
-          Reset My Password
-        </button>
+      <div style={{width:'100%'}}>
+        {!this.state.passwordReset ? 
+        <form onSubmit={this.onSubmit}>
+          <h3>email</h3>
+          <input
+            name="email"
+            value={email}
+            onChange={this.onChange}
+            type="text"
+            placeholder="Email Address"
+          />
+          <button disabled={isInvalid} type="submit" className="centered-box sign-in-button">
+            Reset My Password
+          </button>
 
-        {error && <p>{error.message}</p>}
-      </form>
+          {error && <p>{error.message}</p>}
+        </form>
+        :
+        <div>
+          <h2>Your password was reset!</h2>
+          Please check your email for further instructions :-)
+        </div>
+        }
+      </div>
     );
   }
 }
@@ -74,7 +87,7 @@ PasswordForgetFormBase.propTypes = {
 
 const PasswordForgetLink = () => (
   <p>
-    <Link to={ROUTES.PASSWORD_FORGET}>Forgot Password?</Link>
+    <Link className="click-link" to={ROUTES.PASSWORD_FORGET}>Forgot Password?</Link>
   </p>
 );
 

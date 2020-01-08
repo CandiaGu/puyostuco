@@ -2,12 +2,14 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Link, withRouter } from 'react-router-dom';
 import { withFirebase } from './firebase.js';
+import { SignInLink } from './signIn.js';
 import * as ROUTES from './routes.js';
 
 const SignUp = () => (
-  <div>
-    <h1>SignUp</h1>
+  <div className="sign-in-form" style = {{marginBottom: '5%'}}>
+    <h1 style={{marginTop: 0}}>Sign Up</h1>
     <SignUpForm />
+    <SignInLink />
   </div>
 );
 
@@ -66,20 +68,25 @@ class SignUpFormBase extends Component {
 
     return (
       <form onSubmit={this.onSubmit}>
+        <h3>username</h3>
         <input
           name="username"
           value={username}
           onChange={this.onChange}
           type="text"
-          placeholder="Full Name"
+          placeholder="Username"
+          style={{marginBottom: '5%'}}
         />
+        <h3>email</h3>
         <input
           name="email"
           value={email}
           onChange={this.onChange}
           type="text"
           placeholder="Email Address"
+          style={{marginBottom: '5%'}}
         />
+        <h3>password</h3>
         <input
           name="passwordOne"
           value={passwordOne}
@@ -93,9 +100,10 @@ class SignUpFormBase extends Component {
           onChange={this.onChange}
           type="password"
           placeholder="Confirm Password"
+          style={{marginBottom: '5%'}}
         />
-        <button disabled={isInvalid} type="submit">
-          Sign Up
+        <button disabled={isInvalid} type="submit" className="centered-box sign-in-button">
+          SIGN UP
         </button>
 
         {error && <p>{error.message}</p>}
@@ -120,11 +128,11 @@ SignUpFormBase.propTypes = {
 };
 
 const SignUpLink = () => (
-  <p>
+  <div>
     Don&apos;t have an account?
     {' '}
-    <Link to={ROUTES.SIGN_UP}>Sign Up</Link>
-  </p>
+    <Link to={ROUTES.SIGN_UP} className="click-link">Sign Up</Link>
+  </div>
 );
 
 const SignUpForm = withRouter(withFirebase(SignUpFormBase));
