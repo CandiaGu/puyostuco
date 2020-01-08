@@ -446,7 +446,7 @@ header{
 }
 
 #game .cell.yellow {
-	background-color: yellow;
+	background-color: gold;
 }
 
 #game .cell.purple {
@@ -472,12 +472,11 @@ header{
 }
 
 #game .cell .chain-text {
-  color: yellow;
+  color: white;
   font-size: 40px;
+  font-weight: 900;
   white-space: nowrap;
-  -webkit-text-stroke: 1px black;
   animation: reveal var(--exploding-delay);
-  font-family: fantasy;
 }
 
 @keyframes reveal {
@@ -496,12 +495,11 @@ header{
 #game .all-clear-text {
   color: white;
   font-size: 90px;
-  -webkit-text-stroke: 9px orange;
+  font-weight: 900;
   animation: slide 0.5s ease-out forwards;
   text-align: center;
   width: calc(6px * var(--cell-size));
   line-height: 69px;
-  font-family: fantasy;
   z-index: -1; /* behind cells */
   position: absolute;
 }
