@@ -3,7 +3,6 @@ export const PRACTICE = '/practice';
 export const LEARN = '/learn';
 export const LEARN_MODULE = '/learn-module';
 export const PLAY = '/play';
-export const MULTIPLAYER = '/multiplayer';
 export const SIGN_UP = '/signup';
 export const SIGN_IN = '/signin';
 export const ACCOUNT = '/account';

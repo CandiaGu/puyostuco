@@ -7,7 +7,6 @@ import Practice from './practice.js';
 import Learn from './learn.js';
 import LearnModule from './learnModule.js';
 import Play from './play.js';
-import Multiplayer from './multiplayer.js';
 import SignUp from './signUp.js';
 import SignIn from './signIn.js';
 import PasswordForget from './passwordForget.js';
@@ -25,7 +24,6 @@ const App = () => (
       <Route path={ROUTES.LEARN} component={Learn} />
       <Route path={ROUTES.LEARN_MODULE} component={LearnModule} />
       <Route path={ROUTES.PLAY} component={Play} />
-      <Route path={ROUTES.MULTIPLAYER} component={Multiplayer} />
       <Route path={ROUTES.SIGN_UP} component={SignUp} />
       <Route path={ROUTES.SIGN_IN} component={SignIn} />
       <Route path={ROUTES.PASSWORD_FORGET} component={PasswordForget} />

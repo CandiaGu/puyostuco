@@ -93,6 +93,8 @@ UserList.propTypes = {
   users: usersPropType.isRequired,
 };
 
-const condition = (authUser) => !!authUser;
+const condition = (authUser) => (
+  authUser && ['bney@andrew.cmu.edu', 'candi37@gmail.com'].includes(authUser.email)
+);
 
 export default withAuthorization(condition)(withFirebase(Admin));

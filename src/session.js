@@ -94,4 +94,15 @@ const withAuthorization = (condition) => (Component) => {
   return withRouter(withFirebase(WithAuthorization));
 };
 
-export { AuthUserContext, withAuthentication, withAuthorization };
+const withAuthUser = (Component) => (props) => (
+  <AuthUserContext.Consumer>
+    {(authUser) => <Component {...props} authUser={authUser} />}
+  </AuthUserContext.Consumer>
+);
+
+export {
+  AuthUserContext,
+  withAuthentication,
+  withAuthorization,
+  withAuthUser,
+};

@@ -36,12 +36,7 @@ const AccountBox = () => (
 
 const Header = ({ location }) => {
   const path = location.pathname.slice(1);
-  let page;
-  switch (path) {
-    case '': page = 'landing'; break;
-    case 'multiplayer': page = 'play'; break;
-    default: page = path;
-  }
+  const page = path === 'landing' ? '' : path;
   return (
     <header className={(page === 'landing' ? 'home' : 'other') + '-header'}>
 
