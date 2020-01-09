@@ -17,6 +17,7 @@ class GameMulti extends React.Component {
     this.usernameListRef = this.gameRef.child('users');
 
     this.handleDeath = this.handleDeath.bind(this);
+    this.setIsChaining = this.setIsChaining.bind(this);
 
     this.state = {
       seed: undefined,
@@ -27,6 +28,7 @@ class GameMulti extends React.Component {
     if (this.playerNum === 0) {
       this.resetRefs();
     }
+    this.isChaining = false;
   }
 
   componentDidMount() {
@@ -37,6 +39,10 @@ class GameMulti extends React.Component {
           // player is winner
           this.setState({ loser });
           this.loserRef.set('none');
+          this.didIWin = true;
+          if (!this.isChaining) {
+            this.handleWin();
+          }
         }
       }
     });
@@ -66,7 +72,25 @@ class GameMulti extends React.Component {
     window.removeEventListener('keydown', disableMovementKeyHandler, false);
   }
 
+  setIsChaining(isChaining) {
+    this.isChaining = isChaining;
+    if (!isChaining && this.didIWin) {
+      this.handleWin();
+    }
+  }
+
+  handleDeath() {
+    this.loserRef.transaction((loser) => {
+      if (loser === 'none') {
+        this.setState({ loser: this.playerNum });
+        return this.playerNum;
+      }
+      return loser;
+    });
+  }
+
   resetRefs() {
+    this.didIWin = false;
     const initGarbage = { pending: 0, sentPlusDropped: 0 };
     this.garbageListRef.set([{ ...initGarbage }, { ...initGarbage }]);
 
@@ -80,15 +104,8 @@ class GameMulti extends React.Component {
     this.seedRef.set(newSeed);
   }
 
-  handleDeath() {
-    this.loserRef.transaction((loser) => {
-      if (loser === 'none') {
-        this.setState({ loser: this.playerNum });
-        setTimeout(this.resetRefs.bind(this), 0);
-        return this.playerNum;
-      }
-      return loser;
-    });
+  handleWin() {
+    this.resetRefs();
   }
 
   render() {
@@ -123,6 +140,7 @@ class GameMulti extends React.Component {
                     myGarbageRef={this.garbageListRef.child(playerNum)}
                     oppGarbageRef={this.garbageListRef.child(1 - playerNum)}
                     playerRef={this.playerListRef.child(playerNum)}
+                    setIsChaining={this.setIsChaining}
                   />
                 );
               })
