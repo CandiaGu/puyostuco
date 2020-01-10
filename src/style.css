@@ -361,6 +361,7 @@ header{
 }
 
 #game {
+  --cell-size: 47;
   width: fit-content;
 	margin: auto;
 	border-radius: 25px;
@@ -371,7 +372,6 @@ header{
 
 
 #game .board {
-  --cell-size: 47;
   width: calc(6px * var(--cell-size));
   --invisible-rows-height: calc(var(--invisible-rows-count) * var(--cell-size) * 1px - 17px);
   /* avoid clipping chain text on sides */
@@ -381,8 +381,9 @@ header{
 
 #game .cell {
 	float: left;
-	height: 45px;
-	width: 45px;
+  --diameter: calc((var(--cell-size) - 2) * 1px);
+	height: var(--diameter);
+	width: var(--diameter);
 	border-radius:50%;
   position: relative;
   --exploding-delay: calc(31s / 60);
@@ -473,7 +474,7 @@ header{
 
 #game .cell .chain-text {
   color: white;
-  font-size: 40px;
+  font-size: calc(40px * var(--cell-size) / 47);
   font-weight: 900;
   white-space: nowrap;
   animation: reveal var(--exploding-delay);
@@ -488,18 +489,18 @@ header{
 
 #game .cell .red-X {
   color: red;
-  font-size: 40px;
+  font-size: calc(40px * var(--cell-size) / 47);
   text-align: center;
 }
 
 #game .all-clear-text {
   color: white;
-  font-size: 90px;
+  font-size: calc(90px * var(--cell-size) / 47);
   font-weight: 900;
   animation: slide 0.5s ease-out forwards;
   text-align: center;
   width: calc(6px * var(--cell-size));
-  line-height: 69px;
+  line-height: calc(69px * var(--cell-size) / 47);
   z-index: -1; /* behind cells */
   position: absolute;
 }
@@ -542,7 +543,7 @@ header{
   border: solid 4px;
   border-radius: 30px;
   padding: 15px;
-  font-size: 1.5em;
+  font-size: calc(1.5em * var(--cell-size) / 47);
   font-weight: bold;
   text-align: center;
 }
@@ -564,7 +565,7 @@ header{
   border-radius: 20px;
   padding:25px;
   position: relative;
-  left:70px;
+  left: calc((70 + var(--cell-size) - 47) * 1px);
   top: 60px;
   z-index: -1;
 
