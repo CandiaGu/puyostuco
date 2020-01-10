@@ -11,12 +11,6 @@ const AccountBox = () => (
       <div className="centered-box sign-in-up">
         {authUser ? (
           <>
-            <Link to={ROUTES.ACCOUNT}>
-              account
-            </Link>
-            <Link to={ROUTES.ADMIN}>
-              admin
-            </Link>
             <SignOutButton />
           </>
         ) : (
