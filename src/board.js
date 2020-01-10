@@ -22,11 +22,13 @@ class Board extends React.Component {
       myGarbageRef,
       oppGarbageRef,
       playerRef,
+      setIsChaining,
     } = props;
     this.handleDeath = handleDeath;
     this.multiplayer = multiplayer;
     this.myGarbageRef = myGarbageRef;
     this.oppGarbageRef = oppGarbageRef;
+    this.setIsChaining = setIsChaining;
     this.twelfthRow = 2; // two hidden rows
     this.height = 12 + this.twelfthRow;
     this.extraRows = 6;
@@ -299,6 +301,9 @@ class Board extends React.Component {
   }
 
   spawnPuyo() {
+    if (this.multiplayer === 'send') {
+      this.setIsChaining(false);
+    }
     if (
       this.multiplayer === 'receive'
       && this.dropList.length > 0
@@ -491,6 +496,9 @@ class Board extends React.Component {
   }
 
   handleLink() {
+    if (this.multiplayer === 'send') {
+      this.setIsChaining(true);
+    }
     const poppedDroppedScore = this.chainsim.computeLink();
     if (poppedDroppedScore) {
       this.didChain = true;
@@ -1111,6 +1119,7 @@ Board.propTypes = {
   myGarbageRef: shape({ set: func }),
   oppGarbageRef: shape({ on: func.isRequired, off: func.isRequired }),
   playerRef: shape({ child: func.isRequired }),
+  setIsChaining: func,
 };
 
 Board.defaultProps = {
@@ -1118,6 +1127,7 @@ Board.defaultProps = {
   myGarbageRef: undefined,
   oppGarbageRef: undefined,
   playerRef: undefined,
+  setIsChaining: undefined,
 };
 
 export default Board;
