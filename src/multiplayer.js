@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { withFirebase } from './firebase.js';
 import { withAuthUser } from './session.js';
 import GameMulti from './gameMulti.js';
+import Loader from 'react-dots-loader';
+import 'react-dots-loader/index.css';
 
 class Multiplayer extends React.Component {
   constructor(props) {
@@ -115,7 +117,11 @@ class Multiplayer extends React.Component {
       gameActive,
     } = this.state;
     if (!gameActive) {
-      return null;
+      return (
+        <div style={{display: 'flex', justifyContent: 'center', flexDirection:'column', alignItems: 'center'}}>
+          <h1>waiting for another player to join :o</h1>
+          <Loader size={10}/>
+        </div>);
     }
     return (
       <GameMulti

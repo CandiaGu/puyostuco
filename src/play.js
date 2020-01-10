@@ -25,18 +25,25 @@ class Play extends React.Component {
             role="button"
             tabIndex={0}
             className="centered-box"
-            onClick={selectMultiplayer}
-            onKeyDown={selectMultiplayer}
+            onClick={() => this.setState({ multiplayer: true })}
+            onKeyDown={() => this.setState({ multiplayer: true })}
           >
             <div className="play-option centered-box play-option-1">
               <h2>JOIN ROOM</h2>
             </div>
           </a>
-          <Link className="centered-box" to={ROUTES.PRACTICE}>
+          <a
+            role="button"
+            tabIndex={0}
+            className="centered-box"
+            onClick={selectMultiplayer}
+            onKeyDown={selectMultiplayer}
+          >
             <div className="play-option centered-box play-option-2">
-              <h2>PLAY CPU</h2>
+              <h2>CREATE ROOM</h2>
             </div>
-          </Link>
+          </a>
+
         </div>
 
         <div id="select-room" className="centered-box">
