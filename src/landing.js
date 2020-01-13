@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import * as ROUTES from './routes.js';
+import { FaLock } from 'react-icons/fa';
 
 const Landing = () => (
   <>
@@ -13,10 +14,11 @@ const Landing = () => (
         </div>
       </Link>
 
-      <Link to={ROUTES.LEARN} className="box learn">
-        <div>
+      <Link to={ROUTES.LEARN} className="box learn disabled-link">
+        <div >
+          
           <h2>
-            LEARN
+            <FaLock/> LEARN
           </h2>
         </div>
       </Link>

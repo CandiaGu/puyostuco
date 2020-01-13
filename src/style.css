@@ -51,6 +51,10 @@ form {
 	width: 100%;
 }
 
+.disabled-link {
+  pointer-events: none;
+}
+
 
 /********* Header *********/
 header{

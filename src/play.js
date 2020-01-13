@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { selectMultiplayer } from './script.js';
 import Multiplayer from './multiplayer.js';
 import * as ROUTES from './routes.js';
+import { FaLock } from 'react-icons/fa';
 
 class Play extends React.Component {
   constructor(props) {
@@ -35,11 +36,17 @@ class Play extends React.Component {
           <a
             role="button"
             tabIndex={0}
-            className="centered-box"
+            className="centered-box disabled-link"
             onClick={selectMultiplayer}
             onKeyDown={selectMultiplayer}
           >
-            <div className="play-option centered-box play-option-2">
+
+            <div className="play-option play-option-2 " style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center"}}>
+              <FaLock/>
               <h2>CREATE ROOM</h2>
             </div>
           </a>
