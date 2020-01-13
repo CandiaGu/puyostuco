@@ -34,6 +34,13 @@ const Landing = () => (
 
 
     <div className="about-us">
+      <a href="https://drive.google.com/file/d/11A7fWGeO1q_2VVteJDyTeuC-97ZQCJFU/view?usp=sharing">
+        <div className="sign-in-button" style={{marginBottom: 50}}>
+          <h3 style={{color:'white'}}>
+              Syllabus
+          </h3>
+        </div>
+      </a>
       <h3>
         ABOUT US
       </h3>
@@ -43,11 +50,7 @@ const Landing = () => (
         This course aims to teach beginners the basic techniques of Puyo Puyo
         so that they too can become Puyo Masters!
       </p>
-      <h3>
-        <a href="https://drive.google.com/file/d/11A7fWGeO1q_2VVteJDyTeuC-97ZQCJFU/view?usp=sharing">
-          Syllabus
-        </a>
-      </h3>
+      
     </div>
 
   </>
