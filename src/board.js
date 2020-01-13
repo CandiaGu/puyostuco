@@ -1068,12 +1068,13 @@ class Board extends React.Component {
     const totalGarbage = ({ pending, sentPlusDropped }) => pending + sentPlusDropped;
     const garbagePending = Math.max(0, totalGarbage(oppGarbage) - totalGarbage(myGarbage));
     return (
-      <div className="player">
-        {this.multiplayer === 'none' && (
-          <div>
+      <div style = {{display:'flex', flexDireciton:'row'}}>
+      {this.multiplayer === 'none' && (
+          <div style={{marginLeft: 80, marginRight: 80,}}>
             {this.renderTime()}
           </div>
         )}
+      <div className="player">
         {/* z-index allows chain text to overlap preview box */}
         <div style={{ zIndex: 1 }}>
           {this.multiplayer !== 'none'
@@ -1109,6 +1110,7 @@ class Board extends React.Component {
             <div className="clear" />
           </div>
         </div>
+      </div>
       </div>
     );
   }
