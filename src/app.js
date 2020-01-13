@@ -21,8 +21,8 @@ const App = () => (
 
       <Route exact path={ROUTES.LANDING} component={Landing} />
       <Route path={ROUTES.PRACTICE} component={Practice} />
-      <Route path={ROUTES.LEARN} component={Learn} />
-      <Route path={ROUTES.LEARN_MODULE} component={LearnModule} />
+      {/*<Route path={ROUTES.LEARN} component={Learn} />
+      <Route path={ROUTES.LEARN_MODULE} component={LearnModule} />*/}
       <Route path={ROUTES.PLAY} component={Play} />
       <Route path={ROUTES.SIGN_UP} component={SignUp} />
       <Route path={ROUTES.SIGN_IN} component={SignIn} />

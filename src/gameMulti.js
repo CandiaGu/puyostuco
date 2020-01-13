@@ -121,6 +121,25 @@ class GameMulti extends React.Component {
     this.resetRefs();
   }
 
+  renderBoard(i){
+    const {
+      seed,
+    } = this.state;
+    const playerNum = (i + this.playerNum) % 2;
+    return (
+      <Board
+        key={seed + i}
+        seed={seed}
+        handleDeath={this.handleDeath}
+        multiplayer={i === 0 ? 'send' : 'receive'}
+        myGarbageRef={this.garbageListRef.child(playerNum)}
+        oppGarbageRef={this.garbageListRef.child(1 - playerNum)}
+        playerRef={this.playerListRef.child(playerNum)}
+        setIsChaining={this.setIsChaining}
+      />
+    );
+  }
+
   render() {
     const {
       seed,
@@ -130,34 +149,23 @@ class GameMulti extends React.Component {
     if (!seed) return null;
     return (
       <>
-        <div>
-          {'You: ' + (usernameList[this.playerNum] || 'connecting')}
-        </div>
-        <div>
-          {'Score: ' + scores[0] + ' - ' + scores[1]}
-        </div>
-        <div>
-          {'Opponent: ' + (usernameList[1 - this.playerNum] || 'connecting')}
+        <div style={{margin: 40}}>
+          <div>
+            {'You: ' + (usernameList[this.playerNum] || 'connecting')}
+          </div>
+          <div>
+            {'Score: ' + scores[0] + ' - ' + scores[1]}
+          </div>
+          <div>
+            {'Opponent: ' + (usernameList[1 - this.playerNum] || 'connecting')}
+          </div>
         </div>
         <div id="game">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-            {
-              [0, 1].map((i) => {
-                const playerNum = (i + this.playerNum) % 2;
-                return (
-                  <Board
-                    key={seed + i}
-                    seed={seed}
-                    handleDeath={this.handleDeath}
-                    multiplayer={i === 0 ? 'send' : 'receive'}
-                    myGarbageRef={this.garbageListRef.child(playerNum)}
-                    oppGarbageRef={this.garbageListRef.child(1 - playerNum)}
-                    playerRef={this.playerListRef.child(playerNum)}
-                    setIsChaining={this.setIsChaining}
-                  />
-                );
-              })
-            }
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
+            {this.renderBoard(0)}
+            <div></div>
+            {this.renderBoard(1)}
+  
           </div>
         </div>
       </>

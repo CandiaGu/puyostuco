@@ -365,12 +365,13 @@ header{
 }
 
 #game {
-  --cell-size: 47;
+  --cell-size: 40;
   width: fit-content;
 	margin: auto;
 	border-radius: 25px;
 	margin-bottom: 15vh;
-	padding:4%;
+	padding-left:10%;
+	padding-right:10%;
   display: flow-root;
 }
 
@@ -579,5 +580,5 @@ header{
 
 .player {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
 }
