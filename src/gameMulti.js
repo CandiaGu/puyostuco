@@ -149,22 +149,17 @@ class GameMulti extends React.Component {
     if (!seed) return null;
     return (
       <>
-        <div style={{margin: 40}}>
-          <div>
-            {'You: ' + (usernameList[this.playerNum] || 'connecting')}
-          </div>
-          <div>
-            {'Score: ' + scores[0] + ' - ' + scores[1]}
-          </div>
-          <div>
-            {'Opponent: ' + (usernameList[1 - this.playerNum] || 'connecting')}
-          </div>
-        </div>
         <div id="game">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
-            {this.renderBoard(0)}
+            <div>
+              <h3>{usernameList[this.playerNum]} &emsp;Wins: {scores[0]}</h3>
+              {this.renderBoard(0)}
+            </div>
             <div></div>
+            <div>
+            <h3>{usernameList[1 - this.playerNum]} &emsp;Wins: {scores[1]}</h3>
             {this.renderBoard(1)}
+            </div>
   
           </div>
         </div>
