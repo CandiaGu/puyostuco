@@ -21,9 +21,11 @@ class GameMulti extends React.Component {
 
     this.state = {
       seed: undefined,
-      loser: 'none',
       usernameList: [undefined, undefined],
+      scores: [0, 0],
     };
+
+    this.result = 'none';
 
     if (this.playerNum === 0) {
       this.resetRefs();
@@ -37,7 +39,7 @@ class GameMulti extends React.Component {
         const loser = snapshot.val();
         if (loser !== 'none' && loser !== this.playerNum) {
           // player is winner
-          this.setState({ loser });
+          this.result = 'won';
           this.loserRef.set('none');
           this.didIWin = true;
           if (!this.isChaining) {
@@ -50,6 +52,17 @@ class GameMulti extends React.Component {
       if (snapshot.exists()) {
         const seed = snapshot.val();
         if (seed !== 'none') {
+          if (this.result !== 'none') {
+            this.setState((state) => {
+              const scores = [...state.scores];
+              if (this.result === 'won') {
+                scores[0]++;
+              } else if (this.result === 'lost') {
+                scores[1]++;
+              }
+              return { scores };
+            });
+          }
           this.setState({ seed });
         }
       }
@@ -82,7 +95,7 @@ class GameMulti extends React.Component {
   handleDeath() {
     this.loserRef.transaction((loser) => {
       if (loser === 'none') {
-        this.setState({ loser: this.playerNum });
+        this.result = 'lost';
         return this.playerNum;
       }
       return loser;
@@ -111,8 +124,8 @@ class GameMulti extends React.Component {
   render() {
     const {
       seed,
-      loser,
       usernameList,
+      scores,
     } = this.state;
     if (!seed) return null;
     return (
@@ -121,7 +134,7 @@ class GameMulti extends React.Component {
           {'You: ' + (usernameList[this.playerNum] || 'connecting')}
         </div>
         <div>
-          {'Loser: ' + (loser === 'none' ? 'none' : usernameList[loser])}
+          {'Score: ' + scores[0] + ' - ' + scores[1]}
         </div>
         <div>
           {'Opponent: ' + (usernameList[1 - this.playerNum] || 'connecting')}

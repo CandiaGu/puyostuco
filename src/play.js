@@ -4,6 +4,7 @@ import { selectMultiplayer } from './script.js';
 import Multiplayer from './multiplayer.js';
 import * as ROUTES from './routes.js';
 import { FaLock } from 'react-icons/fa';
+import { withAuthorization } from './session.js';
 
 class Play extends React.Component {
   constructor(props) {
@@ -81,4 +82,6 @@ class Play extends React.Component {
   }
 }
 
-export default Play;
+const condition = (authUser) => !!authUser;
+
+export default withAuthorization(condition)(Play);
