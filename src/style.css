@@ -473,7 +473,7 @@ header{
 }
 
 #game .cell .chain-text {
-  color: white;
+  color: yellow;
   font-size: calc(40px * var(--cell-size) / 47);
   font-weight: 900;
   white-space: nowrap;

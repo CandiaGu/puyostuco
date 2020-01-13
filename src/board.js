@@ -272,7 +272,6 @@ class Board extends React.Component {
       x: 'clockwise',
       d: 'counterclockwise',
       f: 'clockwise',
-      g: 'gravity',
       ...this.multiplayer === 'none' ? { Escape: 'pause' } : {},
     };
     this.controller = new Controller(controls, keys);
@@ -1046,6 +1045,17 @@ class Board extends React.Component {
     return rows;
   }
 
+  renderTime() {
+    const { time } = this.state;
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return (
+      <div>
+        {'time: ' + minutes + ' m ' + (seconds < 10 ? '0' : '') + seconds + ' s'}
+      </div>
+    );
+  }
+
   render() {
     const {
       score,
@@ -1054,7 +1064,6 @@ class Board extends React.Component {
       showAllClearText,
       myGarbage,
       oppGarbage,
-      time,
     } = this.state;
     const totalGarbage = ({ pending, sentPlusDropped }) => pending + sentPlusDropped;
     const garbagePending = Math.max(0, totalGarbage(oppGarbage) - totalGarbage(myGarbage));
@@ -1062,7 +1071,7 @@ class Board extends React.Component {
       <div className="player">
         {this.multiplayer === 'none' && (
           <div>
-            {'time: ' + time + ' s'}
+            {this.renderTime()}
           </div>
         )}
         {/* z-index allows chain text to overlap preview box */}

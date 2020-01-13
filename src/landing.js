@@ -32,14 +32,6 @@ const Landing = () => (
 
 
     <div className="about-us">
-      <h2>
-        ANNOUNCEMENT
-      </h2>
-      <p>
-        Class hasn&apos;t started yet --- stayed tune until Spring 2020!
-      </p>
-    </div>
-    <div className="about-us">
       <h3>
         ABOUT US
       </h3>
@@ -49,7 +41,13 @@ const Landing = () => (
         This course aims to teach beginners the basic techniques of Puyo Puyo
         so that they too can become Puyo Masters!
       </p>
+      <h3>
+        <a href="https://drive.google.com/file/d/11A7fWGeO1q_2VVteJDyTeuC-97ZQCJFU/view?usp=sharing">
+          Syllabus
+        </a>
+      </h3>
     </div>
+
   </>
 );
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { selectMultiplayer } from './script.js';
 import Multiplayer from './multiplayer.js';
 import * as ROUTES from './routes.js';
+import { withAuthorization } from './session.js';
 
 class Play extends React.Component {
   constructor(props) {
@@ -74,4 +75,6 @@ class Play extends React.Component {
   }
 }
 
-export default Play;
+const condition = (authUser) => !!authUser;
+
+export default withAuthorization(condition)(Play);
