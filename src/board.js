@@ -276,6 +276,7 @@ class Board extends React.Component {
       d: 'counterclockwise',
       f: 'clockwise',
       ...this.multiplayer === 'none' ? { Escape: 'pause' } : {},
+      ...process.env.NODE_ENV === 'development' ? { g: 'gravity' } : {},
     };
     this.controller = new Controller(controls, keys);
   }
