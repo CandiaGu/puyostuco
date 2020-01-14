@@ -4,18 +4,29 @@ import 'firebase/auth';
 import 'firebase/database';
 
 const config = {
-  apiKey: 'AIzaSyBfL5Tw5FzRhqgrYIfSl1-ZIHEWQ2-nUK0',
-  authDomain: 'puyostuco.firebaseapp.com',
-  databaseURL: 'https://puyostuco.firebaseio.com',
-  projectId: 'puyostuco',
-  storageBucket: 'puyostuco.appspot.com',
-  messagingSenderId: '249504518298',
-  appId: '1:249504518298:web:6e704b68850c969785cf23',
+  production: {
+    apiKey: 'AIzaSyBfL5Tw5FzRhqgrYIfSl1-ZIHEWQ2-nUK0',
+    authDomain: 'puyostuco.firebaseapp.com',
+    databaseURL: 'https://puyostuco.firebaseio.com',
+    projectId: 'puyostuco',
+    storageBucket: 'puyostuco.appspot.com',
+    messagingSenderId: '249504518298',
+    appId: '1:249504518298:web:6e704b68850c969785cf23',
+  },
+  development: {
+    apiKey: "AIzaSyBCfi9IWP7McUAzYQnLZg1S1h2E50ZfG5M",
+    authDomain: "puyostuco-dev.firebaseapp.com",
+    databaseURL: "https://puyostuco-dev.firebaseio.com",
+    projectId: "puyostuco-dev",
+    storageBucket: "puyostuco-dev.appspot.com",
+    messagingSenderId: "971124865987",
+    appId: "1:971124865987:web:0f1a1f796b209a25df9b76",
+  },
 };
 
 class Firebase {
   constructor() {
-    app.initializeApp(config);
+    app.initializeApp(config[process.env.NODE_ENV]);
     this.auth = app.auth();
     this.db = app.database();
   }
