@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import * as ROUTES from './routes.js';
 import { FaLock } from 'react-icons/fa';
+import * as ROUTES from './routes.js';
 
 const Landing = () => (
   <>
@@ -15,10 +15,12 @@ const Landing = () => (
       </Link>
 
       <Link to={ROUTES.LEARN} className="box learn disabled-link">
-        <div >
-          
+        <div>
+
           <h2>
-            <FaLock/> LEARN
+            <FaLock />
+            {' '}
+LEARN
           </h2>
         </div>
       </Link>
@@ -35,8 +37,8 @@ const Landing = () => (
 
     <div className="about-us">
       <a href="https://drive.google.com/file/d/11A7fWGeO1q_2VVteJDyTeuC-97ZQCJFU/view?usp=sharing">
-        <div className="sign-in-button" style={{marginBottom: 50}}>
-          <h3 style={{color:'white'}}>
+        <div className="sign-in-button" style={{ marginBottom: 50 }}>
+          <h3 style={{ color: 'white' }}>
               Syllabus
           </h3>
         </div>
@@ -50,7 +52,7 @@ const Landing = () => (
         This course aims to teach beginners the basic techniques of Puyo Puyo
         so that they too can become Puyo Masters!
       </p>
-      
+
     </div>
 
   </>

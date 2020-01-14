@@ -1,9 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { FaLock } from 'react-icons/fa';
 import { selectMultiplayer } from './script.js';
 import Multiplayer from './multiplayer.js';
-import * as ROUTES from './routes.js';
-import { FaLock } from 'react-icons/fa';
 import { withAuthorization } from './session.js';
 
 class Play extends React.Component {
@@ -42,12 +40,16 @@ class Play extends React.Component {
             onKeyDown={selectMultiplayer}
           >
 
-            <div className="play-option play-option-2 " style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center"}}>
-              <FaLock/>
+            <div
+              className="play-option play-option-2 "
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <FaLock />
               <h2>CREATE ROOM</h2>
             </div>
           </a>

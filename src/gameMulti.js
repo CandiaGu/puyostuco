@@ -121,7 +121,7 @@ class GameMulti extends React.Component {
     this.resetRefs();
   }
 
-  renderBoard(i){
+  renderBoard(i) {
     const {
       seed,
     } = this.state;
@@ -152,15 +152,27 @@ class GameMulti extends React.Component {
         <div id="game">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
             <div>
-              <h3>{usernameList[this.playerNum]} &emsp;Wins: {scores[0]}</h3>
+              <h3>
+                {usernameList[this.playerNum]}
+                {' '}
+&emsp;Wins:
+                {' '}
+                {scores[0]}
+              </h3>
               {this.renderBoard(0)}
             </div>
-            <div></div>
+            <div />
             <div>
-            <h3>{usernameList[1 - this.playerNum]} &emsp;Wins: {scores[1]}</h3>
-            {this.renderBoard(1)}
+              <h3>
+                {usernameList[1 - this.playerNum]}
+                {' '}
+&emsp;Wins:
+                {' '}
+                {scores[1]}
+              </h3>
+              {this.renderBoard(1)}
             </div>
-  
+
           </div>
         </div>
       </>

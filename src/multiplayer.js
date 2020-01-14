@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Loader from 'react-dots-loader';
 import { withFirebase } from './firebase.js';
 import { withAuthUser } from './session.js';
 import GameMulti from './gameMulti.js';
-import Loader from 'react-dots-loader';
 import 'react-dots-loader/index.css';
 
 class Multiplayer extends React.Component {
@@ -118,10 +118,14 @@ class Multiplayer extends React.Component {
     } = this.state;
     if (!gameActive) {
       return (
-        <div style={{display: 'flex', justifyContent: 'center', flexDirection:'column', alignItems: 'center'}}>
+        <div style={{
+          display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center',
+        }}
+        >
           <h1>waiting for another player to join :o</h1>
-          <Loader size={10}/>
-        </div>);
+          <Loader size={10} />
+        </div>
+      );
     }
     return (
       <GameMulti

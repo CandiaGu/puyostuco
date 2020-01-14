@@ -167,20 +167,21 @@ class Board extends React.Component {
   }
 
   onFallingAnimationEnd() {
-    const { boardData, splitPuyo } = this.state;
-    const {
-      x,
-      y,
-      color,
-      distance: d,
-    } = splitPuyo;
-    const data = cloneData(boardData);
-    Object.assign(data[y][x], { color: 'none', state: 'none' });
-    Object.assign(data[y + d][x], { color, state: 'fell' });
-    this.setState({
-      boardData: data,
-      currState: 'none',
-      splitPuyo: false,
+    this.setState(({ boardData, splitPuyo }) => {
+      const {
+        x,
+        y,
+        color,
+        distance: d,
+      } = splitPuyo;
+      const data = cloneData(boardData);
+      Object.assign(data[y][x], { color: 'none', state: 'none' });
+      Object.assign(data[y + d][x], { color, state: 'fell' });
+      return {
+        boardData: data,
+        currState: 'none',
+        splitPuyo: false,
+      };
     });
     const delay = this.timing.startChainDelay + this.timing.fallenPuyoDelay;
     this.setPausableTimeout(() => { this.handleLink(); }, delay);
@@ -189,25 +190,27 @@ class Board extends React.Component {
   onGarbageAnimationEnd() {
     this.garbageFallingCount--;
     if (this.garbageFallingCount === 0) {
-      const { boardData, garbagePuyoList } = this.state;
-      const data = cloneData(boardData);
-      for (const { x, y, distance: d } of garbagePuyoList) {
-        // don't add garbage to 14th row
-        if (y + d >= this.twelfthRow - 1) {
-          Object.assign(data[y + d][x], { color: 'gray', state: 'none' });
+      this.setState(({ boardData, garbagePuyoList }) => {
+        const data = cloneData(boardData);
+        for (const { x, y, distance: d } of garbagePuyoList) {
+          // don't add garbage to 14th row
+          if (y + d >= this.twelfthRow - 1) {
+            Object.assign(data[y + d][x], { color: 'gray', state: 'none' });
+          }
         }
-      }
-      this.setState({ boardData: data, garbagePuyoList: false });
+        return { boardData: data, garbagePuyoList: false };
+      });
       this.setPausableTimeout(() => { this.spawnPuyo(); },
         this.timing.pieceSpawnDelay + this.timing.fallenPuyoDelay);
     }
   }
 
   onPuyoAnimationEnd({ x, y }) {
-    const { boardData } = this.state;
-    const data = cloneData(boardData);
-    data[y][x].state = 'none';
-    this.setState({ boardData: data });
+    this.setState(({ boardData }) => {
+      const data = cloneData(boardData);
+      data[y][x].state = 'none';
+      return { boardData: data };
+    });
   }
 
   setPausableTimeout(func, delay) {
@@ -479,13 +482,14 @@ class Board extends React.Component {
     }
     this.chainsim.placePuyo(placedPuyo1, placedPuyo2);
     this.didChain = false;
-    const { boardData } = this.state;
-    const data = cloneData(boardData);
-    Object.assign(data[puyo1.y][puyo1.x], { color: puyo1.color, state: state1 });
-    Object.assign(data[puyo2.y][puyo2.x], { color: puyo2.color, state: state2 });
-    this.setState({
-      boardData: data,
-      currState: 'none',
+    this.setState(({ boardData }) => {
+      const data = cloneData(boardData);
+      Object.assign(data[puyo1.y][puyo1.x], { color: puyo1.color, state: state1 });
+      Object.assign(data[puyo2.y][puyo2.x], { color: puyo2.color, state: state2 });
+      return {
+        boardData: data,
+        currState: 'none',
+      };
     });
     if (state1 === 'falling' || state2 === 'falling') {
       this.setState({ splitPuyo });
@@ -506,18 +510,19 @@ class Board extends React.Component {
         this.setState({ showAllClearText: false });
       }
       const { popped, dropped, score: chainScore } = poppedDroppedScore;
-      const { boardData } = this.state;
-      const data = cloneData(boardData);
-      let minY = this.height;
-      let minX;
-      for (const { x, y } of popped) {
-        data[y][x].state = 'blinking';
-        if (y < minY || (y === minY && x < minX)) {
-          minY = y;
-          minX = x;
+      this.setState(({ boardData }) => {
+        const data = cloneData(boardData);
+        let minY = this.height;
+        let minX;
+        for (const { x, y } of popped) {
+          data[y][x].state = 'blinking';
+          if (y < minY || (y === minY && x < minX)) {
+            minY = y;
+            minX = x;
+          }
         }
-      }
-      this.setState({ boardData: data, highestPopping: { x: minX, y: minY } });
+        return { boardData: data, highestPopping: { x: minX, y: minY } };
+      });
       this.setPausableTimeout(() => {
         this.popPopped(popped);
         this.setState(({ score, myGarbage }) => {
@@ -543,34 +548,36 @@ class Board extends React.Component {
           this.dropByDistCount = Object.fromEntries(
             Object.entries(dropByDist).map(([k, v]) => [k, v.length]),
           );
-          const { boardData: boardDataTimeout } = this.state;
-          const dataTimeout = cloneData(boardDataTimeout);
-          for (const { puyo, dist } of dropped) {
-            const newElem = {
-              state: 'dropping',
-              distance: dist,
-              onAnimationEnd: () => {
-                this.dropByDistCount[dist]--;
-                if (this.dropByDistCount[dist] === 0) {
-                  const { boardData: boardDataAnimation } = this.state;
-                  const dataAnimation = cloneData(boardDataAnimation);
-                  for (const { x, y } of dropByDist[dist]) {
-                    const { color } = dataAnimation[y][x];
-                    const endState = color === 'gray' ? 'none' : 'fell';
-                    Object.assign(dataAnimation[y][x], { color: 'none', state: 'none' });
-                    Object.assign(dataAnimation[y + dist][x], { color, state: endState });
+          this.setState(({ boardData: boardDataTimeout }) => {
+            const dataTimeout = cloneData(boardDataTimeout);
+            for (const { puyo, dist } of dropped) {
+              const newElem = {
+                state: 'dropping',
+                distance: dist,
+                onAnimationEnd: () => {
+                  this.dropByDistCount[dist]--;
+                  if (this.dropByDistCount[dist] === 0) {
+                    this.setState(({ boardData: boardDataAnimation }) => {
+                      const dataAnimation = cloneData(boardDataAnimation);
+                      for (const { x, y } of dropByDist[dist]) {
+                        const { color } = dataAnimation[y][x];
+                        const endState = color === 'gray' ? 'none' : 'fell';
+                        Object.assign(dataAnimation[y][x], { color: 'none', state: 'none' });
+                        Object.assign(dataAnimation[y + dist][x], { color, state: endState });
+                      }
+                      return { boardData: dataAnimation };
+                    });
+                    if (dist === maxDist) {
+                      this.setPausableTimeout(() => { this.handleLink(); },
+                        this.timing.nextLinkDelay + this.timing.fallenPuyoDelay);
+                    }
                   }
-                  this.setState({ boardData: dataAnimation });
-                  if (dist === maxDist) {
-                    this.setPausableTimeout(() => { this.handleLink(); },
-                      this.timing.nextLinkDelay + this.timing.fallenPuyoDelay);
-                  }
-                }
-              },
-            };
-            Object.assign(dataTimeout[puyo.y][puyo.x], newElem);
-          }
-          this.setState({ boardData: dataTimeout });
+                },
+              };
+              Object.assign(dataTimeout[puyo.y][puyo.x], newElem);
+            }
+            return { boardData: dataTimeout };
+          });
         } else {
           this.setPausableTimeout(() => { this.handleLink(); }, this.timing.nextLinkDelay);
         }
@@ -653,12 +660,13 @@ class Board extends React.Component {
   }
 
   popPopped(popped) {
-    const { boardData } = this.state;
-    const data = cloneData(boardData);
-    for (const { x, y } of popped) {
-      Object.assign(data[y][x], { color: 'none', state: 'none' });
-    }
-    this.setState({ boardData: data });
+    this.setState(({ boardData }) => {
+      const data = cloneData(boardData);
+      for (const { x, y } of popped) {
+        Object.assign(data[y][x], { color: 'none', state: 'none' });
+      }
+      return { boardData: data };
+    });
   }
 
   checkAllClear() {
@@ -1068,49 +1076,49 @@ class Board extends React.Component {
     const totalGarbage = ({ pending, sentPlusDropped }) => pending + sentPlusDropped;
     const garbagePending = Math.max(0, totalGarbage(oppGarbage) - totalGarbage(myGarbage));
     return (
-      <div style = {{display:'flex', flexDireciton:'row'}}>
-      {this.multiplayer === 'none' && (
-          <div style={{marginLeft: 80, marginRight: 80,}}>
-            {this.renderTime()}
-          </div>
+      <div style={{ display: 'flex', flexDireciton: 'row' }}>
+        {this.multiplayer === 'none' && (
+        <div style={{ marginLeft: 80, marginRight: 80 }}>
+          {this.renderTime()}
+        </div>
         )}
-      <div className="player">
-        {/* z-index allows chain text to overlap preview box */}
-        <div style={{ zIndex: 1 }}>
-          {this.multiplayer !== 'none'
+        <div className="player">
+          {/* z-index allows chain text to overlap preview box */}
+          <div style={{ zIndex: 1 }}>
+            {this.multiplayer !== 'none'
             && (
               <div className="garbage">
                 <h2>{ garbagePending }</h2>
               </div>
             )}
-          <div style={{ backgroundColor: 'var(--board-color)', padding: 20, borderRadius: 20 }}>
-            <div
-              className="board"
-              style={{ '--invisible-rows-count': this.twelfthRow + this.extraRows }}
-            >
-              { this.renderBoard() }
-              {showAllClearText && <p className="all-clear-text">ALL CLEAR</p>}
+            <div style={{ backgroundColor: 'var(--board-color)', padding: 20, borderRadius: 20 }}>
+              <div
+                className="board"
+                style={{ '--invisible-rows-count': this.twelfthRow + this.extraRows }}
+              >
+                { this.renderBoard() }
+                {showAllClearText && <p className="all-clear-text">ALL CLEAR</p>}
+              </div>
+            </div>
+            <div className="score">
+              { score }
             </div>
           </div>
-          <div className="score">
-            { score }
+          <div className="preview">
+            <div className="preview-box">
+              <Cell classList={[nextColors1.color1]} />
+              <div className="clear" />
+              <Cell classList={[nextColors1.color2]} />
+              <div className="clear" />
+            </div>
+            <div className="preview-box-offset">
+              <Cell classList={[nextColors2.color1]} />
+              <div className="clear" />
+              <Cell classList={[nextColors2.color2]} />
+              <div className="clear" />
+            </div>
           </div>
         </div>
-        <div className="preview">
-          <div className="preview-box">
-            <Cell classList={[nextColors1.color1]} />
-            <div className="clear" />
-            <Cell classList={[nextColors1.color2]} />
-            <div className="clear" />
-          </div>
-          <div className="preview-box-offset">
-            <Cell classList={[nextColors2.color1]} />
-            <div className="clear" />
-            <Cell classList={[nextColors2.color2]} />
-            <div className="clear" />
-          </div>
-        </div>
-      </div>
       </div>
     );
   }
