@@ -59,7 +59,7 @@ class Board extends React.Component {
       showAllClearText: false,
       myGarbage: { ...initGarbage },
       oppGarbage: { ...initGarbage },
-      time: 0,
+      timeElapsed: 0,
       paused: false,
     };
     if (this.multiplayer !== 'none') {
@@ -139,15 +139,13 @@ class Board extends React.Component {
       }
     }
     this.setPausableTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
+    this.effectiveStartTime = Date.now();
     setInterval(() => {
-      this.setState(({ time, paused }) => {
-        let newTime = time;
-        if (!paused) {
-          newTime++;
-        }
-        return { time: newTime };
-      });
-    }, 1000);
+      const { paused } = this.state;
+      if (!paused) {
+        this.setTimeElapsed();
+      }
+    }, this.timing.oneFrame);
   }
 
   componentWillUnmount() {
@@ -284,12 +282,18 @@ class Board extends React.Component {
   pause() {
     this.setState(({ paused }) => {
       if (!paused) {
+        this.pauseStartTime = Date.now();
+        setTimeout(() => {
+          this.setTimeElapsed();
+        }, 0);
         this.gravityWasOn = this.gravityOn;
         if (this.gravityOn) {
           this.toggleGravity();
         }
       } else {
         setTimeout(() => {
+          this.effectiveStartTime += Date.now() - this.pauseStartTime;
+          this.setTimeElapsed(time);
           if (this.gravityWasOn) {
             this.toggleGravity(true);
           }
@@ -301,6 +305,10 @@ class Board extends React.Component {
       }
       return { paused: !paused };
     });
+  }
+
+  setTimeElapsed() {
+    this.setState({ timeElapsed: Date.now() - this.effectiveStartTime });
   }
 
   spawnPuyo() {
@@ -1055,12 +1063,28 @@ class Board extends React.Component {
   }
 
   renderTime() {
-    const { time } = this.state;
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
+    const { timeElapsed } = this.state;
+    const hundredthsPerMillisecond = 10;
+    const hundredthsPerSecond = 100;
+    const secondsPerMinute = 60;
+    const maxMinutes = 99;
+    const totalHundredths = Math.floor(timeElapsed / hundredthsPerMillisecond);
+    let hundredths = totalHundredths % hundredthsPerSecond;
+    const totalSeconds = Math.floor(totalHundredths / hundredthsPerSecond);
+    let seconds = totalSeconds % secondsPerMinute;
+    const totalMinutes = Math.floor(totalSeconds / secondsPerMinute);
+    let minutes = totalMinutes;
+    if (totalMinutes > maxMinutes) {
+      hundredths = hundredthsPerSecond - 1;
+      seconds = secondsPerMinute - 1;
+      minutes = maxMinutes;
+    }
+    const hundredthsStr = String(hundredths).padStart(2, '0');
+    const secondsStr = String(seconds).padStart(2, '0');
+    const minutesStr = String(minutes).padStart(2, '0');
     return (
-      <div>
-        {'time: ' + minutes + ' m ' + (seconds < 10 ? '0' : '') + seconds + ' s'}
+      <div id="time">
+        {`${minutesStr}:${secondsStr}.${hundredthsStr}`}
       </div>
     );
   }
