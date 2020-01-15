@@ -137,16 +137,18 @@ class GameMulti extends React.Component {
     } = this.state;
     const playerNum = (i + this.playerNum) % 2;
     return (
-      <Board
-        key={game + '' + i}
-        seed={seed}
-        handleDeath={() => { this.handleDeath(game); }}
-        multiplayer={i === 0 ? 'send' : 'receive'}
-        myGarbageRef={this.garbageListRef.child(playerNum)}
-        oppGarbageRef={this.garbageListRef.child(1 - playerNum)}
-        playerRef={this.playerListRef.child(playerNum)}
-        setIsChaining={this.setIsChaining}
-      />
+      <div style={{ display: 'flex', flexDireciton: 'row' }}>
+        <Board
+          key={game + '' + i}
+          seed={seed}
+          handleDeath={() => { this.handleDeath(game); }}
+          multiplayer={i === 0 ? 'send' : 'receive'}
+          myGarbageRef={this.garbageListRef.child(playerNum)}
+          oppGarbageRef={this.garbageListRef.child(1 - playerNum)}
+          playerRef={this.playerListRef.child(playerNum)}
+          setIsChaining={this.setIsChaining}
+        />
+      </div>
     );
   }
 

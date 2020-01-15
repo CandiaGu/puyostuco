@@ -23,12 +23,16 @@ class Board extends React.Component {
       oppGarbageRef,
       playerRef,
       setIsChaining,
+      setBoardPause,
     } = props;
     this.handleDeath = handleDeath;
     this.multiplayer = multiplayer;
     this.myGarbageRef = myGarbageRef;
     this.oppGarbageRef = oppGarbageRef;
     this.setIsChaining = setIsChaining;
+    if (this.multiplayer === 'none') {
+      setBoardPause(this.pause.bind(this));
+    }
     this.twelfthRow = 2; // two hidden rows
     this.height = 12 + this.twelfthRow;
     this.extraRows = 6;
@@ -59,8 +63,6 @@ class Board extends React.Component {
       showAllClearText: false,
       myGarbage: { ...initGarbage },
       oppGarbage: { ...initGarbage },
-      timeElapsed: 0,
-      paused: false,
     };
     if (this.multiplayer !== 'none') {
       this.currPuyoRef = playerRef.child('c');
@@ -139,13 +141,6 @@ class Board extends React.Component {
       }
     }
     this.setPausableTimeout(() => { this.spawnPuyo(); }, this.timing.pieceSpawnDelay);
-    this.effectiveStartTime = Date.now();
-    setInterval(() => {
-      const { paused } = this.state;
-      if (!paused) {
-        this.setTimeElapsed();
-      }
-    }, this.timing.oneFrame);
   }
 
   componentWillUnmount() {
@@ -213,7 +208,7 @@ class Board extends React.Component {
 
   setPausableTimeout(func, delay) {
     setTimeout(() => {
-      const { paused } = this.state;
+      const { paused } = this.props;
       if (paused) {
         this.unpause = func;
       } else {
@@ -263,7 +258,6 @@ class Board extends React.Component {
       counterclockwise: { f: () => { that.rotatePuyo.bind(that)(-1); }, delay: 0, repeat: 0 },
       clockwise: { f: () => { that.rotatePuyo.bind(that)(1); }, delay: 0, repeat: 0 },
       gravity: { f: () => { that.toggleGravity.bind(that)(); }, delay: 0, repeat: 0 },
-      pause: { f: () => { that.pause.bind(that)(); }, delay: 0, repeat: 0 },
     };
     const keys = {
       ArrowLeft: 'left',
@@ -273,42 +267,29 @@ class Board extends React.Component {
       x: 'clockwise',
       d: 'counterclockwise',
       f: 'clockwise',
-      ...this.multiplayer === 'none' ? { Escape: 'pause' } : {},
       ...process.env.NODE_ENV === 'development' ? { g: 'gravity' } : {},
     };
     this.controller = new Controller(controls, keys);
   }
 
   pause() {
-    this.setState(({ paused }) => {
-      if (!paused) {
-        this.pauseStartTime = Date.now();
-        setTimeout(() => {
-          this.setTimeElapsed();
-        }, 0);
-        this.gravityWasOn = this.gravityOn;
-        if (this.gravityOn) {
-          this.toggleGravity();
-        }
-      } else {
-        setTimeout(() => {
-          this.effectiveStartTime += Date.now() - this.pauseStartTime;
-          this.setTimeElapsed(time);
-          if (this.gravityWasOn) {
-            this.toggleGravity(true);
-          }
-          if (this.unpause) {
-            this.unpause();
-            this.unpause = null;
-          }
-        }, 0);
+    const { paused } = this.props;
+    if (!paused) {
+      this.gravityWasOn = this.gravityOn;
+      if (this.gravityOn) {
+        this.toggleGravity();
       }
-      return { paused: !paused };
-    });
-  }
-
-  setTimeElapsed() {
-    this.setState({ timeElapsed: Date.now() - this.effectiveStartTime });
+    } else {
+      setTimeout(() => {
+        if (this.gravityWasOn) {
+          this.toggleGravity(true);
+        }
+        if (this.unpause) {
+          this.unpause();
+          this.unpause = null;
+        }
+      }, 0);
+    }
   }
 
   spawnPuyo() {
@@ -407,7 +388,7 @@ class Board extends React.Component {
   }
 
   toggleGravity(unPausing = false) {
-    const { paused } = this.state;
+    const { paused } = this.props;
     if (paused && !unPausing) return;
     if (this.gravityOn) {
       this.gravityOn = false;
@@ -747,8 +728,8 @@ class Board extends React.Component {
       currPuyo1,
       currPuyo2,
       currState,
-      paused,
     } = this.state;
+    const { paused } = this.props;
     if (
       this.recentLeftRight === -dx
       || (currState !== 'active' && currState !== 'offset')
@@ -768,8 +749,8 @@ class Board extends React.Component {
       currPuyo1,
       currPuyo2,
       currState,
-      paused,
     } = this.state;
+    const { paused } = this.props;
     if (
       this.recentLeftRight
       || (currState !== 'active' && currState !== 'offset')
@@ -807,8 +788,8 @@ class Board extends React.Component {
       currPuyo1,
       currPuyo2,
       currState,
-      paused,
     } = this.state;
+    const { paused } = this.props;
     if ((currState !== 'active' && currState !== 'offset') || paused) return;
     // offsets from axis puyo to other puyo
     const dx = -direction * (currPuyo1.y - currPuyo2.y);
@@ -1062,33 +1043,6 @@ class Board extends React.Component {
     return rows;
   }
 
-  renderTime() {
-    const { timeElapsed } = this.state;
-    const hundredthsPerMillisecond = 10;
-    const hundredthsPerSecond = 100;
-    const secondsPerMinute = 60;
-    const maxMinutes = 99;
-    const totalHundredths = Math.floor(timeElapsed / hundredthsPerMillisecond);
-    let hundredths = totalHundredths % hundredthsPerSecond;
-    const totalSeconds = Math.floor(totalHundredths / hundredthsPerSecond);
-    let seconds = totalSeconds % secondsPerMinute;
-    const totalMinutes = Math.floor(totalSeconds / secondsPerMinute);
-    let minutes = totalMinutes;
-    if (totalMinutes > maxMinutes) {
-      hundredths = hundredthsPerSecond - 1;
-      seconds = secondsPerMinute - 1;
-      minutes = maxMinutes;
-    }
-    const hundredthsStr = String(hundredths).padStart(2, '0');
-    const secondsStr = String(seconds).padStart(2, '0');
-    const minutesStr = String(minutes).padStart(2, '0');
-    return (
-      <div id="time">
-        {`${minutesStr}:${secondsStr}.${hundredthsStr}`}
-      </div>
-    );
-  }
-
   render() {
     const {
       score,
@@ -1101,47 +1055,40 @@ class Board extends React.Component {
     const totalGarbage = ({ pending, sentPlusDropped }) => pending + sentPlusDropped;
     const garbagePending = Math.max(0, totalGarbage(oppGarbage) - totalGarbage(myGarbage));
     return (
-      <div style={{ display: 'flex', flexDireciton: 'row' }}>
-        {this.multiplayer === 'none' && (
-        <div style={{ marginLeft: 80, marginRight: 80 }}>
-          {this.renderTime()}
-        </div>
-        )}
-        <div className="player">
-          {/* z-index allows chain text to overlap preview box */}
-          <div style={{ zIndex: 1 }}>
-            {this.multiplayer !== 'none'
-            && (
-              <div className="garbage">
-                <h2>{ garbagePending }</h2>
-              </div>
-            )}
-            <div style={{ backgroundColor: 'var(--board-color)', padding: 20, borderRadius: 20 }}>
-              <div
-                className="board"
-                style={{ '--invisible-rows-count': this.twelfthRow + this.extraRows }}
-              >
-                { this.renderBoard() }
-                {showAllClearText && <p className="all-clear-text">ALL CLEAR</p>}
-              </div>
+      <div className="player">
+        {/* z-index allows chain text to overlap preview box */}
+        <div style={{ zIndex: 1 }}>
+          {this.multiplayer !== 'none'
+          && (
+            <div className="garbage">
+              <h2>{ garbagePending }</h2>
             </div>
-            <div className="score">
-              { score }
+          )}
+          <div style={{ backgroundColor: 'var(--board-color)', padding: 20, borderRadius: 20 }}>
+            <div
+              className="board"
+              style={{ '--invisible-rows-count': this.twelfthRow + this.extraRows }}
+            >
+              { this.renderBoard() }
+              {showAllClearText && <p className="all-clear-text">ALL CLEAR</p>}
             </div>
           </div>
-          <div className="preview">
-            <div className="preview-box">
-              <Cell classList={[nextColors1.color1]} />
-              <div className="clear" />
-              <Cell classList={[nextColors1.color2]} />
-              <div className="clear" />
-            </div>
-            <div className="preview-box-offset">
-              <Cell classList={[nextColors2.color1]} />
-              <div className="clear" />
-              <Cell classList={[nextColors2.color2]} />
-              <div className="clear" />
-            </div>
+          <div className="score">
+            { score }
+          </div>
+        </div>
+        <div className="preview">
+          <div className="preview-box">
+            <Cell classList={[nextColors1.color1]} />
+            <div className="clear" />
+            <Cell classList={[nextColors1.color2]} />
+            <div className="clear" />
+          </div>
+          <div className="preview-box-offset">
+            <Cell classList={[nextColors2.color1]} />
+            <div className="clear" />
+            <Cell classList={[nextColors2.color2]} />
+            <div className="clear" />
           </div>
         </div>
       </div>
@@ -1154,6 +1101,7 @@ const {
   number,
   func,
   shape,
+  bool,
 } = PropTypes;
 
 Board.propTypes = {
@@ -1164,6 +1112,8 @@ Board.propTypes = {
   oppGarbageRef: shape({ on: func.isRequired, off: func.isRequired }),
   playerRef: shape({ child: func.isRequired }),
   setIsChaining: func,
+  paused: bool,
+  setBoardPause: func,
 };
 
 Board.defaultProps = {
@@ -1172,6 +1122,8 @@ Board.defaultProps = {
   oppGarbageRef: undefined,
   playerRef: undefined,
   setIsChaining: undefined,
+  paused: false,
+  setBoardPause: undefined,
 };
 
 export default Board;
