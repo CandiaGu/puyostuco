@@ -14,13 +14,6 @@ class GameSingle extends React.Component {
   componentDidMount() {
     // disable default for arrow keys
     window.addEventListener('keydown', disableMovementKeyHandler, false);
-    this.effectiveStartTime = Date.now();
-    setInterval(() => {
-      const { paused } = this.state;
-      if (!paused) {
-        this.setTimeElapsed();
-      }
-    }, 17);
   }
 
   componentWillUnmount() {
@@ -54,6 +47,13 @@ class GameSingle extends React.Component {
     } else {
       this.setState(state);
     }
+    this.effectiveStartTime = Date.now();
+    setInterval(() => {
+      const { paused } = this.state;
+      if (!paused) {
+        this.setTimeElapsed();
+      }
+    }, 17);
   }
 
   setTimeElapsed() {
