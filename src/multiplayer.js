@@ -48,7 +48,7 @@ class Multiplayer extends React.Component {
       if (opponent) {
         this.gameListRef.push({
           seed: 'none',
-          loser: 'none',
+          loser: { game: 1, loser: 'none' },
           users: ['', ''],
         }).then(({ key }) => {
           const oppRef = this.findUser(opponent);

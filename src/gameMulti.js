@@ -20,6 +20,7 @@ class GameMulti extends React.Component {
     this.setIsChaining = this.setIsChaining.bind(this);
 
     this.state = {
+      game: 0,
       seed: undefined,
       usernameList: [undefined, undefined],
       scores: [0, 0],
@@ -36,15 +37,23 @@ class GameMulti extends React.Component {
   componentDidMount() {
     this.loserRef.on('value', (snapshot) => {
       if (snapshot.exists()) {
-        const loser = snapshot.val();
-        if (loser !== 'none' && loser !== this.playerNum) {
-          // player is winner
-          this.result = 'won';
-          this.loserRef.set('none');
-          this.didIWin = true;
-          if (!this.isChaining) {
-            this.handleWin();
-          }
+        const { game: currGame } = this.state;
+        const { game, loser } = snapshot.val();
+        if (game === currGame && loser === 1 - this.playerNum) {
+          this.loserRef.transaction(({ game, loser }) => {
+            if (game === currGame && loser === 1 - this.playerNum) {
+              return { game: game + 1, loser: 'none' };
+            }
+          }, (error, committed) => {
+            if (committed) {
+              // player is winner
+              this.result = 'won';
+              this.didIWin = true;
+              if (!this.isChaining) {
+                this.handleWin();
+              }
+            }
+          });
         }
       }
     });
@@ -63,7 +72,7 @@ class GameMulti extends React.Component {
               return { scores };
             });
           }
-          this.setState({ seed });
+          this.setState(({ game }) => ({ game: game + 1, seed }));
         }
       }
     });
@@ -92,13 +101,13 @@ class GameMulti extends React.Component {
     }
   }
 
-  handleDeath() {
-    this.loserRef.transaction((loser) => {
-      if (loser === 'none') {
+  handleDeath(currGame) {
+    this.loserRef.transaction(({ game, loser }) => {
+      if (game === currGame && loser === 'none') {
         this.result = 'lost';
-        return this.playerNum;
+        return { game, loser: this.playerNum };
       }
-      return loser;
+      return { game, loser };
     });
   }
 
@@ -123,14 +132,15 @@ class GameMulti extends React.Component {
 
   renderBoard(i) {
     const {
+      game,
       seed,
     } = this.state;
     const playerNum = (i + this.playerNum) % 2;
     return (
       <Board
-        key={seed + i}
+        key={game + '' + i}
         seed={seed}
-        handleDeath={this.handleDeath}
+        handleDeath={() => { this.handleDeath(game); }}
         multiplayer={i === 0 ? 'send' : 'receive'}
         myGarbageRef={this.garbageListRef.child(playerNum)}
         oppGarbageRef={this.garbageListRef.child(1 - playerNum)}
