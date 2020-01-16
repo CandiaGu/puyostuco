@@ -10,14 +10,19 @@ class GameSingle extends React.Component {
     const {
       challenge,
       userRef,
+      showHighscores,
     } = props;
     this.challenge = challenge;
-    if (userRef) {
-      this.highscoresRef = userRef.child('challenge').child(challenge);
+    if (this.challenge !== 'none') {
+      this.userRef = userRef;
     }
-    this.scoreChallengeTime = 20 * 1000;
+    if (!!this.userRef) {
+      this.highscoresRef = this.userRef.child('challenge').child(challenge);
+    }
+    this.showHighscores = showHighscores;
+    this.scoreChallengeTime = 60 * 1000;
     this.scoreChallengeExpiring = 9 * 1000;
-    this.numHighscores = 5;
+    this.numHighscores = 30;
     this.reset = this.reset.bind(this);
     this.handleDeath = this.handleDeath.bind(this);
     this.setBoardPause = this.setBoardPause.bind(this);
@@ -31,7 +36,6 @@ class GameSingle extends React.Component {
   componentDidMount() {
     // disable default for arrow keys
     window.addEventListener('keydown', disableMovementKeyHandler, false);
-    this.loadHighscores();
   }
 
   componentWillUnmount() {
@@ -59,35 +63,20 @@ class GameSingle extends React.Component {
       seed: randSeed(),
       timeElapsed: 0,
       paused: false,
-      highscores: [],
+      mode: 'game',
     };
     if (unmounted) {
       this.state = state;
     } else {
-      if (this.highscoresRef) {
-        this.highscoresRef.off('child_added');
-      }
-      this.setState(state, this.loadHighscores);
+      this.setState(state);
     }
     this.effectiveStartTime = Date.now();
-    setInterval(() => {
+    this.timer = setInterval(() => {
       const { paused } = this.state;
       if (!paused) {
         this.setTimeElapsed();
       }
     }, 17);
-  }
-
-  loadHighscores() {
-    if (this.highscoresRef) {
-      this.highscoresRef.on('child_added', (snapshot) => {
-        if (snapshot.exists()) {
-          this.setState(({ highscores }) => ({
-            highscores: [...highscores, snapshot.val()],
-          }));
-        }
-      });
-    }
   }
 
   setTimeElapsed() {
@@ -104,13 +93,18 @@ class GameSingle extends React.Component {
   }
 
   endScoreChallenge() {
-    if (this.highscoresRef) {
-      const { highscores } = this.state;
-      const newHighscores = [...highscores, this.getScore()]
-        .sort((a, b) => a - b)
-        .reverse()
-        .slice(0, this.numHighscores);
-      this.highscoresRef.set(newHighscores, this.reset);
+    if (!!this.userRef) {
+      clearInterval(this.timer);
+      this.boardPause();
+      setTimeout(() => {
+        this.highscoresRef.once('value', (snapshot) => {
+          const highscores = [...(snapshot.val() || []), this.getScore()]
+            .sort((a, b) => a - b)
+            .reverse()
+            .slice(0, this.numHighscores);
+          this.highscoresRef.set(highscores, this.showHighscores);
+        });
+      }, 1000);
     } else {
       this.reset();
     }
@@ -202,35 +196,26 @@ class GameSingle extends React.Component {
     );
   }
 
-  renderHighscores() {
-    if (!this.highscoresRef) return null;
-    const {
-      id,
-      highscores,
-    } = this.state;
-    return (
-      <ol id="highscores">
-        {highscores.map((highscore, i) => (
-          <li key={id + '' + i}>
-            {highscore}
-          </li>
-        ))}
-      </ol>
-    );
-  }
-
   render() {
     const {
       id,
       seed,
       paused,
+      mode,
     } = this.state;
+    if (mode === 'highscores') {
+      return (
+        <Highscores
+          challenge={this.challenge}
+          userRef={this.userRef}
+        />
+      );
+    }
     return (
       <div id="game">
         <div style={{ display: 'flex', flexDireciton: 'row' }}>
           <div style={{ width: '280px' }}>
             {this.renderTime()}
-            {this.renderHighscores()}
           </div>
           <Board
             key={id}
@@ -260,10 +245,12 @@ GameSingle.propTypes = {
   userRef: shape({
     child: func.isRequired,
   }),
+  showHighscores: func,
 };
 
 GameSingle.defaultProps = {
   userRef: undefined,
+  showHighscores: undefined,
 };
 
 export default GameSingle;

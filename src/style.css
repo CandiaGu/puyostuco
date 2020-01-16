@@ -357,6 +357,35 @@ header{
 	font-weight: 900;
 }
 
+#practice-options {
+  text-align: center;
+}
+
+.practice-option {
+	border: 5px green solid;
+	text-align: center;
+	width: 25vw;
+	height: 25vw;
+	border-radius: 25px;
+	transition: 0.3s;
+	background-color: green;
+	color:white;
+  margin: 10px;
+  display: inline-flex;
+}
+
+.return {
+	text-align: center;
+}
+
+#highscores {
+  display: inline-grid;
+}
+
+.highscore {
+  font-size: 24px;
+}
+
 /********* Game *********/
 
 .clear {
@@ -604,8 +633,4 @@ header{
     opacity: 1;
     transform: none;
   }
-}
-
-#highscores {
-  font-size: 24px;
 }
