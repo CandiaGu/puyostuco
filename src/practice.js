@@ -76,7 +76,8 @@ class Practice extends React.Component {
                 className="centered-box practice-option"
                 onClick={() => {
                   this.history.push(mode);
-                  this.setState({ mode: 'highscores', challenge: 'none' });
+                  // 'score' instead of 'none' to bypass next page
+                  this.setState({ mode: 'highscores', challenge: 'score' });
                 }}
                 text="HIGHSCORES"
               />
