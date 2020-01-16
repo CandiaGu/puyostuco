@@ -585,4 +585,27 @@ header{
 
 #time {
   font-family: monospace, monospace; /* weird standard workaround */
+  font-size: 40px;
+  text-align: right;
+  margin-right: 40px;
+}
+
+#time.expiring {
+  color: red;
+  animation: time-expiring 1s forwards infinite;
+}
+
+@keyframes time-expiring {
+  from {
+    opacity: 0;
+    transform: scale(3);
+  }
+  33% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+#highscores {
+  font-size: 24px;
 }

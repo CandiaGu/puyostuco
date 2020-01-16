@@ -24,14 +24,23 @@ class Board extends React.Component {
       playerRef,
       setIsChaining,
       setBoardPause,
+      setGetScore,
+      challenge,
     } = props;
     this.handleDeath = handleDeath;
     this.multiplayer = multiplayer;
     this.myGarbageRef = myGarbageRef;
     this.oppGarbageRef = oppGarbageRef;
     this.setIsChaining = setIsChaining;
+    this.challenge = challenge;
     if (this.multiplayer === 'none') {
       setBoardPause(this.pause.bind(this));
+    }
+    if (this.challenge === 'score') {
+      setGetScore(() => {
+        const { score } = this.state;
+        return score;
+      });
     }
     this.twelfthRow = 2; // two hidden rows
     this.height = 12 + this.twelfthRow;
@@ -293,9 +302,7 @@ class Board extends React.Component {
   }
 
   spawnPuyo() {
-    if (this.multiplayer === 'send') {
-      this.setIsChaining(false);
-    }
+    if (this.setIsChaining(false)) return;
     if (
       this.multiplayer === 'receive'
       && this.dropList.length > 0
@@ -489,9 +496,7 @@ class Board extends React.Component {
   }
 
   handleLink() {
-    if (this.multiplayer === 'send') {
-      this.setIsChaining(true);
-    }
+    this.setIsChaining(true);
     const poppedDroppedScore = this.chainsim.computeLink();
     if (poppedDroppedScore) {
       this.didChain = true;
@@ -1114,6 +1119,8 @@ Board.propTypes = {
   setIsChaining: func,
   paused: bool,
   setBoardPause: func,
+  setGetScore: func,
+  challenge: string,
 };
 
 Board.defaultProps = {
@@ -1121,9 +1128,11 @@ Board.defaultProps = {
   myGarbageRef: undefined,
   oppGarbageRef: undefined,
   playerRef: undefined,
-  setIsChaining: undefined,
+  setIsChaining: () => {},
   paused: false,
   setBoardPause: undefined,
+  setGetScore: undefined,
+  challenge: 'none',
 };
 
 export default Board;
