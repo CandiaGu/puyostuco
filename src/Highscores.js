@@ -8,8 +8,10 @@ class Highscores extends React.Component {
       challenge,
       userRef,
     } = props;
+    this.numHighscores = 30;
     this.challenge = challenge;
     this.highscoresRef = userRef.child('challenge').child(challenge);
+    this.hwRef = userRef.child('hw');
     this.state = {
       loading: false,
       highscores: [],
@@ -18,10 +20,20 @@ class Highscores extends React.Component {
 
   componentDidMount() {
     this.setState({ loading: true });
-    this.highscoresRef.once('value', (snapshot) => {
+    this.highscoresRef.once('value', (highscoresSnapshot) => {
+      const highscores = highscoresSnapshot.val() || [];
       this.setState({
         loading: false,
-        highscores: snapshot.val() || [],
+        highscores,
+      }, () => {
+        this.hwRef.once('value', (hwCompletedSnapshot) => {
+          const hwCompleted = hwCompletedSnapshot.val();
+          if (!hwCompleted[0] && highscores.length >= this.numHighscores) {
+            window.alert('HW1 completed!');
+            hwCompleted[0] = true;
+            this.hwRef.set(hwCompleted);
+          }
+        });
       });
     });
   }
