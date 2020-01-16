@@ -38,12 +38,13 @@ class GameMulti extends React.Component {
     this.loserRef.on('value', (snapshot) => {
       if (snapshot.exists()) {
         const { game: currGame } = this.state;
-        const { game, loser } = snapshot.val();
-        if (game === currGame && loser === 1 - this.playerNum) {
+        const { game: loserGame, loser: currLoser } = snapshot.val();
+        if (loserGame === currGame && currLoser === 1 - this.playerNum) {
           this.loserRef.transaction(({ game, loser }) => {
             if (game === currGame && loser === 1 - this.playerNum) {
               return { game: game + 1, loser: 'none' };
             }
+            return { game, loser };
           }, (error, committed) => {
             if (committed) {
               // player is winner

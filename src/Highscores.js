@@ -38,7 +38,7 @@ class Highscores extends React.Component {
         <ol id="highscores">
           {highscores.map((highscore, i) => (
             <li
-              key={i}
+              key={highscore + '' + i}
               className="highscore"
             >
               {highscore}

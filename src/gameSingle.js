@@ -16,7 +16,7 @@ class GameSingle extends React.Component {
     if (this.challenge !== 'none') {
       this.userRef = userRef;
     }
-    if (!!this.userRef) {
+    if (this.userRef) {
       this.highscoresRef = this.userRef.child('challenge').child(challenge);
     }
     this.showHighscores = showHighscores;
@@ -43,6 +43,36 @@ class GameSingle extends React.Component {
     window.removeEventListener('keydown', disableMovementKeyHandler, false);
   }
 
+  setBoardPause(boardPause) {
+    this.boardPause = boardPause;
+  }
+
+  setGetScore(getScore) {
+    this.getScore = getScore;
+  }
+
+  setIsChaining(isChaining) {
+    this.isChaining = isChaining;
+    if (!isChaining && this.didChallengeEnd) {
+      this.endScoreChallenge();
+      return true;
+    }
+    return false;
+  }
+
+  setTimeElapsed() {
+    const timeElapsed = Date.now() - this.effectiveStartTime;
+    if (this.challenge === 'score' && timeElapsed >= this.scoreChallengeTime) {
+      if (!this.didChallengeEnd) {
+        this.didChallengeEnd = true;
+        if (!this.isChaining) {
+          this.endScoreChallenge();
+        }
+      }
+    }
+    this.setState({ timeElapsed });
+  }
+
   createController() {
     const controls = {
       reset: { f: this.reset, delay: 0, repeat: 0 },
@@ -63,7 +93,6 @@ class GameSingle extends React.Component {
       seed: randSeed(),
       timeElapsed: 0,
       paused: false,
-      mode: 'game',
     };
     if (unmounted) {
       this.state = state;
@@ -79,21 +108,8 @@ class GameSingle extends React.Component {
     }, 17);
   }
 
-  setTimeElapsed() {
-    const timeElapsed = Date.now() - this.effectiveStartTime;
-    if (this.challenge === 'score' && timeElapsed >= this.scoreChallengeTime) {
-      if (!this.didChallengeEnd) {
-        this.didChallengeEnd = true;
-        if (!this.isChaining) {
-          this.endScoreChallenge();
-        }
-      }
-    }
-    this.setState({ timeElapsed });
-  }
-
   endScoreChallenge() {
-    if (!!this.userRef) {
+    if (this.userRef) {
       clearInterval(this.timer);
       this.boardPause();
       setTimeout(() => {
@@ -110,23 +126,6 @@ class GameSingle extends React.Component {
     }
   }
 
-  handleDeath() {
-    if (this.challenge === 'score') {
-      this.endScoreChallenge();
-    } else {
-      this.reset();
-    }
-  }
-
-  setIsChaining(isChaining) {
-    this.isChaining = isChaining;
-    if (!isChaining && this.didChallengeEnd) {
-      this.endScoreChallenge();
-      return true;
-    }
-    return false;
-  }
-
   pause() {
     this.setState(({ paused }) => {
       if (!paused) {
@@ -137,7 +136,7 @@ class GameSingle extends React.Component {
       } else {
         setTimeout(() => {
           this.effectiveStartTime += Date.now() - this.pauseStartTime;
-          this.setTimeElapsed(time);
+          this.setTimeElapsed();
         }, 0);
       }
       this.boardPause();
@@ -145,12 +144,12 @@ class GameSingle extends React.Component {
     });
   }
 
-  setGetScore(getScore) {
-    this.getScore = getScore;
-  }
-
-  setBoardPause(boardPause) {
-    this.boardPause = boardPause;
+  handleDeath() {
+    if (this.challenge === 'score') {
+      this.endScoreChallenge();
+    } else {
+      this.reset();
+    }
   }
 
   renderTime() {
@@ -185,7 +184,7 @@ class GameSingle extends React.Component {
     let className = '';
     if (
       this.challenge === 'score'
-      && timeElapsed < this.scoreChallengeExpiring || negative
+      && (timeElapsed < this.scoreChallengeExpiring || negative)
     ) {
       className = 'expiring';
     }
@@ -201,16 +200,7 @@ class GameSingle extends React.Component {
       id,
       seed,
       paused,
-      mode,
     } = this.state;
-    if (mode === 'highscores') {
-      return (
-        <Highscores
-          challenge={this.challenge}
-          userRef={this.userRef}
-        />
-      );
-    }
     return (
       <div id="game">
         <div style={{ display: 'flex', flexDireciton: 'row' }}>

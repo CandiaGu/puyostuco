@@ -14,13 +14,13 @@ const config = {
     appId: '1:249504518298:web:6e704b68850c969785cf23',
   },
   development: {
-    apiKey: "AIzaSyBCfi9IWP7McUAzYQnLZg1S1h2E50ZfG5M",
-    authDomain: "puyostuco-dev.firebaseapp.com",
-    databaseURL: "https://puyostuco-dev.firebaseio.com",
-    projectId: "puyostuco-dev",
-    storageBucket: "puyostuco-dev.appspot.com",
-    messagingSenderId: "971124865987",
-    appId: "1:971124865987:web:0f1a1f796b209a25df9b76",
+    apiKey: 'AIzaSyBCfi9IWP7McUAzYQnLZg1S1h2E50ZfG5M',
+    authDomain: 'puyostuco-dev.firebaseapp.com',
+    databaseURL: 'https://puyostuco-dev.firebaseio.com',
+    projectId: 'puyostuco-dev',
+    storageBucket: 'puyostuco-dev.appspot.com',
+    messagingSenderId: '971124865987',
+    appId: '1:971124865987:web:0f1a1f796b209a25df9b76',
   },
 };
 

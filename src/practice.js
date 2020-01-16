@@ -23,7 +23,7 @@ class Practice extends React.Component {
     } = this.state;
     const { firebase, authUser } = this.props;
     let userRef;
-    if (!!authUser) {
+    if (authUser) {
       userRef = firebase.user(authUser.uid);
     }
     let component = null;
@@ -73,7 +73,7 @@ class Practice extends React.Component {
             />
             {!!authUser && (
               <Button
-              className="centered-box practice-option"
+                className="centered-box practice-option"
                 onClick={() => {
                   this.history.push(mode);
                   this.setState({ mode: 'highscores', challenge: 'none' });
