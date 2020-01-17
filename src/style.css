@@ -401,6 +401,7 @@ header{
 
 #game {
   --cell-size: 40;
+  --diameter: calc((var(--cell-size) - 2) * 1px);
   width: fit-content;
 	margin: auto;
 	border-radius: 25px;
@@ -419,14 +420,25 @@ header{
   margin-top: calc(-1 * var(--invisible-rows-height));
 }
 
-#game .cell {
+#game .cell, .garbage {
 	float: left;
-  --diameter: calc((var(--cell-size) - 2) * 1px);
 	height: var(--diameter);
 	width: var(--diameter);
 	border-radius:50%;
   position: relative;
   --exploding-delay: calc(31s / 60);
+}
+
+#game .garbage {
+  float: none;
+  display: inline-block;
+}
+
+.garbage-tray {
+  height: var(--diameter);
+  background-color: gray;
+  border-radius: 20px;
+  padding: 1px 20px;
 }
 
 #game .cell.active {

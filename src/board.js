@@ -11,6 +11,7 @@ import {
   randSample,
   cloneData,
 } from './utils.js';
+import Garbage from './garbage.js';
 
 class Board extends React.Component {
   constructor(props) {
@@ -1065,9 +1066,7 @@ class Board extends React.Component {
         <div style={{ zIndex: 1 }}>
           {this.multiplayer !== 'none'
           && (
-            <div className="garbage">
-              <h2>{ garbagePending }</h2>
-            </div>
+            <Garbage garbage={garbagePending}/>
           )}
           <div style={{ backgroundColor: 'var(--board-color)', padding: 20, borderRadius: 20 }}>
             <div
