@@ -53,11 +53,11 @@ class Multiplayer extends React.Component {
         }).then(({ key }) => {
           const oppRef = this.findUser(opponent);
           const usersRef = this.gameListRef.child(key).child('users');
-          oppRef.once('value', (snapshot) => {
-            usersRef.child(0).set(snapshot.val().username);
+          oppRef.child('username').once('value', (snapshot) => {
+            usersRef.child(0).set(snapshot.val());
           });
-          this.userRef.once('value', (snapshot) => {
-            usersRef.child(1).set(snapshot.val().username);
+          this.userRef.child('username').once('value', (snapshot) => {
+            usersRef.child(1).set(snapshot.val());
           });
           this.myPresenceRef = oppRef.child('oppPresence');
           this.myPresenceRef.onDisconnect().set(false);
