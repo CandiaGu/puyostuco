@@ -37,19 +37,23 @@ class Landing extends React.Component {
     this.loadHw();
   }
 
+  componentWillUnmount() {
+    this.hwRef.off('value');
+  }
+
   loadHw() {
     const {
       authUser,
       hwCompleted: oldHwCompleted,
     } = this.state;
     if (oldHwCompleted === null) {
-      const hwRef = this.firebase.user(authUser.uid).child('hw');
-      hwRef.once('value', (snapshot) => {
+      this.hwRef = this.firebase.user(authUser.uid).child('hw');
+      this.hwRef.once('value', (snapshot) => {
         let hwCompleted = snapshot.val() || [];
         const numMissing = numHws - hwCompleted.length;
         if (numMissing > 0) {
           hwCompleted = hwCompleted.concat(Array(numMissing).fill(false));
-          hwRef.set(hwCompleted);
+          this.hwRef.set(hwCompleted);
         }
         this.setState({ hwCompleted });
       });
