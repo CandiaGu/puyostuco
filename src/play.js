@@ -12,6 +12,20 @@ class Play extends React.Component {
     };
   }
 
+  componentDidMount() {
+    document.addEventListener('visibilitychange', this.onVisibilityChange.bind(this), false);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('visibilitychange', this.onVisibilityChange.bind(this), false);
+  }
+
+  onVisibilityChange() {
+    if (document.visibilityState === 'hidden') {
+      this.setState({ multiplayer: false });
+    }
+  }
+
   render() {
     const { multiplayer } = this.state;
     if (multiplayer) {
