@@ -303,7 +303,7 @@ class Board extends React.Component {
   }
 
   spawnPuyo() {
-    if (this.multiplayer === 'send' && this.setIsChaining(false)) return;
+    if (this.setIsChaining(false)) return;
     if (
       this.multiplayer === 'receive'
       && this.dropList.length > 0
