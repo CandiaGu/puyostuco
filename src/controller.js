@@ -3,21 +3,21 @@ class Controller {
     this.controls = controls;
     this.keys = keys;
     this.timers = {};
-    document.addEventListener('keydown', this.onKeyDown.bind(this), false);
-    document.addEventListener('keyup', this.onKeyUp.bind(this), false);
-    window.addEventListener('blur', this.onBlur.bind(this), false);
+    document.addEventListener('keydown', this.onKeyDown, false);
+    document.addEventListener('keyup', this.onKeyUp, false);
+    window.addEventListener('blur', this.onBlur, false);
     this.active = true;
   }
 
   release() {
     this.active = false;
-    document.removeEventListener('keydown', this.onKeyDown.bind(this), false);
-    document.removeEventListener('keyup', this.onKeyUp.bind(this), false);
-    window.removeEventListener('blur', this.onBlur.bind(this), false);
+    document.removeEventListener('keydown', this.onKeyDown, false);
+    document.removeEventListener('keyup', this.onKeyUp, false);
+    window.removeEventListener('blur', this.onBlur, false);
     this.onBlur();
   }
 
-  onKeyDown(event) {
+  onKeyDown = (event) => {
     const control = this.keys[event.key];
     if (control in this.controls && !(control in this.timers)) {
       const { f, delay, repeat } = this.controls[control];
@@ -38,7 +38,7 @@ class Controller {
     }
   }
 
-  onKeyUp(event) {
+  onKeyUp = (event) => {
     const control = this.keys[event.key];
     if (control in this.timers) {
       if (this.timers[control] !== null) {
@@ -48,7 +48,7 @@ class Controller {
     }
   }
 
-  onBlur() {
+  onBlur = () => {
     for (const control in this.timers) {
       if (this.timers[control] !== null) {
         clearInterval(this.timers[control]);
