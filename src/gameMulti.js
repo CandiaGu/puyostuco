@@ -101,6 +101,7 @@ class GameMulti extends React.Component {
       this.handleWin();
       return true;
     }
+    return false;
   }
 
   handleDeath(currGame) {
@@ -148,7 +149,7 @@ class GameMulti extends React.Component {
           myGarbageRef={this.garbageListRef.child(playerNum)}
           oppGarbageRef={this.garbageListRef.child(1 - playerNum)}
           playerRef={this.playerListRef.child(playerNum)}
-          setIsChaining={this.setIsChaining}
+          setIsChaining={i === 0 ? this.setIsChaining : undefined}
         />
       </div>
     );
