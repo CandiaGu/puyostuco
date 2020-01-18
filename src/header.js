@@ -42,7 +42,7 @@ const Header = ({ location }) => {
   if (page === 'landing') headerStyle = 'home';
   else if (page === 'registration') headerStyle = 'reg';
   return (
-    <header className={(headerStyle) + '-header'}>
+    <header className={`${headerStyle}-header`}>
 
       {page === 'landing'
         && (
@@ -79,7 +79,7 @@ const Header = ({ location }) => {
               LEARN
             </Link>
           ) : (
-            <div className={page + '-header-extension centered-box'}>
+            <div className={`${page}-header-extension centered-box`}>
               { page.toUpperCase() }
             </div>
           ))}

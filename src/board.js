@@ -929,7 +929,7 @@ class Board extends React.Component {
         <Cell
           classList={[dataitem.color, dataitem.state]}
           style={{ zIndex: 1 }}
-          Component={<div className="chain-text">{(this.chainsim.chainNum - 1) + '-chain!'}</div>}
+          Component={<div className="chain-text">{`${this.chainsim.chainNum - 1}-chain!`}</div>}
         />
       );
     }

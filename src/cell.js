@@ -8,7 +8,7 @@ const Cell = (props) => {
     onAnimationEnd,
     Component,
   } = props;
-  const className = 'cell' + classList.reduce((acc, cur) => acc + ' ' + cur, '');
+  const className = `cell${classList.reduce((acc, cur) => `${acc} ${cur}`, '')}`;
   return <div className={className} style={style} onAnimationEnd={onAnimationEnd}>{Component}</div>;
 };
 

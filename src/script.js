@@ -14,12 +14,12 @@ function selectLearnModule(module) {
 
 function onLoadLearnModule() {
   const module = localStorage.getItem('currentModule');
-  document.getElementById(module + '-module').style.display = 'grid';
+  document.getElementById(`${module}-module`).style.display = 'grid';
 }
 
 function selectAndReloadModule(module) {
   const prevModule = localStorage.getItem('currentModule');
-  document.getElementById(prevModule + '-module').style.display = 'none';
+  document.getElementById(`${prevModule}-module`).style.display = 'none';
   selectLearnModule(module);
   onLoadLearnModule();
 }

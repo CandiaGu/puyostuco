@@ -10,7 +10,7 @@ const Learn = () => (
       {learnContent.map(({ title }, i) => (
         <Link
           key={title}
-          className={'learn-module learn-module-' + (i + 1) + ' centered-box'}
+          className={`learn-module learn-module-${i + 1} centered-box`}
           to={ROUTES.LEARN_MODULE}
           onClick={() => { selectLearnModule(title.toLowerCase()); }}
         >

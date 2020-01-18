@@ -16,9 +16,9 @@ class LearnModule extends React.Component {
           const next = i < learnContent.length - 1 ? i + 1 : 0;
           const nextTitle = learnContent[next].title;
           return (
-            <div key={title} className="learn-article-wrapper" id={title.toLowerCase() + '-module'}>
+            <div key={title} className="learn-article-wrapper" id={`${title.toLowerCase()}-module`}>
               <div>
-                <h2>{title + ': ' + subtitle}</h2>
+                <h2>{`${title}: ${subtitle}`}</h2>
                 <p>
                   {text.reduce((acc, x) => (acc === null ? x : (
                     <>
@@ -39,7 +39,7 @@ class LearnModule extends React.Component {
                   next &gt;
                 </Link>
                 <div className="next-topic">
-                  {': ' + nextTitle.toUpperCase()}
+                  {`: ${nextTitle.toUpperCase()}`}
                 </div>
               </div>
             </div>

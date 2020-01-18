@@ -63,7 +63,7 @@ const Garbage = ({ garbagePending }) => {
     const index = symbols.findIndex(({ garbage }) => garbage > garbageRemaining);
     const symbol = index === -1 ? symbols[symbols.length - 1] : symbols[index - 1];
     garbageRemaining -= symbol.garbage;
-    tray.push(React.cloneElement(symbol.symbol, { key: i + '' + index }));
+    tray.push(React.cloneElement(symbol.symbol, { key: `${i}${index}` }));
   }
   return (
     <div className="garbage-tray">

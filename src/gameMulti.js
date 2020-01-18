@@ -142,7 +142,7 @@ class GameMulti extends React.Component {
     return (
       <div style={{ display: 'flex', flexDireciton: 'row' }}>
         <Board
-          key={game + '' + i}
+          key={`${game}${i}`}
           seed={seed}
           handleDeath={() => { this.handleDeath(game); }}
           multiplayer={i === 0 ? 'send' : 'receive'}

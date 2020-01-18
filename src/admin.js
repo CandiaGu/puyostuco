@@ -58,7 +58,7 @@ const UserList = ({ users }) => {
       <tbody>
         <tr>
           {columns.map((col) => (
-            <th key={col + 'header'}>
+            <th key={`${col}header`}>
               {col}
             </th>
           ))}
