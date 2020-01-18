@@ -99,6 +99,7 @@ class GameMulti extends React.Component {
     this.isChaining = isChaining;
     if (!isChaining && this.didIWin) {
       this.handleWin();
+      return true;
     }
   }
 
