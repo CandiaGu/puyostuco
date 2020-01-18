@@ -46,29 +46,36 @@ class Admin extends Component {
   }
 }
 
-const UserList = ({ users }) => (
-  <ul>
-    {users.map((user) => (
-      <li key={user.uid}>
-        <span>
-          <strong>ID:</strong>
-          {' '}
-          {user.uid}
-        </span>
-        <span>
-          <strong> E-mail:</strong>
-          {' '}
-          {user.email}
-        </span>
-        <span>
-          <strong> Username:</strong>
-          {' '}
-          {user.username}
-        </span>
-      </li>
-    ))}
-  </ul>
-);
+const UserList = ({ users }) => {
+  const columns = [
+    'uid',
+    'email',
+    'username',
+    'hw',
+  ];
+  return (
+    <table>
+      <tbody>
+        <tr>
+          {columns.map((col) => (
+            <th key={col + 'header'}>
+              {col}
+            </th>
+          ))}
+        </tr>
+        {users.map((user) => (
+          <tr key={user.uid}>
+            {columns.map((col) => (
+              <td key={col}>
+                {JSON.stringify(user[col])}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+};
 
 const {
   arrayOf,
