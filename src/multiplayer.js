@@ -27,7 +27,9 @@ class Multiplayer extends React.Component {
   }
 
   componentWillUnmount() {
-    this.myPresenceRef.set(false);
+    if (this.myPresenceRef) {
+      this.myPresenceRef.set(false);
+    }
     this.oppPresenceRef.off('value');
     if (this.waiting) {
       this.waiterRef.remove();
