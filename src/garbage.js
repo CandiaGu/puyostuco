@@ -1,13 +1,13 @@
-import React, { cloneElement } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { IconContext } from 'react-icons';
-import { FaStar, FaMoon, FaCrown } from 'react-icons/fa';
+import { FaStar } from 'react-icons/fa';
 import { IoMdMoon } from 'react-icons/io';
 import { AiFillCrown } from 'react-icons/ai';
 import { GiCometSpark } from 'react-icons/gi';
 import Cell from './cell.js';
 
-const Garbage = ({ garbage }) => {
+const Garbage = ({ garbagePending }) => {
   const symbols = [
     { garbage: 1, symbol: <Cell classList={['gray', 'ghost', 'garbage']} /> },
     { garbage: 6, symbol: <Cell classList={['gray', 'garbage']} /> },
@@ -58,12 +58,11 @@ const Garbage = ({ garbage }) => {
     },
   ];
   const traySize = 6;
-  let g = garbage;
   const tray = [];
-  for (let i = 0; i < traySize && g > 0; i++) {
-    const index = symbols.findIndex(({ garbage }) => garbage > g);
+  for (let i = 0, garbageRemaining = garbagePending; i < traySize && garbageRemaining > 0; i++) {
+    const index = symbols.findIndex(({ garbage }) => garbage > garbageRemaining);
     const symbol = index === -1 ? symbols[symbols.length - 1] : symbols[index - 1];
-    g -= symbol.garbage;
+    garbageRemaining -= symbol.garbage;
     tray.push(React.cloneElement(symbol.symbol, { key: i + '' + index }));
   }
   return (
@@ -78,7 +77,7 @@ const {
 } = PropTypes;
 
 Garbage.propTypes = {
-  garbage: number.isRequired,
+  garbagePending: number.isRequired,
 };
 
 export default Garbage;

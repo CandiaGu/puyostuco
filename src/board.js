@@ -1066,7 +1066,7 @@ class Board extends React.Component {
         <div style={{ zIndex: 1 }}>
           {this.multiplayer !== 'none'
           && (
-            <Garbage garbage={garbagePending}/>
+            <Garbage garbagePending={garbagePending} />
           )}
           <div style={{ backgroundColor: 'var(--board-color)', padding: 20, borderRadius: 20 }}>
             <div
