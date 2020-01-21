@@ -217,7 +217,7 @@ class Board extends React.Component {
   }
 
   setPausableTimeout(func, delay) {
-    setTimeout(() => {
+    return setTimeout(() => {
       const { paused } = this.props;
       if (paused) {
         this.unpause = func;
