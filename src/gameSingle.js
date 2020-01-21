@@ -75,8 +75,8 @@ class GameSingle extends React.Component {
 
   createController() {
     const controls = {
-      reset: { f: this.reset, delay: 0, repeat: 0 },
-      pause: { f: this.pause.bind(this), delay: 0, repeat: 0 },
+      reset: { f: this.reset },
+      pause: { f: this.pause.bind(this) },
     };
     const keys = {
       r: 'reset',

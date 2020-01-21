@@ -92,15 +92,14 @@ class Board extends React.Component {
     this.gravityOn = true;
     this.gravityTimeout = null;
     this.rowsHeldDownIn = new Set();
-    this.leftRightLockTimeout = null;
     this.createTiming();
     if (this.multiplayer !== 'receive') {
       this.createController();
     }
-    this.recentLeftRight = 0;
     this.chainsim = new Chainsim(this.twelfthRow);
     this.lastScoreCutoff = 0;
     this.unpause = null;
+    this.lastLeftRight = 0;
   }
 
   componentDidMount() {
@@ -227,6 +226,18 @@ class Board extends React.Component {
     }, delay);
   }
 
+  setLastLeftRight(dx) {
+    if (dx !== undefined) {
+      this.lastLeftRight = dx;
+    } else if ('left' in this.controller.timers) {
+      this.lastLeftRight = -1;
+    } else if ('right' in this.controller.timers) {
+      this.lastLeftRight = 1;
+    } else {
+      this.lastLeftRight = 0;
+    }
+  }
+
   createTiming() {
     const framesPerSec = 60.0;
     const msPerSec = 1000.0;
@@ -235,7 +246,6 @@ class Board extends React.Component {
       framesPerSec,
       leftRightDelay: 10 * msPerFrame,
       leftRightRepeat: 2 * msPerFrame,
-      leftRightLock: 2 * msPerFrame,
       downRepeat: 1 * msPerFrame,
       gravityRepeat: 13 * msPerFrame,
       lockDelay: 31 * msPerFrame,
@@ -253,21 +263,20 @@ class Board extends React.Component {
 
   createController() {
     const that = this;
+    const leftRightControl = (dx) => ({
+      f: () => { that.moveLeftRight.bind(that)(dx); },
+      delay: this.timing.leftRightDelay,
+      repeat: this.timing.leftRightRepeat,
+      press: () => { that.setLastLeftRight.bind(that)(dx); },
+      release: () => { that.setLastLeftRight.bind(that)(); },
+    });
     const controls = {
-      left: {
-        f: () => { that.moveLeftRight.bind(that)(-1); },
-        delay: this.timing.leftRightDelay,
-        repeat: this.timing.leftRightRepeat,
-      },
-      right: {
-        f: () => { that.moveLeftRight.bind(that)(1); },
-        delay: this.timing.leftRightDelay,
-        repeat: this.timing.leftRightRepeat,
-      },
-      down: { f: () => { that.moveDown.bind(that)(); }, delay: 0, repeat: this.timing.downRepeat },
-      counterclockwise: { f: () => { that.rotatePuyo.bind(that)(-1); }, delay: 0, repeat: 0 },
-      clockwise: { f: () => { that.rotatePuyo.bind(that)(1); }, delay: 0, repeat: 0 },
-      gravity: { f: () => { that.toggleGravity.bind(that)(); }, delay: 0, repeat: 0 },
+      left: leftRightControl(-1),
+      right: leftRightControl(1),
+      down: { f: () => { that.moveDown.bind(that)(); }, repeat: this.timing.downRepeat },
+      counterclockwise: { f: () => { that.rotatePuyo.bind(that)(-1); } },
+      clockwise: { f: () => { that.rotatePuyo.bind(that)(1); } },
+      gravity: { f: () => { that.toggleGravity.bind(that)(); } },
     };
     const keys = {
       ArrowLeft: 'left',
@@ -347,19 +356,6 @@ class Board extends React.Component {
     }
     this.rowsHeldDownIn.clear();
     this.kickUpCount = 0;
-    if (this.multiplayer !== 'receive') {
-      if (
-        'left' in this.controller.timers
-        && boardData[this.axisSpawnY][this.axisSpawnX - 1].color === 'none'
-      ) {
-        this.lockLeftRight(-1);
-      } else if (
-        'right' in this.controller.timers
-        && boardData[this.axisSpawnY][this.axisSpawnX + 1].color === 'none'
-      ) {
-        this.lockLeftRight(1);
-      }
-    }
   }
 
   startLockTimeout() {
@@ -721,14 +717,6 @@ class Board extends React.Component {
     return false;
   }
 
-  lockLeftRight(dx) {
-    this.recentLeftRight = dx;
-    clearTimeout(this.leftRightLockTimeout);
-    this.leftRightLockTimeout = setTimeout(() => {
-      this.recentLeftRight = 0;
-    }, this.timing.leftRightLock);
-  }
-
   moveLeftRight(dx) {
     const {
       currPuyo1,
@@ -737,7 +725,7 @@ class Board extends React.Component {
     } = this.state;
     const { paused } = this.props;
     if (
-      this.recentLeftRight === -dx
+      this.lastLeftRight !== dx
       || (currState !== 'active' && currState !== 'offset')
       || paused
     ) return;
@@ -745,9 +733,18 @@ class Board extends React.Component {
     newPuyo1.x += dx;
     const newPuyo2 = { ...currPuyo2 };
     newPuyo2.x += dx;
-    if (this.tryMove(newPuyo1, newPuyo2)) {
-      this.lockLeftRight(dx);
-    }
+    this.tryMove(newPuyo1, newPuyo2);
+  }
+
+  isMovingLeftRight() {
+    const dx = this.lastLeftRight;
+    if (dx === 0) return false;
+    const { currPuyo1, currPuyo2 } = this.state;
+    const puyo1 = { ...currPuyo1 };
+    const puyo2 = { ...currPuyo2 };
+    puyo1.x += dx;
+    puyo2.x += dx;
+    return this.checkIfLegalMove(puyo1, puyo2);
   }
 
   moveDown() {
@@ -758,7 +755,7 @@ class Board extends React.Component {
     } = this.state;
     const { paused } = this.props;
     if (
-      this.recentLeftRight
+      this.isMovingLeftRight()
       || (currState !== 'active' && currState !== 'offset')
       || paused
     ) return;

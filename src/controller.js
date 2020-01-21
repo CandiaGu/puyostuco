@@ -20,16 +20,24 @@ class Controller {
   onKeyDown = (event) => {
     const control = this.keys[event.key];
     if (control in this.controls && !(control in this.timers)) {
-      const { f, delay, repeat } = this.controls[control];
+      const {
+        f,
+        delay,
+        repeat,
+        press,
+      } = this.controls[control];
+      if (press !== undefined) {
+        press();
+      }
       const func = () => { if (this.active) f(); };
       func();
-      if (repeat === 0) {
+      if (repeat === undefined) {
         this.timers[control] = null;
       } else {
         const interval = () => {
           this.timers[control] = setInterval(func, repeat);
         };
-        if (delay === 0) {
+        if (delay === undefined) {
           interval();
         } else {
           this.timers[control] = setTimeout(interval, delay);
@@ -41,10 +49,12 @@ class Controller {
   onKeyUp = (event) => {
     const control = this.keys[event.key];
     if (control in this.timers) {
-      if (this.timers[control] !== null) {
-        clearInterval(this.timers[control]);
-      }
+      clearInterval(this.timers[control]);
       delete this.timers[control];
+      const { release } = this.controls[control];
+      if (release !== undefined) {
+        release();
+      }
     }
   }
 
