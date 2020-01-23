@@ -321,11 +321,10 @@ class Board extends React.Component {
       this.dropList.shift();
     }
     const { boardData } = this.state;
-    if (
-      boardData[this.axisSpawnY][this.axisSpawnX].color !== 'none'
-      && this.multiplayer !== 'receive'
-    ) {
-      this.handleDeath();
+    if (boardData[this.axisSpawnY][this.axisSpawnX].color !== 'none') {
+      if (this.multiplayer !== 'receive') {
+        this.handleDeath();
+      }
       return;
     }
     this.setState((state) => ({
