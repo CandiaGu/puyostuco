@@ -38,7 +38,9 @@ class Landing extends React.Component {
   }
 
   componentWillUnmount() {
-    this.hwRef.off('value');
+    if (this.hwRef) {
+      this.hwRef.off('value');
+    }
   }
 
   loadHw() {
