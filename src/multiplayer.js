@@ -30,7 +30,9 @@ class Multiplayer extends React.Component {
     if (this.myPresenceRef) {
       this.myPresenceRef.set(false);
     }
-    this.oppPresenceRef.off('value');
+    if (this.oppPresenceRef) {
+      this.oppPresenceRef.off('value');
+    }
     if (this.waiting) {
       this.waiterRef.remove();
     }
