@@ -135,7 +135,15 @@ class Landing extends React.Component {
             This course aims to teach beginners the basic techniques of Puyo Puyo
             so that they too can become Puyo Masters!
           </p>
-
+          <h3>
+            ACKNOWLEDGMENTS
+          </h3>
+          <p>
+            Thanks to kar8uncle for the
+            {' '}
+            <a href="https://github.com/kar8uncle/carbuncle-widget">Carbuncle animation</a>
+!
+          </p>
         </div>
 
       </>

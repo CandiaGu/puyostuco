@@ -158,6 +158,13 @@ header{
 
 /********* Home *********/
 
+.carbuncle {
+  font-size: 4px;
+  position: fixed;
+  z-index: 2147483647;
+  filter: brightness(1.7);
+}
+
 .home-container{
 	display: grid;
 	grid-template-columns: 60% 40%;

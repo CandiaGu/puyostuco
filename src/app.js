@@ -13,10 +13,13 @@ import PasswordForget from './passwordForget.js';
 import Account from './account.js';
 import Admin from './admin.js';
 import * as ROUTES from './routes.js';
+import Carbuncle from './carbuncle.js';
 
 const App = () => (
   <Router>
     <div>
+      <Carbuncle />
+
       <Header />
 
       <Route exact path={ROUTES.LANDING} component={Landing} />
