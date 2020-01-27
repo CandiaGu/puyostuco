@@ -122,6 +122,7 @@ class Multiplayer extends React.Component {
       return (
         <div style={{
           display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center',
+          marginBottom: '5vh'
         }}
         >
           <h1>waiting for another player to join :o</h1>
