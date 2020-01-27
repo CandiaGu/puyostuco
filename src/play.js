@@ -29,7 +29,13 @@ class Play extends React.Component {
   render() {
     const { multiplayer } = this.state;
     if (multiplayer) {
-      return <Multiplayer />;
+      return (<>
+      <Multiplayer />
+      <div className="temp-controls">
+      &#91;z/x or d/f&#93; to rotate | left/right arrow to move | down arrow to soft-drop
+      </div>
+      </>
+      );
     }
     return (
       <>

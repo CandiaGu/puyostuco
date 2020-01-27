@@ -112,7 +112,19 @@ class Practice extends React.Component {
       <>
         <div id="practice-options">
           {component}
+
         </div>
+        {mode == 'game' && (
+          <>
+          <div className="temp-controls">
+          &#91;z/x or d/f&#93; to rotate | left/right arrow to move | down arrow to soft-drop
+          </div>
+          <div className="temp-controls">
+          {challenge == 'none' && ("[esc] to pause |")} &#91;r&#93; to restart
+          </div>
+          </>
+          )
+        }
         {mode !== 'none' && (
           <Button
             className="return"
@@ -123,6 +135,7 @@ class Practice extends React.Component {
             text="RETURN"
           />
         )}
+
       </>
     );
   }
