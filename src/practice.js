@@ -34,7 +34,7 @@ class Practice extends React.Component {
             challenge={challenge}
             userRef={userRef}
             showHighscores={() => {
-              this.history.push(mode);
+              this.history.push({ mode, challenge });
               this.setState({ mode: 'highscores' });
             }}
           />
@@ -66,7 +66,7 @@ class Practice extends React.Component {
             <Button
               className="centered-box practice-option"
               onClick={() => {
-                this.history.push(mode);
+                this.history.push({ mode, challenge });
                 this.setState({ mode: 'game', challenge: 'score' });
               }}
               text="SCORE CHALLENGE"
@@ -75,7 +75,7 @@ class Practice extends React.Component {
               <Button
                 className="centered-box practice-option"
                 onClick={() => {
-                  this.history.push(mode);
+                  this.history.push({ mode, challenge });
                   // 'score' instead of 'none' to bypass next page
                   this.setState({ mode: 'highscores', challenge: 'score' });
                 }}
@@ -92,7 +92,7 @@ class Practice extends React.Component {
             <Button
               className="centered-box practice-option"
               onClick={() => {
-                this.history.push(mode);
+                this.history.push({ mode, challenge });
                 this.setState({ mode: 'game' });
               }}
               text="SOLO"
@@ -100,7 +100,7 @@ class Practice extends React.Component {
             <Button
               className="centered-box practice-option"
               onClick={() => {
-                this.history.push(mode);
+                this.history.push({ mode, challenge });
                 this.setState({ mode: 'challenge' });
               }}
               text="CHALLENGE"
@@ -129,8 +129,7 @@ class Practice extends React.Component {
           <Button
             className="return"
             onClick={() => {
-              const back = this.history.pop();
-              this.setState({ mode: back });
+              this.setState(this.history.pop());
             }}
             text="RETURN"
           />
