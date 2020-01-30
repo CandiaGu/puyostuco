@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Loader from 'react-dots-loader';
 import { withFirebase } from './firebase.js';
 import { withAuthUser } from './session.js';
 import GameSingle from './gameSingle.js';
@@ -19,7 +20,7 @@ class Learn extends React.Component {
     this.state = {
       mode: 'none',
       lesson: 'none',
-      drillNames: {},
+      drillNames: undefined,
       drillInfo: undefined,
     };
     this.history = [];
@@ -234,7 +235,7 @@ class Learn extends React.Component {
                 text="+"
               />
             )}
-            {Object.entries(drillNames).map(([name, drills]) => (
+            {drillNames ? Object.entries(drillNames).map(([name, drills]) => (
               <Button
                 key={name}
                 className="centered-box option learn-option"
@@ -245,7 +246,7 @@ class Learn extends React.Component {
                 onDelete={() => { if (isAdmin) this.deleteLesson(name); }}
                 text={`${name.toUpperCase()} (${Object.keys(drills).length})`}
               />
-            ))}
+            )) : <Loader size={10} />}
           </>
         );
     }

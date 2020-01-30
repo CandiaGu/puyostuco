@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Loader from 'react-dots-loader';
 import { Link } from 'react-router-dom';
 import { FaLock } from 'react-icons/fa';
 import { withFirebase } from './firebase.js';
@@ -119,9 +120,13 @@ class Landing extends React.Component {
               <p>
                 Go to PRACTICE &gt; CHALLENGE &gt; SCORE CHALLENGE and play 30 times!
               </p>
-              <p className="completion-status">
-                {hwCompleted && (hwCompleted[0] ? 'Completed!' : 'Incomplete')}
-              </p>
+              {hwCompleted ? (
+                <p className="completion-status">
+                  {hwCompleted[0] ? 'Completed!' : 'Incomplete'}
+                </p>
+              ) : (
+                <Loader size={10} />
+              )}
             </>
           )}
           <h3>
