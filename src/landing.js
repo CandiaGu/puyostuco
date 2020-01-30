@@ -78,13 +78,11 @@ class Landing extends React.Component {
             </div>
           </Link>
 
-          <Link to={ROUTES.LEARN} className="box learn disabled-link">
+          <Link to={ROUTES.LEARN} className="box learn">
             <div>
 
               <h2>
-                <FaLock />
-                {' '}
-    LEARN
+                LEARN
               </h2>
             </div>
           </Link>

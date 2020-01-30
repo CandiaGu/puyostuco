@@ -27,6 +27,9 @@ class Board extends React.Component {
       setBoardPause,
       setGetScore,
       challenge,
+      drill,
+      drillDropList,
+      endDrill,
     } = props;
     this.handleDeath = handleDeath;
     this.multiplayer = multiplayer;
@@ -34,6 +37,13 @@ class Board extends React.Component {
     this.oppGarbageRef = oppGarbageRef;
     this.setIsChaining = setIsChaining;
     this.challenge = challenge;
+    this.drill = drill;
+    if (this.drill === 'adding') {
+      this.drillDropList = [];
+    } else if (this.drill === 'running') {
+      this.drillDropList = [...drillDropList];
+    }
+    this.endDrill = endDrill;
     if (this.multiplayer === 'none') {
       setBoardPause(this.pause.bind(this));
     }
@@ -73,6 +83,7 @@ class Board extends React.Component {
       showAllClearText: false,
       myGarbage: { ...initGarbage },
       oppGarbage: { ...initGarbage },
+      ...this.drill === 'running' ? { drillTarget: this.drillDropList[0] } : {},
     };
     if (this.multiplayer !== 'none') {
       this.currPuyoRef = playerRef.child('c');
@@ -89,7 +100,7 @@ class Board extends React.Component {
     this.rockGarbage = 30;
     this.redXLoc = { x: 2, y: this.twelfthRow };
 
-    this.gravityOn = true;
+    this.gravityOn = this.drill === 'none';
     this.gravityTimeout = null;
     this.rowsHeldDownIn = new Set();
     this.createTiming();
@@ -277,6 +288,7 @@ class Board extends React.Component {
       counterclockwise: { f: () => { that.rotatePuyo.bind(that)(-1); } },
       clockwise: { f: () => { that.rotatePuyo.bind(that)(1); } },
       gravity: { f: () => { that.toggleGravity.bind(that)(); } },
+      record: { f: () => { that.recordDrill.bind(that)(); } },
     };
     const keys = {
       ArrowLeft: 'left',
@@ -286,9 +298,17 @@ class Board extends React.Component {
       x: 'clockwise',
       d: 'counterclockwise',
       f: 'clockwise',
-      ...process.env.NODE_ENV === 'development' ? { g: 'gravity' } : {},
+      ...process.env.NODE_ENV === 'development' && this.drill === 'none' ? { g: 'gravity' } : {},
+      ...this.drill === 'adding' ? { q: 'record' } : {},
     };
     this.controller = new Controller(controls, keys);
+  }
+
+  recordDrill() {
+    if (this.drillDropList.length > 0) {
+      const { seed } = this.props;
+      this.endDrill({ seed, dropList: this.drillDropList });
+    }
   }
 
   pause() {
@@ -312,6 +332,20 @@ class Board extends React.Component {
   }
 
   spawnPuyo() {
+    if (this.failedDrill !== undefined) {
+      if (this.failedDrill) {
+        this.handleDeath();
+        return;
+      } else {
+        this.drillDropList.shift();
+        if (this.drillDropList.length === 0) {
+          this.endDrill();
+          return;
+        } else {
+          this.setState({ drillTarget: this.drillDropList[0] });
+        }
+      }
+    }
     if (this.setIsChaining(false)) return;
     if (
       this.multiplayer === 'receive'
@@ -473,6 +507,18 @@ class Board extends React.Component {
         state2 = 'falling';
       }
     }
+    if (this.drill !== 'none') {
+      const { x: x1, y: y1, color: color1 } = placedPuyo1;
+      const { x: x2, y: y2, color: color2 } = placedPuyo2;
+      if (this.drill === 'adding') {
+        this.drillDropList.push({ x1, y1, x2, y2 });
+      } else {
+        const { x1: x1_, y1: y1_, x2: x2_, y2: y2_ } = this.drillDropList[0];
+        const match = x1 === x1_ && y1 === y1_ && x2 === x2_ && y2 === y2_;
+        const match_rev = x1 === x2_ && y1 === y2_ && x2 === x1_ && y2 === y1_;
+        this.failedDrill = !(match || (color1 === color2 && match_rev));
+      }
+    }
     this.chainsim.placePuyo(placedPuyo1, placedPuyo2);
     this.didChain = false;
     this.setState(({ boardData }) => {
@@ -492,6 +538,12 @@ class Board extends React.Component {
   }
 
   handleLink() {
+    if (this.drill === 'running') {
+      const { drillTarget } = this.state;
+      if (drillTarget && !this.failedDrill) {
+        this.setState({ drillTarget: null });
+      }
+    }
     this.setIsChaining(true);
     const poppedDroppedScore = this.chainsim.computeLink();
     if (poppedDroppedScore) {
@@ -863,6 +915,7 @@ class Board extends React.Component {
       splitPuyo,
       garbagePuyoList,
       highestPopping,
+      drillTarget,
     } = this.state;
     // is it dropping?
     if (dataitem.state === 'dropping') {
@@ -938,12 +991,32 @@ class Board extends React.Component {
       />
     );
     const isRedXLoc = locsEqual(dataitem, this.redXLoc);
+    // prepare drill target
+    let drillTargetCell;
+    if (drillTarget) {
+      const { x1, y1, x2, y2 } = drillTarget;
+      const targets = [
+        { x: x1, y: y1, color: currPuyo1.color },
+        { x: x2, y: y2, color: currPuyo2.color },
+      ];
+      const { match, found } = findLocInList(dataitem, targets);
+      if (found) {
+        drillTargetCell = <Cell classList={[match.color, 'drill-target']} />;
+      }
+    }
     // is there no active piece?
     if (currState === 'none') {
-      // is it the red X?
-      if (dataitem.color === 'none' && isRedXLoc) {
-        return redXCell;
+      if (dataitem.color === 'none') {
+        // is it the red X?
+        if (isRedXLoc) {
+          return redXCell;
+        }
+        // is it a drill target?
+        if (drillTargetCell !== undefined) {
+          return drillTargetCell;
+        }
       }
+      // default
       return <Cell classList={[dataitem.color, dataitem.state]} />;
     }
     // is it active?
@@ -966,6 +1039,10 @@ class Board extends React.Component {
     // is it the red X?
     if (isRedXLoc) {
       return redXCell;
+    }
+    // is it a drill target?
+    if (dataitem.color === 'none' && drillTargetCell !== undefined) {
+      return drillTargetCell;
     }
     // default
     return <Cell classList={[dataitem.color, dataitem.state]} />;
@@ -1102,6 +1179,7 @@ const {
   func,
   shape,
   bool,
+  arrayOf,
 } = PropTypes;
 
 Board.propTypes = {
@@ -1116,6 +1194,14 @@ Board.propTypes = {
   setBoardPause: func,
   setGetScore: func,
   challenge: string,
+  drill: string,
+  drillDropList: arrayOf(shape({
+    x1: number.isRequired,
+    y1: number.isRequired,
+    x2: number.isRequired,
+    y2: number.isRequired,
+  })),
+  endDrill: func,
 };
 
 Board.defaultProps = {
@@ -1125,9 +1211,12 @@ Board.defaultProps = {
   playerRef: undefined,
   setIsChaining: () => {},
   paused: false,
-  setBoardPause: undefined,
+  setBoardPause: () => {},
   setGetScore: undefined,
   challenge: 'none',
+  drill: 'none',
+  drillDropList: undefined,
+  endDrill: undefined,
 };
 
 export default Board;

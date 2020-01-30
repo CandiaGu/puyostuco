@@ -61,6 +61,21 @@ form {
   pointer-events: none;
 }
 
+#options {
+  text-align: center;
+}
+
+.option {
+	border: 5px solid;
+	text-align: center;
+	width: 25vw;
+	height: 25vw;
+	border-radius: 25px;
+	transition: 0.3s;
+	color:white;
+  margin: 10px;
+  display: inline-flex;
+}
 
 /********* Header *********/
 header{
@@ -358,6 +373,12 @@ header{
 	float: left;
 	font-size: 110%;
 }
+
+.learn-option {
+  border-color: blue;
+  background-color: blue;
+}
+
 /********* Practice *********/
 
 .practice-header-extension{
@@ -370,22 +391,6 @@ header{
 	font-weight: 900;
 }
 
-#practice-options {
-  text-align: center;
-}
-
-.practice-option {
-	border: 5px green solid;
-	text-align: center;
-	width: 25vw;
-	height: 25vw;
-	border-radius: 25px;
-	transition: 0.3s;
-	background-color: green;
-	color:white;
-  margin: 10px;
-  display: inline-flex;
-}
 .temp-controls {
 	text-align: center;
 	margin-bottom: 3vh;
@@ -401,6 +406,11 @@ header{
 
 .highscore {
   font-size: 24px;
+}
+
+.practice-option {
+  border-color: green;
+  background-color: green;
 }
 
 /********* Game *********/
@@ -597,6 +607,10 @@ header{
 
 @keyframes dropping {
   to { transform: translateY(1200%); }
+}
+
+#game .cell.drill-target {
+  filter: brightness(0.5);
 }
 
 .score {

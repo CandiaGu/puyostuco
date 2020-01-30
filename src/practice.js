@@ -51,7 +51,7 @@ class Practice extends React.Component {
         } else {
           component = (
             <Button
-              className="centered-box practice-option"
+              className="centered-box option practice-option"
               onClick={() => {
                 this.setState({ challenge: 'score' });
               }}
@@ -64,7 +64,7 @@ class Practice extends React.Component {
         component = (
           <>
             <Button
-              className="centered-box practice-option"
+              className="centered-box option practice-option"
               onClick={() => {
                 this.history.push({ mode, challenge });
                 this.setState({ mode: 'game', challenge: 'score' });
@@ -73,7 +73,7 @@ class Practice extends React.Component {
             />
             {!!authUser && (
               <Button
-                className="centered-box practice-option"
+                className="centered-box option practice-option"
                 onClick={() => {
                   this.history.push({ mode, challenge });
                   // 'score' instead of 'none' to bypass next page
@@ -90,7 +90,7 @@ class Practice extends React.Component {
         component = (
           <>
             <Button
-              className="centered-box practice-option"
+              className="centered-box option practice-option"
               onClick={() => {
                 this.history.push({ mode, challenge });
                 this.setState({ mode: 'game' });
@@ -98,7 +98,7 @@ class Practice extends React.Component {
               text="SOLO"
             />
             <Button
-              className="centered-box practice-option"
+              className="centered-box option practice-option"
               onClick={() => {
                 this.history.push({ mode, challenge });
                 this.setState({ mode: 'challenge' });
@@ -110,7 +110,7 @@ class Practice extends React.Component {
     }
     return (
       <>
-        <div id="practice-options">
+        <div id="options">
           {component}
 
         </div>
