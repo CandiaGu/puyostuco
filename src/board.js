@@ -993,6 +993,7 @@ class Board extends React.Component {
     const isRedXLoc = locsEqual(dataitem, this.redXLoc);
     // prepare drill target
     let drillTargetCell;
+    let drillTargetStyle;
     if (drillTarget) {
       const { x1, y1, x2, y2 } = drillTarget;
       const targets = [
@@ -1001,7 +1002,13 @@ class Board extends React.Component {
       ];
       const { match, found } = findLocInList(dataitem, targets);
       if (found) {
-        drillTargetCell = <Cell classList={[match.color, 'drill-target']} />;
+        drillTargetStyle = { color: `var(--${match.color})` };
+        drillTargetCell = (
+          <Cell
+            classList={['drill-target']}
+            style={drillTargetStyle}
+          />
+        );
       }
     }
     // is there no active piece?
@@ -1028,6 +1035,15 @@ class Board extends React.Component {
     if (this.multiplayer !== 'receive') {
       const { match: ghost, found: isGhost } = findLocInList(dataitem, [ghostPuyo1, ghostPuyo2]);
       if (isGhost) {
+        // is it also a drill target?
+        if (drillTargetCell !== undefined) {
+          return (
+            <Cell
+              classList={[ghost.color, 'ghost', 'drill-target']}
+              style={drillTargetStyle}
+            />
+          );
+        }
         return <Cell classList={[ghost.color, 'ghost']} />;
       }
       // would the ghost pop it?

@@ -465,8 +465,13 @@ header{
 #game .cell.active {
 }
 
-#game .cell.ghost {
+#game .cell.small {
   transform: scale(0.5);
+}
+
+#game .cell.ghost {
+  border: calc(var(--cell-size) * 0.25px) solid var(--board-color);
+  box-sizing: border-box;
 }
 
 #game .cell.offset {
@@ -505,30 +510,39 @@ header{
   75% { transform: scaleX(0.85); }
 }
 
+#game .cell {
+  --red: red;
+  --blue: blue;
+  --green: green;
+  --yellow: gold;
+  --purple: purple;
+  --gray: lightgray;
+}
+
 #game .cell.none {
 }
 
 #game .cell.red {
-	background-color: red;
+	background-color: var(--red);
 }
 #game .cell.blue {
-	background-color: blue;
+	background-color: var(--blue);
 }
 
 #game .cell.green {
-	background-color: green;
+	background-color: var(--green);
 }
 
 #game .cell.yellow {
-	background-color: gold;
+	background-color: var(--yellow);
 }
 
 #game .cell.purple {
-  background-color: purple;
+  background-color: var(--purple);
 }
 
 #game .cell.gray {
-  background-color: lightgray;
+  background-color: var(--lightgray);
 }
 
 #game .cell.gray.blinking {
@@ -610,7 +624,7 @@ header{
 }
 
 #game .cell.drill-target {
-  filter: brightness(0.5);
+  box-shadow: 0px 0px 0px 1px;
 }
 
 .score {

@@ -17,13 +17,14 @@ const {
   arrayOf,
   string,
   objectOf,
+  oneOfType,
   func,
   node,
 } = PropTypes;
 
 Cell.propTypes = {
   classList: arrayOf(string).isRequired,
-  style: objectOf(number),
+  style: objectOf(oneOfType([number, string])),
   onAnimationEnd: func,
   Component: node,
 };

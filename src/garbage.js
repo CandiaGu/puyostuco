@@ -9,7 +9,7 @@ import Cell from './cell.js';
 
 const Garbage = ({ garbagePending }) => {
   const symbols = [
-    { garbage: 1, symbol: <Cell classList={['gray', 'ghost', 'garbage']} /> },
+    { garbage: 1, symbol: <Cell classList={['gray', 'small', 'garbage']} /> },
     { garbage: 6, symbol: <Cell classList={['gray', 'garbage']} /> },
     { garbage: 30, symbol: <Cell classList={['red', 'garbage']} /> },
     {
