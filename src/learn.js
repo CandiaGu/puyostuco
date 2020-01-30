@@ -12,7 +12,8 @@ class Learn extends React.Component {
     const {
       firebase,
     } = this.props;
-    this.learnRef = firebase.ref().child('learn');
+    this.firebase = firebase;
+    this.learnRef = this.firebase.ref().child('learn');
     this.drillNamesRef = this.learnRef.child('names');
     this.drillListsRef = this.learnRef.child('lists');
     this.state = {
@@ -20,22 +21,93 @@ class Learn extends React.Component {
       lesson: 'none',
       drillNames: {},
       drillInfo: undefined,
-      drillCompletion: [],
     };
     this.history = [];
+    this.completionLoaded = false;
+    this.completionUpdated = false;
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    const { authUser } = props;
+    if (!!authUser && !state.authUser) {
+      return {
+        ...state,
+        authUser,
+        completion: null,
+      };
+    }
+    return null;
   }
 
   componentDidMount() {
     this.drillNamesRef.on('value', (snapshot) => {
-      const drillNames = snapshot.val();
-      this.setState({
-        drillNames: drillNames || {},
+      const drillNames = snapshot.val() || {};
+      const { completion } = this.state;
+      if (completion) {
+        this.updateCompletion(drillNames, completion);
+      }
+      this.setState({ drillNames }, () => {
+        if (completion && !this.completionUpdated) {
+          this.completionUpdated = true;
+          this.updateCompletion();
+        }
       });
     });
+    this.loadCompletion();
+  }
+
+  componentDidUpdate() {
+    this.loadCompletion();
   }
 
   componentWillUnmount() {
     this.drillNamesRef.off('value');
+    if (this.completionRef) {
+      this.completionRef.off('value');
+    }
+  }
+
+  loadCompletion() {
+    const {
+      authUser,
+      completion: oldCompletion,
+      drillNames,
+    } = this.state;
+    if (oldCompletion === null && !this.completionLoaded) {
+      this.completionLoaded = true;
+      this.completionRef = this.firebase.user(authUser.uid).child('learn');
+      this.completionRef.once('value', (snapshot) => {
+        const completion = snapshot.val() || {};
+        this.setState({ completion }, () => {
+          if (drillNames && !this.completionUpdated) {
+            this.completionUpdated = true;
+            this.updateCompletion();
+          }
+        });
+      });
+    }
+  }
+
+  updateCompletion() {
+    this.setState(({ drillNames, completion: oldCompletion }) => {
+      const completion = JSON.parse(JSON.stringify(oldCompletion));
+      let didUpdate = false;
+      for (const lesson of Object.keys(drillNames)) {
+        if (!(lesson in completion)) {
+          completion[lesson] = {};
+        }
+        for (const name of Object.values(drillNames[lesson])) {
+          if (!(name in completion[lesson])) {
+            completion[lesson][name] = false;
+            didUpdate = true;
+          }
+        }
+      }
+      if (didUpdate && this.completionRef) {
+        this.completionRef.set(completion);
+      }
+      return { completion };
+    });
   }
 
   addLesson() {
@@ -60,11 +132,6 @@ class Learn extends React.Component {
     const { lesson } = this.state;
     this.drillNamesRef.child(lesson).child(key).remove();
     this.drillListsRef.child(lesson).child(name).remove();
-    this.setState(({ drillCompletion: oldDrillCompletion }) => {
-      const drillCompletion = { ...oldDrillCompletion };
-      delete drillCompletion[name];
-      return { drillCompletion };
-    });
   }
 
   runDrill(name) {
@@ -88,13 +155,21 @@ class Learn extends React.Component {
   }
 
   completedDrill() {
-    console.log('passed', this.drillName);
-    const { drillCompletion: { [this.drillName]: completed } } = this.state;
-    if (!completed) {
-      this.setState(({ drillCompletion }) => ({
-        drillCompletion: { ...drillCompletion, [this.drillName]: true },
-      }));
-    }
+    const {
+      lesson,
+      completion,
+    } = this.state;
+    this.setState(({ lesson, completion: oldCompletion }) => {
+      const completion = JSON.parse(JSON.stringify(oldCompletion || {}));
+      if (!(lesson in completion)) {
+        completion[lesson] = {};
+      }
+      completion[lesson][this.drillName] = true;
+      if (this.completionRef) {
+        this.completionRef.child(lesson).child(this.drillName).set(true);
+      }
+      return { completion };
+    });
   }
 
   render() {
@@ -103,7 +178,7 @@ class Learn extends React.Component {
       lesson,
       drillNames,
       drillInfo,
-      drillCompletion,
+      completion,
     } = this.state;
     const { firebase, authUser } = this.props;
     let isAdmin = false;
@@ -136,7 +211,13 @@ class Learn extends React.Component {
                 className="centered-box option learn-option"
                 onClick={() => { this.runDrill(name); }}
                 onDelete={() => { if (isAdmin) this.deleteDrill(key, name); }}
-                text={`${lesson.toUpperCase()} ${i} (${drillCompletion[name] ? '' : 'in'}complete)`}
+                text={
+                  `${lesson.toUpperCase()} ${i}${
+                    completion && lesson in completion && name in completion[lesson] ? (
+                      completion[lesson][name] ? ' (complete)' : ' (incomplete)'
+                    ) : ''
+                  }`
+                }
               />
             ))}
           </>
@@ -159,7 +240,7 @@ class Learn extends React.Component {
                 className="centered-box option learn-option"
                 onClick={() => {
                   this.history.push({ mode, lesson });
-                  this.setState({ mode: 'drills', lesson: name, drillCompletion: Object.fromEntries(Object.values(drillNames[name]).map((drill) => [drill, false])) });
+                  this.setState({ mode: 'drills', lesson: name });
                 }}
                 onDelete={() => { if (isAdmin) this.deleteLesson(name); }}
                 text={`${name.toUpperCase()} (${Object.keys(drills).length})`}
@@ -198,12 +279,21 @@ class Learn extends React.Component {
 const {
   shape,
   func,
+  string,
 } = PropTypes;
 
 Learn.propTypes = {
   firebase: shape({
     ref: func.isRequired,
+    user: func.isRequired,
   }).isRequired,
+  authUser: shape({
+    uid: string.isRequired,
+  }),
+};
+
+Learn.defaultProps = {
+  authUser: undefined,
 };
 
 export default withFirebase(withAuthUser(Learn));
