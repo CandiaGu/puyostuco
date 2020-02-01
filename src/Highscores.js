@@ -38,6 +38,11 @@ class Highscores extends React.Component {
     });
   }
 
+  componentWillUnmount() {
+    this.highscoresRef.off('value');
+    this.hwRef.off('value');
+  }
+
   render() {
     const {
       loading,
