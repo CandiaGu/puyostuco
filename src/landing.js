@@ -6,8 +6,7 @@ import { FaLock } from 'react-icons/fa';
 import { withFirebase } from './firebase.js';
 import { withAuthUser } from './session.js';
 import * as ROUTES from './routes.js';
-
-const numHws = 1;
+import hwInfo from './homeworkInfo.js';
 
 class Landing extends React.Component {
   constructor(props) {
@@ -53,7 +52,7 @@ class Landing extends React.Component {
       this.hwRef = this.firebase.user(authUser.uid).child('hw');
       this.hwRef.once('value', (snapshot) => {
         let hwCompleted = snapshot.val() || [];
-        const numMissing = numHws - hwCompleted.length;
+        const numMissing = hwInfo.length - hwCompleted.length;
         if (numMissing > 0) {
           hwCompleted = hwCompleted.concat(Array(numMissing).fill(false));
           this.hwRef.set(hwCompleted);
@@ -111,22 +110,23 @@ class Landing extends React.Component {
               <h3>
                 ASSIGNMENTS
               </h3>
-              <h4>
-                HW1
-              </h4>
-              <p>
-                Fill up your SCORE CHALLENGE highscore board!
-              </p>
-              <p>
-                Go to PRACTICE &gt; CHALLENGE &gt; SCORE CHALLENGE and play 30 times!
-              </p>
-              {hwCompleted ? (
-                <p className="completion-status">
-                  {hwCompleted[0] ? 'Completed!' : 'Incomplete'}
-                </p>
-              ) : (
-                <Loader size={10} />
-              )}
+              {hwInfo.map(({ infoText }, i) => (
+                <div key={i}>
+                  <h4>
+                    HW{i + 1}
+                  </h4>
+                  {infoText.map((text, j) => (
+                    <p key={j}>{text}</p>
+                  ))}
+                  {hwCompleted ? (
+                    <p className="completion-status">
+                      {hwCompleted[i] ? 'Completed!' : 'Incomplete'}
+                    </p>
+                  ) : (
+                    <Loader size={10} />
+                  )}
+                </div>
+              ))}
             </>
           )}
           <h3>

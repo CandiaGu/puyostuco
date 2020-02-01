@@ -67,23 +67,34 @@ class Learn extends React.Component {
     if (this.completionRef) {
       this.completionRef.off('value');
     }
+    if (this.hwRef) {
+      this.hwRef.off('value');
+    }
   }
 
   loadCompletion() {
     const {
       authUser,
       completion: oldCompletion,
-      drillNames,
     } = this.state;
     if (oldCompletion === null && !this.completionLoaded) {
       this.completionLoaded = true;
-      this.completionRef = this.firebase.user(authUser.uid).child('learn');
-      this.completionRef.once('value', (snapshot) => {
+      this.userRef = this.firebase.user(authUser.uid);
+      this.completionRef = this.userRef.child('learn');
+      this.completionRef.on('value', (snapshot) => {
         const completion = snapshot.val() || {};
         this.setState({ completion }, () => {
-          if (drillNames && !this.completionUpdated) {
-            this.completionUpdated = true;
-            this.updateCompletion();
+          const { drillNames } = this.state;
+          if (drillNames) {
+            for (const [lesson, names] of Object.entries(drillNames)) {
+              if (Object.values(names).every((name) => completion[lesson][name])) {
+                this.completedLesson(lesson);
+              }
+            }
+            if (!this.completionUpdated) {
+              this.completionUpdated = true;
+              this.updateCompletion();
+            }
           }
         });
       });
@@ -91,25 +102,41 @@ class Learn extends React.Component {
   }
 
   updateCompletion() {
-    this.setState(({ drillNames, completion: oldCompletion }) => {
-      const completion = JSON.parse(JSON.stringify(oldCompletion));
-      let didUpdate = false;
-      for (const lesson of Object.keys(drillNames)) {
-        if (!(lesson in completion)) {
-          completion[lesson] = {};
-        }
-        for (const name of Object.values(drillNames[lesson])) {
-          if (!(name in completion[lesson])) {
-            completion[lesson][name] = false;
-            didUpdate = true;
-          }
+    const { drillNames, completion: oldCompletion } = this.state;
+    const completion = JSON.parse(JSON.stringify(oldCompletion));
+    let didUpdate = false;
+    for (const lesson of Object.keys(drillNames)) {
+      if (!(lesson in completion)) {
+        completion[lesson] = {};
+      }
+      for (const name of Object.values(drillNames[lesson])) {
+        if (!(name in completion[lesson])) {
+          completion[lesson][name] = false;
+          didUpdate = true;
         }
       }
-      if (didUpdate && this.completionRef) {
-        this.completionRef.set(completion);
-      }
-      return { completion };
-    });
+    }
+    if (didUpdate && this.completionRef) {
+      this.completionRef.set(completion);
+    }
+  }
+
+  completedLesson(lesson) {
+    const hwNums = {
+      'stairs': 1,
+    };
+    if (lesson in hwNums) {
+      const hwNum = hwNums[lesson];
+      this.hwRef = this.userRef.child('hw');
+      this.hwRef.once('value', (snapshot) => {
+        const hwCompleted = snapshot.val();
+        if (!hwCompleted[hwNum]) {
+          window.alert(`HW${hwNum + 1} completed!`);
+          hwCompleted[1] = true;
+          this.hwRef.set(hwCompleted);
+        }
+      });
+    }
   }
 
   addLesson() {
@@ -159,19 +186,16 @@ class Learn extends React.Component {
   completedDrill() {
     const {
       lesson,
-      completion,
+      completion: oldCompletion,
     } = this.state;
-    this.setState(({ lesson, completion: oldCompletion }) => {
-      const completion = JSON.parse(JSON.stringify(oldCompletion || {}));
-      if (!(lesson in completion)) {
-        completion[lesson] = {};
-      }
-      completion[lesson][this.drillName] = true;
-      if (this.completionRef) {
-        this.completionRef.child(lesson).child(this.drillName).set(true);
-      }
-      return { completion };
-    });
+    const completion = JSON.parse(JSON.stringify(oldCompletion || {}));
+    if (!(lesson in completion)) {
+      completion[lesson] = {};
+    }
+    completion[lesson][this.drillName] = true;
+    if (this.userRef) {
+      this.completionRef.child(lesson).child(this.drillName).set(true);
+    }
   }
 
   render() {
