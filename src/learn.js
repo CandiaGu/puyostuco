@@ -63,6 +63,7 @@ class Learn extends React.Component {
 
   componentWillUnmount() {
     this.drillNamesRef.off('value');
+    this.drillListsRef.off('value');
     if (this.completionRef) {
       this.completionRef.off('value');
     }
