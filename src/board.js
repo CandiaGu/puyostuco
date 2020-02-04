@@ -1039,16 +1039,18 @@ class Board extends React.Component {
     if (this.multiplayer !== 'receive') {
       const { match: ghost, found: isGhost } = findLocInList(dataitem, [ghostPuyo1, ghostPuyo2]);
       if (isGhost) {
+        const ghostCell = <Cell classList={[ghost.color, 'ghost']} />;
         // is it also a drill target?
         if (drillTargetCell !== undefined) {
           return (
             <Cell
-              classList={[ghost.color, 'ghost', 'drill-target']}
+              classList={['drill-target']}
               style={drillTargetStyle}
+              Component={ghostCell}
             />
           );
         }
-        return <Cell classList={[ghost.color, 'ghost']} />;
+        return ghostCell;
       }
       // would the ghost pop it?
       const { found: inGhostGroup } = findLocInList(dataitem, ghostGroup);

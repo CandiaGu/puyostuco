@@ -470,8 +470,7 @@ header{
 }
 
 #game .cell.ghost {
-  border: calc(var(--cell-size) * 0.25px) solid var(--board-color);
-  box-sizing: border-box;
+  transform: scale(0.5);
 }
 
 #game .cell.offset {
@@ -624,7 +623,7 @@ header{
 }
 
 #game .cell.drill-target {
-  box-shadow: 0px 0px 0px 1px;
+  box-shadow: inset 0px 0px 0px 3px;
 }
 
 .score {
