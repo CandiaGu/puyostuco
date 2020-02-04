@@ -85,9 +85,11 @@ class Learn extends React.Component {
         this.setState({ completion }, () => {
           const { drillNames } = this.state;
           if (drillNames) {
-            for (const [lesson, names] of Object.entries(drillNames)) {
-              if (Object.values(names).every((name) => completion[lesson][name])) {
-                this.completedLesson(lesson);
+            if (Object.keys(completion).length > 0) {
+              for (const [lesson, names] of Object.entries(drillNames)) {
+                if (Object.values(names).every((name) => completion[lesson][name])) {
+                  this.completedLesson(lesson);
+                }
               }
             }
             if (!this.completionUpdated) {
