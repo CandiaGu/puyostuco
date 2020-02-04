@@ -134,7 +134,7 @@ class Learn extends React.Component {
         const hwCompleted = snapshot.val();
         if (!hwCompleted[hwNum]) {
           window.alert(`HW${hwNum + 1} completed!`);
-          hwCompleted[1] = true;
+          hwCompleted[hwNum] = true;
           this.hwRef.set(hwCompleted);
         }
       });
