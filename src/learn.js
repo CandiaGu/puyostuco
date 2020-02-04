@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import Loader from 'react-dots-loader';
 import { withFirebase } from './firebase.js';
 import { withAuthUser } from './session.js';
-import GameSingle from './gameSingle.js';
 import Button from './button.js';
 import Drill from './drill.js';
 
@@ -123,7 +122,7 @@ class Learn extends React.Component {
 
   completedLesson(lesson) {
     const hwNums = {
-      'stairs': 1,
+      stairs: 1,
     };
     if (lesson in hwNums) {
       const hwNum = hwNums[lesson];
@@ -141,7 +140,7 @@ class Learn extends React.Component {
 
   addLesson() {
     const lesson = window.prompt();
-    if (!!lesson) {
+    if (lesson !== null) {
       this.drillNamesRef.child(lesson).set(0);
     }
   }
@@ -206,10 +205,10 @@ class Learn extends React.Component {
       drillInfo,
       completion,
     } = this.state;
-    const { firebase, authUser } = this.props;
+    const { authUser } = this.props;
     let isAdmin = false;
     if (!!authUser && ['bney@andrew.cmu.edu', 'candi37@gmail.com'].includes(authUser.email)) {
-        isAdmin = true;
+      isAdmin = true;
     }
     let component = null;
     switch (mode) {
@@ -281,12 +280,11 @@ class Learn extends React.Component {
           {component}
 
         </div>
-        {mode == 'game' && (
+        {mode === 'game' && (
           <div className="temp-controls">
           &#91;z/x or d/f&#93; to rotate | left/right arrow to move | down arrow to soft-drop
           </div>
-          )
-        }
+        )}
         {mode !== 'none' && (
           <Button
             className="return"

@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Loader from 'react-dots-loader';
 import { Link } from 'react-router-dom';
-import { FaLock } from 'react-icons/fa';
 import { withFirebase } from './firebase.js';
 import { withAuthUser } from './session.js';
 import * as ROUTES from './routes.js';
@@ -113,7 +112,8 @@ class Landing extends React.Component {
               {hwInfo.map(({ infoText }, i) => (
                 <div key={i}>
                   <h4>
-                    HW{i + 1}
+                    HW
+                    {i + 1}
                   </h4>
                   {infoText.map((text, j) => (
                     <p key={j}>{text}</p>

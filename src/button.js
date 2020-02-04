@@ -25,7 +25,7 @@ const Button = (props) => {
       <h2>{text}</h2>
     </a>
   );
-}
+};
 
 const {
   string,

@@ -336,15 +336,13 @@ class Board extends React.Component {
       if (this.failedDrill) {
         this.handleDeath();
         return;
-      } else {
-        this.drillDropList.shift();
-        if (this.drillDropList.length === 0) {
-          this.endDrill();
-          return;
-        } else {
-          this.setState({ drillTarget: this.drillDropList[0] });
-        }
       }
+      this.drillDropList.shift();
+      if (this.drillDropList.length === 0) {
+        this.endDrill();
+        return;
+      }
+      this.setState({ drillTarget: this.drillDropList[0] });
     }
     if (this.setIsChaining(false)) return;
     if (
@@ -511,12 +509,16 @@ class Board extends React.Component {
       const { x: x1, y: y1, color: color1 } = placedPuyo1;
       const { x: x2, y: y2, color: color2 } = placedPuyo2;
       if (this.drill === 'adding') {
-        this.drillDropList.push({ x1, y1, x2, y2 });
+        this.drillDropList.push({
+          x1, y1, x2, y2,
+        });
       } else {
-        const { x1: x1_, y1: y1_, x2: x2_, y2: y2_ } = this.drillDropList[0];
+        const {
+          x1: x1_, y1: y1_, x2: x2_, y2: y2_,
+        } = this.drillDropList[0];
         const match = x1 === x1_ && y1 === y1_ && x2 === x2_ && y2 === y2_;
-        const match_rev = x1 === x2_ && y1 === y2_ && x2 === x1_ && y2 === y1_;
-        this.failedDrill = !(match || (color1 === color2 && match_rev));
+        const matchRev = x1 === x2_ && y1 === y2_ && x2 === x1_ && y2 === y1_;
+        this.failedDrill = !(match || (color1 === color2 && matchRev));
       }
     }
     this.chainsim.placePuyo(placedPuyo1, placedPuyo2);
@@ -995,7 +997,9 @@ class Board extends React.Component {
     let drillTargetCell;
     let drillTargetStyle;
     if (drillTarget) {
-      const { x1, y1, x2, y2 } = drillTarget;
+      const {
+        x1, y1, x2, y2,
+      } = drillTarget;
       const targets = [
         { x: x1, y: y1, color: currPuyo1.color },
         { x: x2, y: y2, color: currPuyo2.color },
