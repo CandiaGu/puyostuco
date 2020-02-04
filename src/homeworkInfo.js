@@ -11,6 +11,12 @@ const hwInfo = [
       'Go to LEARN > STAIRS and complete all the drills!',
     ],
   },
+  {
+    infoText: [
+      'Practice your sandwich!',
+      'Go to LEARN > SANDWICH and complete all the drills!',
+    ],
+  },
 ];
 
 export default hwInfo;
