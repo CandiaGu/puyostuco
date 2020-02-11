@@ -17,6 +17,12 @@ const hwInfo = [
       'Go to LEARN > SANDWICH and complete all the drills!',
     ],
   },
+  {
+    infoText: [
+      'Practice your transition!',
+      'Go to LEARN > TRANSITION and complete all the drills!',
+    ],
+  },
 ];
 
 export default hwInfo;

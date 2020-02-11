@@ -129,6 +129,7 @@ class Learn extends React.Component {
     const hwNums = {
       stairs: 1,
       sandwich: 2,
+      transition: 3,
     };
     if (lesson in hwNums) {
       const hwNum = hwNums[lesson];
