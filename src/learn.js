@@ -87,7 +87,10 @@ class Learn extends React.Component {
           if (drillNames) {
             if (Object.keys(completion).length > 0) {
               for (const [lesson, names] of Object.entries(drillNames)) {
-                if (Object.values(names).every((name) => completion[lesson][name])) {
+                if (
+                  completion[lesson]
+                  && Object.values(names).every((name) => completion[lesson][name])
+                ) {
                   this.completedLesson(lesson);
                 }
               }
