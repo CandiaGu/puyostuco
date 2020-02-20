@@ -23,6 +23,12 @@ const hwInfo = [
       'Go to LEARN > TRANSITION and complete all the drills!',
     ],
   },
+  {
+    infoText: [
+      'Practice your GTR!',
+      'Go to LEARN > GTR and complete all the drills!',
+    ],
+  },
 ];
 
 export default hwInfo;
