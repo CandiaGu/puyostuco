@@ -541,7 +541,7 @@ header{
 }
 
 #game .cell.gray {
-  background-color: var(--lightgray);
+  background-color: var(--gray);
 }
 
 #game .cell.gray.blinking {
