@@ -131,6 +131,7 @@ class Learn extends React.Component {
       sandwich: 2,
       transition: 3,
       gtr: 4,
+      tailing: 5,
     };
     if (lesson in hwNums) {
       const hwNum = hwNums[lesson];

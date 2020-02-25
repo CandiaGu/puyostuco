@@ -29,6 +29,12 @@ const hwInfo = [
       'Go to LEARN > GTR and complete all the drills!',
     ],
   },
+  {
+    infoText: [
+      'Practice your tailing!',
+      'Go to LEARN > TAILING and complete all the drills!',
+    ],
+  },
 ];
 
 export default hwInfo;
