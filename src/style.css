@@ -272,11 +272,6 @@ header{
 	color:blue;
 }
 
-#select-room{
-	visibility: hidden;
-	width:100%;
-}
-
 .select-room{
 	width: 40%;
 }

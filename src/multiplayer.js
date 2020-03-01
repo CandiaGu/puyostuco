@@ -9,13 +9,26 @@ import 'react-dots-loader/index.css';
 class Multiplayer extends React.Component {
   constructor(props) {
     super(props);
-    const { firebase, authUser } = this.props;
+    const {
+      firebase,
+      authUser,
+      opponentLeft,
+      roomCode,
+    } = this.props;
     this.baseRef = firebase.ref();
     this.findUser = firebase.user;
     this.uid = authUser.uid;
     this.userRef = this.findUser(this.uid);
 
-    this.waiterRef = this.baseRef.child('w');
+    this.opponentLeftParent = opponentLeft;
+
+    this.roomCode = roomCode;
+    if (!this.roomCode) {
+      this.waiterRef = this.baseRef.child('w');
+    } else {
+      this.waiterRef = this.baseRef.child('rooms').child(roomCode);
+    }
+
     this.gameListRef = this.baseRef.child('g');
 
     this.state = {
@@ -113,7 +126,8 @@ class Multiplayer extends React.Component {
       gameActive: false,
     });
     this.gameRef.remove();
-    this.findOpponent();
+    // this.findOpponent();
+    this.opponentLeftParent();
   }
 
   render() {
@@ -130,6 +144,11 @@ class Multiplayer extends React.Component {
           marginBottom: '5vh',
         }}
         >
+          {this.roomCode && (
+            <h1>
+              {`room code: ${this.roomCode}`}
+            </h1>
+          )}
           <h1>waiting for another player to join :o</h1>
           <Loader size={10} />
         </div>
@@ -157,6 +176,12 @@ Multiplayer.propTypes = {
   authUser: shape({
     uid: string.isRequired,
   }).isRequired,
+  opponentLeft: func.isRequired,
+  roomCode: string,
+};
+
+Multiplayer.defaultProps = {
+  roomCode: undefined,
 };
 
 export default withAuthUser(withFirebase(Multiplayer));

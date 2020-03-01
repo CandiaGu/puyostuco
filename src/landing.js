@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { withFirebase } from './firebase.js';
 import { withAuthUser } from './session.js';
 import * as ROUTES from './routes.js';
-import hwInfo from './homeworkInfo.js';
+import { hwInfo } from './constants.js';
 
 class Landing extends React.Component {
   constructor(props) {
