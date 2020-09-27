@@ -980,8 +980,9 @@ class Board extends React.Component {
         <Cell
           classList={[dataitem.color, dataitem.state]}
           style={{ zIndex: 1 }}
-          Component={<div className="chain-text">{`${this.chainsim.chainNum - 1}-chain!`}</div>}
-        />
+        >
+          <div className="chain-text">{`${this.chainsim.chainNum - 1}-chain!`}</div>
+        </Cell>
       );
     }
     // prepare red X stuff
@@ -989,13 +990,13 @@ class Board extends React.Component {
       <Cell
         classList={['none', 'none']}
         style={{ zIndex: -1 }}
-        Component={<div className="red-X">X</div>}
-      />
+      >
+        <div className="red-X">X</div>
+      </Cell>
     );
     const isRedXLoc = locsEqual(dataitem, this.redXLoc);
     // prepare drill target
-    let drillTargetCell;
-    let drillTargetStyle;
+    let DrillTargetCell;
     if (drillTarget) {
       const {
         x1, y1, x2, y2,
@@ -1006,12 +1007,13 @@ class Board extends React.Component {
       ];
       const { match, found } = findLocInList(dataitem, targets);
       if (found) {
-        drillTargetStyle = { color: `var(--${match.color})` };
-        drillTargetCell = (
+        DrillTargetCell = ({ children }) => (
           <Cell
             classList={['drill-target']}
-            style={drillTargetStyle}
-          />
+            style={{ color: `var(--${match.color})` }}
+          >
+            {children}
+          </Cell>
         );
       }
     }
@@ -1023,8 +1025,8 @@ class Board extends React.Component {
           return redXCell;
         }
         // is it a drill target?
-        if (drillTargetCell !== undefined) {
-          return drillTargetCell;
+        if (DrillTargetCell !== undefined) {
+          return <DrillTargetCell />;
         }
       }
       // default
@@ -1041,13 +1043,11 @@ class Board extends React.Component {
       if (isGhost) {
         const ghostCell = <Cell classList={[ghost.color, 'ghost']} />;
         // is it also a drill target?
-        if (drillTargetCell !== undefined) {
+        if (DrillTargetCell !== undefined) {
           return (
-            <Cell
-              classList={['drill-target']}
-              style={drillTargetStyle}
-              Component={ghostCell}
-            />
+            <DrillTargetCell>
+              {ghostCell}
+            </DrillTargetCell>
           );
         }
         return ghostCell;
@@ -1063,8 +1063,8 @@ class Board extends React.Component {
       return redXCell;
     }
     // is it a drill target?
-    if (dataitem.color === 'none' && drillTargetCell !== undefined) {
-      return drillTargetCell;
+    if (dataitem.color === 'none' && DrillTargetCell !== undefined) {
+      return <DrillTargetCell />;
     }
     // default
     return <Cell classList={[dataitem.color, dataitem.state]} />;

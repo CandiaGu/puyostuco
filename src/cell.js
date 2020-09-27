@@ -6,10 +6,10 @@ const Cell = (props) => {
     classList,
     style,
     onAnimationEnd,
-    Component,
+    children,
   } = props;
   const className = `cell${classList.reduce((acc, cur) => `${acc} ${cur}`, '')}`;
-  return <div className={className} style={style} onAnimationEnd={onAnimationEnd}>{Component}</div>;
+  return <div className={className} style={style} onAnimationEnd={onAnimationEnd}>{children}</div>;
 };
 
 const {
@@ -26,13 +26,13 @@ Cell.propTypes = {
   classList: arrayOf(string).isRequired,
   style: objectOf(oneOfType([number, string])),
   onAnimationEnd: func,
-  Component: node,
+  children: node,
 };
 
 Cell.defaultProps = {
   style: undefined,
   onAnimationEnd: undefined,
-  Component: undefined,
+  children: undefined,
 };
 
 export default Cell;
