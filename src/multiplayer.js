@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Loader from 'react-dots-loader';
 import { withFirebase } from './firebase.js';
-import { withAuthUser } from './session.js';
+import withAuthUser from './withAuthUser.js';
 import GameMulti from './gameMulti.js';
 import 'react-dots-loader/index.css';
 

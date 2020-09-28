@@ -14,7 +14,7 @@ class Highscores extends React.Component {
     this.hwRef = userRef.child('hw');
     this.state = {
       loading: false,
-      highscores: [],
+      highscoresWithCounts: [],
     };
   }
 
@@ -22,9 +22,14 @@ class Highscores extends React.Component {
     this.setState({ loading: true });
     this.highscoresRef.once('value', (highscoresSnapshot) => {
       const highscores = highscoresSnapshot.val() || [];
+      let prev = {};
       this.setState({
         loading: false,
-        highscores,
+        highscoresWithCounts: highscores.map((highscore) => {
+          const count = highscore === prev.highscore ? prev.count + 1 : 0;
+          prev = { highscore, count };
+          return prev;
+        }),
       }, () => {
         this.hwRef.once('value', (hwCompletedSnapshot) => {
           const hwCompleted = hwCompletedSnapshot.val();
@@ -46,16 +51,16 @@ class Highscores extends React.Component {
   render() {
     const {
       loading,
-      highscores,
+      highscoresWithCounts,
     } = this.state;
     return (
       <div id="highscores">
         <h1>{`${this.challenge.toUpperCase()} CHALLENGE`}</h1>
         {loading && <div>Loading...</div>}
         <ol id="highscores">
-          {highscores.map((highscore, i) => (
+          {highscoresWithCounts.map(({ highscore, count }) => (
             <li
-              key={`${highscore}${i}`}
+              key={`${highscore} ${count}`}
               className="highscore"
             >
               {highscore}

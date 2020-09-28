@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Loader from 'react-dots-loader';
 import { withFirebase } from './firebase.js';
-import { withAuthUser } from './session.js';
+import withAuthUser from './withAuthUser.js';
 import Button from './button.js';
 import Drill from './drill.js';
 
@@ -247,9 +247,9 @@ class Learn extends React.Component {
                 onDelete={() => { if (isAdmin) this.deleteDrill(key, name); }}
                 text={
                   `${lesson.toUpperCase()} ${i}${
-                    completion && lesson in completion && name in completion[lesson] ? (
-                      completion[lesson][name] ? ' (complete)' : ' (incomplete)'
-                    ) : ''
+                    completion && lesson in completion && name in completion[lesson]
+                      ? ` (${completion[lesson][name] ? 'complete' : 'incomplete'})`
+                      : ''
                   }`
                 }
               />

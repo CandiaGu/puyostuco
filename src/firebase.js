@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import app from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/database';
@@ -58,10 +59,24 @@ const FirebaseContext = React.createContext(null);
 
 const withFirebase = (Component) => (props) => (
   <FirebaseContext.Consumer>
+    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
     {(firebase) => <Component {...props} firebase={firebase} />}
   </FirebaseContext.Consumer>
 );
 
+const {
+  shape,
+  func,
+} = PropTypes;
+
+const firebaseAuthPropType = {
+  firebase: shape({
+    auth: shape({
+      onAuthStateChanged: func.isRequired,
+    }).isRequired,
+  }).isRequired,
+};
+
 export default Firebase;
 
-export { FirebaseContext, withFirebase };
+export { firebaseAuthPropType, FirebaseContext, withFirebase };

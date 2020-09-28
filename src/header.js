@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withRouter, Link } from 'react-router-dom';
 import SignOutButton from './signOut.js';
-import { AuthUserContext } from './session.js';
+import AuthUserContext from './authUserContext.js';
 import * as ROUTES from './routes.js';
 
 const AccountBox = () => (

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withFirebase } from './firebase.js';
-import { withAuthUser } from './session.js';
+import withAuthUser from './withAuthUser.js';
 import GameSingle from './gameSingle.js';
 import Highscores from './highscores.js';
 import Button from './button.js';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
-import { withAuthentication } from './session.js';
+import withAuthentication from './withAuthentication.js';
 import Header from './header.js';
 import Landing from './landing.js';
 import Practice from './practice.js';

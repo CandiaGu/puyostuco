@@ -1,9 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { FaLock } from 'react-icons/fa';
 import Multiplayer from './multiplayer.js';
-import { withFirebase } from './firebase.js';
-import { withAuthorization } from './session.js';
+import withAuthorization from './withAuthorization.js';
 import { roomCodes } from './constants.js';
 
 const INITIAL_STATE = {
@@ -131,15 +129,18 @@ class Play extends React.Component {
               </div>
               <div>
                 <form onSubmit={this.submitCode}>
-                  <label htmlFor="rcode"><h3>JOIN ROOM</h3></label>
-                  <input
-                    name="roomCode"
-                    value={roomCode || ''}
-                    onChange={this.changeCode}
-                    type="text"
-                    placeholder="Enter Room Code"
-                    autoComplete="off"
-                  />
+                  <label htmlFor="rcode">
+                    <h3>JOIN ROOM</h3>
+                    <input
+                      id="rcode"
+                      name="roomCode"
+                      value={roomCode || ''}
+                      onChange={this.changeCode}
+                      type="text"
+                      placeholder="Enter Room Code"
+                      autoComplete="off"
+                    />
+                  </label>
                 </form>
                 {invalidCode && (
                   <div style={{ color: 'red' }}>
@@ -147,12 +148,6 @@ class Play extends React.Component {
                   </div>
                 )}
               </div>
-        {/*
-              <div className="select-room-option-2">
-                <h3>JOIN ROOM</h3>
-                <p>No rooms have been created yet :o</p>
-              </div>
-              */}
             </div>
           </div>
         );

@@ -32,6 +32,8 @@
     ],
     "rules": {
         "import/extensions": "off",
+        "jsx-a11y/anchor-is-valid": "off",
+        "no-alert": "off",
         "no-cond-assign": [
             "error",
             "except-parens"

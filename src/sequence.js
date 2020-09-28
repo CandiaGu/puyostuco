@@ -23,6 +23,7 @@ class Sequence {
     return Array.from({ length: this.seqLen }, (_, i) => i % numColors);
   }
 
+  // mutates arr
   shufflePuyo(arr) {
     let iEnd = 15;
     let jEnd = 8;
@@ -33,6 +34,7 @@ class Sequence {
         for (let j = 0; j < jEnd; j++) {
           const num1 = (this.rand.next().value >>> shift) + i * coeff;
           const num2 = (this.rand.next().value >>> shift) + (i + 1) * coeff;
+          // eslint-disable-next-line no-param-reassign
           [arr[num1], arr[num2]] = [arr[num2], arr[num1]];
         }
       }

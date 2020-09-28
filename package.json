@@ -6,7 +6,7 @@
   "scripts": {
     "start": "webpack-dev-server --open --mode development --config build-utils/webpack.config.js --env.env=dev",
     "build": "webpack --mode production --config build-utils/webpack.config.js --env.env=prod",
-    "lint": "eslint --ignore-path .gitignore ."
+    "lint": "eslint --ignore-path .gitignore"
   },
   "keywords": [],
   "author": "",

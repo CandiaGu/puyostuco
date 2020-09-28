@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Link, withRouter } from 'react-router-dom';
-import { SignUpLink } from './signUp.js';
 import { PasswordForgetLink } from './passwordForget.js';
 import { withFirebase } from './firebase.js';
 import * as ROUTES from './routes.js';
@@ -92,11 +91,11 @@ SignInFormBase.propTypes = {
   }).isRequired,
 };
 
-const SignInLink = () => (
+const SignUpLink = () => (
   <div>
-    Already have an account?
+    Don&apos;t have an account?
     {' '}
-    <Link to={ROUTES.SIGN_IN} className="click-link">Sign in</Link>
+    <Link to={ROUTES.SIGN_UP} className="click-link">Sign Up</Link>
   </div>
 );
 
@@ -104,4 +103,4 @@ const SignInForm = withRouter(withFirebase(SignInFormBase));
 
 export default SignIn;
 
-export { SignInForm, SignInLink };
+export { SignInForm, SignUpLink };

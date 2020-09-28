@@ -2,9 +2,9 @@ import jQuery from 'jquery';
 import 'jquery.easing';
 
 jQuery(($) => {
-  Number.prototype.clamp = function (min, max) {
-    return Math.min(Math.max(this, min), max);
-  };
+  function clamp(num, min, max) {
+    return Math.min(Math.max(num, min), max);
+  }
 
   // a list of available css animations
   const animations = ['raise-hands',
@@ -31,23 +31,22 @@ jQuery(($) => {
   const $carby = $('.carby', $carbyBox);
 
   // defines extra mutating animations(e.g. translations) that plays with the css animations
-  const animationBehaviors = (function () {
-    const px2em = function (px) {
+  const animationBehaviors = ((() => {
+    const px2em = (px) => {
       // assuming 'font-size' return a pixel value, e.g. '10px'
       const pxPerEm = +$carbyBox.css('font-size').slice(0, -2);
       return px / pxPerEm;
     };
 
-    const stepFn = function (emPerMovement, clampTo) {
-      return function (_, tween) {
-        tween.now = Math.floor(tween.now.clamp(0, clampTo) / emPerMovement) * emPerMovement;
-      };
+    const stepFn = (emPerMovement, clampTo) => (_, tween) => {
+      // eslint-disable-next-line no-param-reassign
+      tween.now = Math.floor(clamp(tween.now, 0, clampTo) / emPerMovement) * emPerMovement;
     };
     const maxX = () => px2em(window.innerWidth - $carbyBox.width());
     const maxY = () => px2em(window.innerHeight - $carbyBox.height());
 
     return {
-      'walk-right': function () {
+      'walk-right': () => {
         $carbyBox
           .delay(0.15e3)
           .animate({ left: '+=16em' },
@@ -57,7 +56,7 @@ jQuery(($) => {
               step: stepFn(1, maxX()),
             });
       },
-      'walk-left': function () {
+      'walk-left': () => {
         $carbyBox
           .delay(0.15e3)
           .animate({ left: '-=16em' },
@@ -67,7 +66,7 @@ jQuery(($) => {
               step: stepFn(1, maxX()),
             });
       },
-      'slide-right': function () {
+      'slide-right': () => {
         $carbyBox
           .delay(0.15e3)
           .animate({ left: '+=18em' },
@@ -77,7 +76,7 @@ jQuery(($) => {
               step: stepFn(4, maxX()),
             });
       },
-      'slide-left': function () {
+      'slide-left': () => {
         $carbyBox
           .delay(0.15e3)
           .animate({ left: '-=18em' },
@@ -87,7 +86,7 @@ jQuery(($) => {
               step: stepFn(4, maxX()),
             });
       },
-      'high-jump': function () {
+      'high-jump': () => {
         const height = Math.floor(Math.random() * 100);
         $carbyBox
           .delay(0.375e3)
@@ -104,7 +103,7 @@ jQuery(($) => {
               step: stepFn(1, maxY()),
             });
       },
-      'low-jump': function () {
+      'low-jump': () => {
         const height = Math.floor(Math.random() * 70);
         $carbyBox
           .delay(0.9e3)
@@ -122,7 +121,7 @@ jQuery(($) => {
             });
       },
     };
-  }());
+  })());
 
   const minDelayMs = 0.3e3;
   const maxDelayMs = 4e3;
@@ -138,11 +137,10 @@ jQuery(($) => {
   (function animate() {
     const animation = animations[Math.floor(animations.length * Math.random())];
     $carby.addClass(animation)
-      .one('animationend', function () {
+      .one('animationend', () => {
         $(this).removeClass(animation);
-        this.offsetWidth;
         setTimeout(animate, minDelayMs + Math.floor((maxDelayMs - minDelayMs) * Math.random()));
       });
-    (animationBehaviors[animation] || function () {})();
+    (animationBehaviors[animation] || (() => {}))();
   }());
 });

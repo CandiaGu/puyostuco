@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Loader from 'react-dots-loader';
 import { Link } from 'react-router-dom';
 import { withFirebase } from './firebase.js';
-import { withAuthUser } from './session.js';
+import withAuthUser from './withAuthUser.js';
 import * as ROUTES from './routes.js';
 import { hwInfo } from './constants.js';
 
@@ -109,14 +109,13 @@ class Landing extends React.Component {
               <h3>
                 ASSIGNMENTS
               </h3>
-              {hwInfo.map(({ infoText }, i) => (
-                <div key={i}>
+              {hwInfo.map(({ hwNum, infoText }, i) => (
+                <div key={hwNum}>
                   <h4>
-                    HW
-                    {i + 1}
+                    {`HW${hwNum}`}
                   </h4>
-                  {infoText.map((text, j) => (
-                    <p key={j}>{text}</p>
+                  {infoText.map((text) => (
+                    <p key={text}>{text}</p>
                   ))}
                   {hwCompleted ? (
                     <p className="completion-status">
