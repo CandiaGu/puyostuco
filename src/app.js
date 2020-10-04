@@ -18,7 +18,15 @@ import Carbuncle from './carbuncle.js';
 const App = () => (
   <Router>
     <div>
-      <Carbuncle />
+      <Route
+        exact
+        path={ROUTES.LANDING}
+        children={({ match }) => (
+          <div style={{ visibility: match ? 'visible' : 'hidden' }}>
+            <Carbuncle />
+          </div>
+        )}
+      />
 
       <Header />
 
