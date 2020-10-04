@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const { DefinePlugin } = require('webpack');
 
 module.exports = {
@@ -5,8 +6,8 @@ module.exports = {
   plugins: [
     new DefinePlugin({
       'process.env': {
-        'NODE_ENV': JSON.stringify('development'),
-      }
+        NODE_ENV: JSON.stringify('development'),
+      },
     }),
   ],
 };

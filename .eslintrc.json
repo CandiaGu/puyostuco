@@ -16,9 +16,6 @@
         "ReactDOM": "readonly",
         "SharedArrayBuffer": "readonly"
     },
-    "ignorePatterns": [
-      "build-utils/"
-    ],
     "parser": "babel-eslint",
     "parserOptions": {
         "ecmaFeatures": {
