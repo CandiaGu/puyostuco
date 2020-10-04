@@ -2,8 +2,8 @@ import jQuery from 'jquery';
 import 'jquery.easing';
 
 jQuery(($) => {
-  function clamp(num, min, max) {
-    return Math.min(Math.max(num, min), max);
+  function clamp(val, min, max) {
+    return Math.min(Math.max(val, min), max);
   }
 
   // a list of available css animations
@@ -32,21 +32,23 @@ jQuery(($) => {
 
   // defines extra mutating animations(e.g. translations) that plays with the css animations
   const animationBehaviors = ((() => {
-    const px2em = (px) => {
+    const px2em = function (px) {
       // assuming 'font-size' return a pixel value, e.g. '10px'
       const pxPerEm = +$carbyBox.css('font-size').slice(0, -2);
       return px / pxPerEm;
     };
 
-    const stepFn = (emPerMovement, clampTo) => (_, tween) => {
-      // eslint-disable-next-line no-param-reassign
-      tween.now = Math.floor(clamp(tween.now, 0, clampTo) / emPerMovement) * emPerMovement;
+    const stepFn = function (emPerMovement, clampTo) {
+      return (_, tween) => {
+        // eslint-disable-next-line no-param-reassign
+        tween.now = Math.floor(clamp(tween.now, 0, clampTo) / emPerMovement) * emPerMovement;
+      };
     };
     const maxX = () => px2em(window.innerWidth - $carbyBox.width());
     const maxY = () => px2em(window.innerHeight - $carbyBox.height());
 
     return {
-      'walk-right': () => {
+      'walk-right': function () {
         $carbyBox
           .delay(0.15e3)
           .animate({ left: '+=16em' },
@@ -56,7 +58,7 @@ jQuery(($) => {
               step: stepFn(1, maxX()),
             });
       },
-      'walk-left': () => {
+      'walk-left': function () {
         $carbyBox
           .delay(0.15e3)
           .animate({ left: '-=16em' },
@@ -66,7 +68,7 @@ jQuery(($) => {
               step: stepFn(1, maxX()),
             });
       },
-      'slide-right': () => {
+      'slide-right': function () {
         $carbyBox
           .delay(0.15e3)
           .animate({ left: '+=18em' },
@@ -76,7 +78,7 @@ jQuery(($) => {
               step: stepFn(4, maxX()),
             });
       },
-      'slide-left': () => {
+      'slide-left': function () {
         $carbyBox
           .delay(0.15e3)
           .animate({ left: '-=18em' },
@@ -86,7 +88,7 @@ jQuery(($) => {
               step: stepFn(4, maxX()),
             });
       },
-      'high-jump': () => {
+      'high-jump': function () {
         const height = Math.floor(Math.random() * 100);
         $carbyBox
           .delay(0.375e3)
@@ -103,7 +105,7 @@ jQuery(($) => {
               step: stepFn(1, maxY()),
             });
       },
-      'low-jump': () => {
+      'low-jump': function () {
         const height = Math.floor(Math.random() * 70);
         $carbyBox
           .delay(0.9e3)
@@ -137,7 +139,7 @@ jQuery(($) => {
   (function animate() {
     const animation = animations[Math.floor(animations.length * Math.random())];
     $carby.addClass(animation)
-      .one('animationend', () => {
+      .one('animationend', function handler() {
         $(this).removeClass(animation);
         setTimeout(animate, minDelayMs + Math.floor((maxDelayMs - minDelayMs) * Math.random()));
       });
