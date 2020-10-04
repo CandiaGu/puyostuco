@@ -29,7 +29,7 @@ const AccountBox = () => (
 );
 
 const Header = ({ location }) => {
-  const path = location.pathname.slice(1);
+  const path = location.pathname.split('/')[1];
   let page;
   switch (path) {
     case '': page = 'landing'; break;

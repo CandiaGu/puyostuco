@@ -1,25 +1,33 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
 import Board from './board.js';
 import { randSeed, disableMovementKeyHandler } from './utils.js';
 import Controller from './controller.js';
+import { withFirebase } from './firebase.js';
+import withAuthUser from './withAuthUser.js';
+import { PRACTICE_ROUTES as ROUTES } from './routes.js';
 
 class GameSingle extends React.Component {
   constructor(props) {
     super(props);
     const {
-      challenge,
-      userRef,
-      showHighscores,
+      authUser,
+      firebase,
+      history,
+      match,
     } = props;
+    const { challenge = 'none' } = match.params;
     this.challenge = challenge;
-    if (this.challenge !== 'none') {
-      this.userRef = userRef;
+    if (this.challenge !== 'none' && authUser) {
+      this.userRef = firebase.user(authUser.uid);
     }
     if (this.userRef) {
       this.highscoresRef = this.userRef.child('challenge').child(challenge);
     }
-    this.showHighscores = showHighscores;
+    this.showHighscores = () => {
+      history.push(`${match.url}${ROUTES.HIGHSCORES}/${challenge}`);
+    };
     this.scoreChallengeTime = 60 * 1000;
     this.scoreChallengeExpiring = 9 * 1000;
     this.numHighscores = 30;
@@ -202,24 +210,34 @@ class GameSingle extends React.Component {
       paused,
     } = this.state;
     return (
-      <div id="game">
-        <div style={{ display: 'flex', flexDireciton: 'row' }}>
-          <div style={{ width: '280px' }}>
-            {this.renderTime()}
+      <>
+        <div id="game">
+          <div style={{ display: 'flex', flexDireciton: 'row' }}>
+            <div style={{ width: '280px' }}>
+              {this.renderTime()}
+            </div>
+            <Board
+              key={id}
+              seed={seed}
+              handleDeath={this.handleDeath}
+              multiplayer="none"
+              paused={paused}
+              setBoardPause={this.setBoardPause}
+              setGetScore={this.setGetScore}
+              challenge={this.challenge}
+              setIsChaining={this.setIsChaining}
+            />
           </div>
-          <Board
-            key={id}
-            seed={seed}
-            handleDeath={this.handleDeath}
-            multiplayer="none"
-            paused={paused}
-            setBoardPause={this.setBoardPause}
-            setGetScore={this.setGetScore}
-            challenge={this.challenge}
-            setIsChaining={this.setIsChaining}
-          />
         </div>
-      </div>
+        <div className="temp-controls">
+      &#91;z/x or d/f&#93; to rotate | left/right arrow to move | down arrow to soft-drop
+        </div>
+        <div className="temp-controls">
+          {this.challenge === 'none' && ('[esc] to pause |')}
+          {' '}
+&#91;r&#93; to restart
+        </div>
+      </>
     );
   }
 }
@@ -231,16 +249,25 @@ const {
 } = PropTypes;
 
 GameSingle.propTypes = {
-  challenge: string.isRequired,
-  userRef: shape({
-    child: func.isRequired,
+  authUser: shape({
+    uid: string.isRequired,
   }),
-  showHighscores: func,
+  firebase: shape({
+    user: func.isRequired,
+  }).isRequired,
+  history: shape({
+    push: func.isRequired,
+  }).isRequired,
+  match: shape({
+    params: shape({
+      challenge: string,
+    }).isRequired,
+    url: string.isRequired,
+  }).isRequired,
 };
 
 GameSingle.defaultProps = {
-  userRef: undefined,
-  showHighscores: undefined,
+  authUser: undefined,
 };
 
-export default GameSingle;
+export default withRouter(withFirebase(withAuthUser(GameSingle)));

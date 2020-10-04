@@ -1,15 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
+import { withFirebase } from './firebase.js';
+import withAuthUser from './withAuthUser.js';
+import withAuthorization from './withAuthorization.js';
 
 class Highscores extends React.Component {
   constructor(props) {
     super(props);
     const {
-      challenge,
-      userRef,
+      authUser,
+      firebase,
+      match,
     } = props;
     this.numHighscores = 30;
+    const { challenge } = match.params;
     this.challenge = challenge;
+    const userRef = firebase.user(authUser.uid);
     this.highscoresRef = userRef.child('challenge').child(challenge);
     this.hwRef = userRef.child('hw');
     this.state = {
@@ -79,10 +86,19 @@ const {
 } = PropTypes;
 
 Highscores.propTypes = {
-  challenge: string.isRequired,
-  userRef: shape({
-    child: func.isRequired,
+  authUser: shape({
+    uid: string.isRequired,
+  }).isRequired,
+  firebase: shape({
+    user: func.isRequired,
+  }).isRequired,
+  match: shape({
+    params: shape({
+      challenge: string.isRequired,
+    }).isRequired,
   }).isRequired,
 };
 
-export default Highscores;
+const condition = (authUser) => !!authUser;
+
+export default withRouter(withFirebase(withAuthUser(withAuthorization(condition)(Highscores))));

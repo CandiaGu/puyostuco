@@ -1,156 +1,81 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withFirebase } from './firebase.js';
+import {
+  Switch,
+  Route,
+  Link,
+  useRouteMatch,
+} from 'react-router-dom';
 import withAuthUser from './withAuthUser.js';
 import GameSingle from './gameSingle.js';
 import Highscores from './highscores.js';
-import Button from './button.js';
+import { PRACTICE_ROUTES as ROUTES } from './routes.js';
 
-class Practice extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      mode: 'none',
-      challenge: 'none',
-    };
-    this.history = [];
-  }
-
-  render() {
-    const {
-      mode,
-      challenge,
-    } = this.state;
-    const { firebase, authUser } = this.props;
-    let userRef;
-    if (authUser) {
-      userRef = firebase.user(authUser.uid);
-    }
-    let component = null;
-    switch (mode) {
-      case 'game':
-        component = (
-          <GameSingle
-            challenge={challenge}
-            userRef={userRef}
-            showHighscores={() => {
-              this.history.push({ mode, challenge });
-              this.setState({ mode: 'highscores' });
-            }}
-          />
-        );
-        break;
-      case 'highscores':
-        if (challenge !== 'none') {
-          component = (
-            <Highscores
-              challenge={challenge}
-              userRef={userRef}
-            />
-          );
-        } else {
-          component = (
-            <Button
+const Practice = ({ authUser }) => {
+  const { path, url } = useRouteMatch();
+  return (
+    <div id="options">
+      <Switch>
+        <Route path={`${path}${ROUTES.GAME}${ROUTES.CHALLENGE_PARAM}?`}>
+          <GameSingle />
+        </Route>
+        <Route path={`${path}${ROUTES.HIGHSCORES}${ROUTES.CHALLENGE_PARAM}`}>
+          <Highscores />
+        </Route>
+        <Route path={`${path}${ROUTES.HIGHSCORES}`}>
+          <Link
+            className="centered-box option practice-option"
+            to={`${url}${ROUTES.HIGHSCORES}${ROUTES.SCORE}`}
+          >
+            <h2>
+              SCORE CHALLENGE HIGHSCORES
+            </h2>
+          </Link>
+        </Route>
+        <Route path={`${path}${ROUTES.CHALLENGE}`}>
+          <Link
+            className="centered-box option practice-option"
+            to={`${url}${ROUTES.GAME}${ROUTES.SCORE}`}
+          >
+            <h2>
+              SCORE CHALLENGE
+            </h2>
+          </Link>
+          {!!authUser && (
+            <Link
               className="centered-box option practice-option"
-              onClick={() => {
-                this.setState({ challenge: 'score' });
-              }}
-              text="SCORE CHALLENGE HIGHSCORES"
-            />
-          );
-        }
-        break;
-      case 'challenge':
-        component = (
-          <>
-            <Button
-              className="centered-box option practice-option"
-              onClick={() => {
-                this.history.push({ mode, challenge });
-                this.setState({ mode: 'game', challenge: 'score' });
-              }}
-              text="SCORE CHALLENGE"
-            />
-            {!!authUser && (
-              <Button
-                className="centered-box option practice-option"
-                onClick={() => {
-                  this.history.push({ mode, challenge });
-                  // 'score' instead of 'none' to bypass next page
-                  this.setState({ mode: 'highscores', challenge: 'score' });
-                }}
-                text="HIGHSCORES"
-              />
-            )}
-          </>
-        );
-        break;
-      case 'none':
-      default:
-        component = (
-          <>
-            <Button
-              className="centered-box option practice-option"
-              onClick={() => {
-                this.history.push({ mode, challenge });
-                this.setState({ mode: 'game' });
-              }}
-              text="SOLO"
-            />
-            <Button
-              className="centered-box option practice-option"
-              onClick={() => {
-                this.history.push({ mode, challenge });
-                this.setState({ mode: 'challenge' });
-              }}
-              text="CHALLENGE"
-            />
-          </>
-        );
-    }
-    return (
-      <>
-        <div id="options">
-          {component}
-
-        </div>
-        {mode === 'game' && (
-          <>
-            <div className="temp-controls">
-          &#91;z/x or d/f&#93; to rotate | left/right arrow to move | down arrow to soft-drop
-            </div>
-            <div className="temp-controls">
-              {challenge === 'none' && ('[esc] to pause |')}
-              {' '}
-&#91;r&#93; to restart
-            </div>
-          </>
-        )}
-        {mode !== 'none' && (
-          <Button
-            className="return"
-            onClick={() => {
-              this.setState(this.history.pop());
-            }}
-            text="RETURN"
-          />
-        )}
-
-      </>
-    );
-  }
-}
+              // '/score' to bypass next page
+              to={`${url}${ROUTES.HIGHSCORES}${ROUTES.SCORE}`}
+            >
+              <h2>
+                HIGHSCORES
+              </h2>
+            </Link>
+          )}
+        </Route>
+        <Route path={path}>
+          <Link className="centered-box option practice-option" to={`${url}${ROUTES.GAME}`}>
+            <h2>
+              SOLO
+            </h2>
+          </Link>
+          <Link className="centered-box option practice-option" to={`${url}${ROUTES.CHALLENGE}`}>
+            <h2>
+              CHALLENGE
+            </h2>
+          </Link>
+        </Route>
+      </Switch>
+    </div>
+  );
+};
 
 const {
   shape,
-  func,
   string,
 } = PropTypes;
 
 Practice.propTypes = {
-  firebase: shape({
-    user: func.isRequired,
-  }).isRequired,
   authUser: shape({
     uid: string.isRequired,
   }),
@@ -160,4 +85,4 @@ Practice.defaultProps = {
   authUser: undefined,
 };
 
-export default withFirebase(withAuthUser(Practice));
+export default withAuthUser(Practice);

@@ -8,4 +8,11 @@ export const SIGN_IN = '/signin';
 export const ACCOUNT = '/account';
 export const ADMIN = '/admin';
 export const PASSWORD_FORGET = '/pw-forget';
-export const CHALLENGE = '/challenge';
+
+export const PRACTICE_ROUTES = {
+  GAME: '/game',
+  CHALLENGE: '/challenge',
+  HIGHSCORES: '/highscores',
+  CHALLENGE_PARAM: '/:challenge(score)',
+  SCORE: '/score',
+};
