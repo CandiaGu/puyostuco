@@ -6,10 +6,10 @@ import {
   Link,
   useRouteMatch,
 } from 'react-router-dom';
-import withAuthUser from './withAuthUser.js';
-import GameSingle from './gameSingle.js';
-import Highscores from './highscores.js';
-import { PRACTICE_ROUTES as ROUTES } from './routes.js';
+import withAuthUser from './withAuthUser';
+import GameSingle from './gameSingle';
+import Highscores from './highscores';
+import { PRACTICE_ROUTES as ROUTES } from './routes';
 
 const Practice = ({ authUser }) => {
   const { path, url } = useRouteMatch();

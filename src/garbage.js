@@ -5,7 +5,7 @@ import { FaStar } from 'react-icons/fa';
 import { IoMdMoon } from 'react-icons/io';
 import { AiFillCrown } from 'react-icons/ai';
 import { GiCometSpark } from 'react-icons/gi';
-import Cell from './cell.js';
+import Cell from './cell';
 
 const Garbage = ({ garbagePending }) => {
   const symbols = [

@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
-import Board from './board.js';
-import { randSeed, disableMovementKeyHandler } from './utils.js';
-import Controller from './controller.js';
-import { withFirebase } from './firebase.js';
-import withAuthUser from './withAuthUser.js';
-import { PRACTICE_ROUTES as ROUTES } from './routes.js';
+import Board from './board';
+import { randSeed, disableMovementKeyHandler } from './utils';
+import Controller from './controller';
+import { withFirebase } from './firebase';
+import withAuthUser from './withAuthUser';
+import { PRACTICE_ROUTES as ROUTES } from './routes';
 
 class GameSingle extends React.Component {
   constructor(props) {

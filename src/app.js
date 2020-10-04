@@ -1,19 +1,19 @@
 import React from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
-import withAuthentication from './withAuthentication.js';
-import Header from './header.js';
-import Landing from './landing.js';
-import Practice from './practice.js';
-import Learn from './learn.js';
-import LearnModule from './learnModule.js';
-import Play from './play.js';
-import SignUp from './signUp.js';
-import SignIn from './signIn.js';
-import PasswordForget from './passwordForget.js';
-import Account from './account.js';
-import Admin from './admin.js';
-import * as ROUTES from './routes.js';
-import Carbuncle from './carbuncle.js';
+import withAuthentication from './withAuthentication';
+import Header from './header';
+import Landing from './landing';
+import Practice from './practice';
+import Learn from './learn';
+import LearnModule from './learnModule';
+import Play from './play';
+import SignUp from './signUp';
+import SignIn from './signIn';
+import PasswordForget from './passwordForget';
+import Account from './account';
+import Admin from './admin';
+import * as ROUTES from './routes';
+import Carbuncle from './carbuncle';
 
 const App = () => (
   <Router>

@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
-import { withFirebase } from './firebase.js';
-import withAuthUser from './withAuthUser.js';
-import withAuthorization from './withAuthorization.js';
+import { withFirebase } from './firebase';
+import withAuthUser from './withAuthUser';
+import withAuthorization from './withAuthorization';
 
 class Highscores extends React.Component {
   constructor(props) {

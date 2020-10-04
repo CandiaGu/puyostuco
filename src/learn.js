@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Loader from 'react-dots-loader';
-import { withFirebase } from './firebase.js';
-import withAuthUser from './withAuthUser.js';
-import Button from './button.js';
-import Drill from './drill.js';
+import { withFirebase } from './firebase';
+import withAuthUser from './withAuthUser';
+import Button from './button';
+import Drill from './drill';
 
 class Learn extends React.Component {
   constructor(props) {

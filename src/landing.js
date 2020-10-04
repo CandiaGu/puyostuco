@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Loader from 'react-dots-loader';
 import { Link } from 'react-router-dom';
-import { withFirebase } from './firebase.js';
-import withAuthUser from './withAuthUser.js';
-import * as ROUTES from './routes.js';
-import { hwInfo } from './constants.js';
+import { withFirebase } from './firebase';
+import withAuthUser from './withAuthUser';
+import * as ROUTES from './routes';
+import { hwInfo } from './constants';
 
 class Landing extends React.Component {
   constructor(props) {

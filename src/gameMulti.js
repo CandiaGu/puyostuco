@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Board from './board.js';
-import { randSeed, disableMovementKeyHandler } from './utils.js';
+import Board from './board';
+import { randSeed, disableMovementKeyHandler } from './utils';
 
 class GameMulti extends React.Component {
   constructor(props) {

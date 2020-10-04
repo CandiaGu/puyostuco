@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { onLoadLearnModule, selectAndReloadModule } from './script.js';
-import learnContent from './learnContent.js';
-import * as ROUTES from './routes.js';
+import { onLoadLearnModule, selectAndReloadModule } from './script';
+import learnContent from './learnContent';
+import * as ROUTES from './routes';
 
 class LearnModule extends React.Component {
   componentDidMount() {

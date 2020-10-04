@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withFirebase } from './firebase.js';
+import { withFirebase } from './firebase';
 
 const SignOutButton = ({ firebase }) => (
   <button type="button" onClick={firebase.doSignOut} className="sign-out">

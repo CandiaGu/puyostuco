@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Link, withRouter } from 'react-router-dom';
-import { PasswordForgetLink } from './passwordForget.js';
-import { withFirebase } from './firebase.js';
-import * as ROUTES from './routes.js';
+import { PasswordForgetLink } from './passwordForget';
+import { withFirebase } from './firebase';
+import * as ROUTES from './routes';
 
 const SignIn = () => (
   <div className="sign-in-form">

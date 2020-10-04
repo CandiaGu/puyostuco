@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Board from './board.js';
-import { randSeed, disableMovementKeyHandler } from './utils.js';
-import Controller from './controller.js';
+import Board from './board';
+import { randSeed, disableMovementKeyHandler } from './utils';
+import Controller from './controller';
 
 class Drill extends React.Component {
   constructor(props) {

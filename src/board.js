@@ -1,17 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Cell from './cell.js';
-import Chainsim from './chainsim.js';
-import Controller from './controller.js';
-import Sequence from './sequence.js';
+import Cell from './cell';
+import Chainsim from './chainsim';
+import Controller from './controller';
+import Sequence from './sequence';
 import {
   locsEqual,
   findLocInList,
   randGenerator,
   randSample,
   cloneData,
-} from './utils.js';
-import Garbage from './garbage.js';
+} from './utils';
+import Garbage from './garbage';
 
 class Board extends React.Component {
   constructor(props) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import AuthUserContext from './authUserContext.js';
+import AuthUserContext from './authUserContext';
 
 const withAuthUser = (Component) => (props) => (
   <AuthUserContext.Consumer>

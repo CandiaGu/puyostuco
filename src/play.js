@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Multiplayer from './multiplayer.js';
-import withAuthorization from './withAuthorization.js';
-import { roomCodes } from './constants.js';
+import Multiplayer from './multiplayer';
+import withAuthorization from './withAuthorization';
+import { roomCodes } from './constants';
 
 const INITIAL_STATE = {
   mode: 'none',

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { withFirebase } from './firebase.js';
+import { withFirebase } from './firebase';
 
 const INITIAL_STATE = {
   passwordOne: '',

@@ -1,5 +1,5 @@
 import React from 'react';
-import './carbuncle-widget/js.js';
+import './carbuncle-widget/js';
 import './carbuncle-widget/css.css';
 
 const Carbuncle = () => (

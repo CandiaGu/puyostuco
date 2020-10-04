@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
-import AuthUserContext from './authUserContext.js';
-import { firebaseAuthPropType, withFirebase } from './firebase.js';
-import * as ROUTES from './routes.js';
+import AuthUserContext from './authUserContext';
+import { firebaseAuthPropType, withFirebase } from './firebase';
+import * as ROUTES from './routes';
 
 const {
   shape,

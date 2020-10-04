@@ -1,4 +1,4 @@
-import { findLocInList } from './utils.js';
+import { findLocInList } from './utils';
 
 class Chainsim {
   static chainPower(chain) {

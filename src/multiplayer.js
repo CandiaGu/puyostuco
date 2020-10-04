@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Loader from 'react-dots-loader';
-import { withFirebase } from './firebase.js';
-import withAuthUser from './withAuthUser.js';
-import GameMulti from './gameMulti.js';
+import { withFirebase } from './firebase';
+import withAuthUser from './withAuthUser';
+import GameMulti from './gameMulti';
 import 'react-dots-loader/index.css';
 
 class Multiplayer extends React.Component {
