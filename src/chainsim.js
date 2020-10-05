@@ -117,16 +117,17 @@ class Chainsim {
       // prevent ghost row from popping
       if (can.y >= this.twelfthRow && !findLocInList(can, checkedLocations).found) {
         const color = this.board[can.y][can.x];
-        if (color === 'gray') continue;
-        const garbageList = [];
-        const group = (
-          this.checkPuyoHelper(can, color, checkedLocations, garbageList, poppedGarbageList)
-        );
-        if (group.length >= this.puyoMinPop) {
-          puyosToPop.push(...group);
-          poppedGarbageList.push(...garbageList);
-          colorList.add(color);
-          bonus += Chainsim.groupBonus(group.length);
+        if (color !== 'gray') {
+          const garbageList = [];
+          const group = (
+            this.checkPuyoHelper(can, color, checkedLocations, garbageList, poppedGarbageList)
+          );
+          if (group.length >= this.puyoMinPop) {
+            puyosToPop.push(...group);
+            poppedGarbageList.push(...garbageList);
+            colorList.add(color);
+            bonus += Chainsim.groupBonus(group.length);
+          }
         }
       }
     }
